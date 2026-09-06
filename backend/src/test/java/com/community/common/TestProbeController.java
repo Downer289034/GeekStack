@@ -14,16 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TestProbeController {
 
+    /** 探针：抛业务异常（NOT_FOUND）。 */
     @GetMapping("/probe/business")
     public Result<Void> business() {
         throw new BusinessException(ErrorCode.NOT_FOUND, "探针资源不存在");
     }
 
+    /** 探针：抛未捕获异常（触发 500）。 */
     @GetMapping("/probe/unknown-error")
     public Result<Void> unknown() {
         throw new IllegalStateException("boom");
     }
 
+    /** 探针：@Valid 参数校验。 */
     @PostMapping("/probe/valid")
     public Result<Void> valid(@Valid @RequestBody ProbeBody body) {
         return Result.ok();

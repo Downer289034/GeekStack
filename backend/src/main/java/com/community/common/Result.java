@@ -18,18 +18,22 @@ public class Result<T> {
         this.data = data;
     }
 
+    /** 成功响应，无数据。 */
     public static Result<Void> ok() {
         return ok(null);
     }
 
+    /** 成功响应，携带数据。 */
     public static <T> Result<T> ok(T data) {
         return new Result<>(ErrorCode.OK.getCode(), ErrorCode.OK.getMessage(), data);
     }
 
+    /** 失败响应，消息取错误码默认文案。 */
     public static Result<Void> fail(ErrorCode errorCode) {
         return new Result<>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
+    /** 失败响应，覆盖默认消息。 */
     public static Result<Void> fail(ErrorCode errorCode, String message) {
         return new Result<>(errorCode.getCode(), message, null);
     }

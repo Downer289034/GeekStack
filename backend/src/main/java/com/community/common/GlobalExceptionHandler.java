@@ -18,11 +18,13 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /** 业务异常：按异常携带的错误码与消息返回。 */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Result<Void>> handleBusiness(BusinessException e) {
         return build(e.getErrorCode().getHttpStatus(), Result.fail(e.getErrorCode(), e.getMessage()));
     }
 
+    /** 参数校验失败（@Valid / 表单绑定）：400，返回首个字段错误信息。 */
     @ExceptionHandler(BindException.class)
     public ResponseEntity<Result<Void>> handleValidation(BindException e) {
         FieldError fieldError = e.getBindingResult().getFieldError();
@@ -32,16 +34,19 @@ public class GlobalExceptionHandler {
         return build(ErrorCode.PARAM_ERROR.getHttpStatus(), Result.fail(ErrorCode.PARAM_ERROR, message));
     }
 
+    /** 请求体不可读或参数类型不匹配：400。 */
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<Result<Void>> handleUnreadable() {
         return build(ErrorCode.PARAM_ERROR.getHttpStatus(), Result.fail(ErrorCode.PARAM_ERROR));
     }
 
+    /** 静态资源与路径未命中：404。 */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Result<Void>> handleNotFound() {
         return build(ErrorCode.NOT_FOUND.getHttpStatus(), Result.fail(ErrorCode.NOT_FOUND));
     }
 
+    /** 未捕获异常：500，不向前端泄漏内部细节。 */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Result<Void>> handleUnknown(Exception e) {
         log.error("未处理异常", e);
