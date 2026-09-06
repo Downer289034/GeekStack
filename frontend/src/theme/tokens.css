@@ -1,0 +1,31 @@
+/* 鸿蒙设计风 CSS 变量（与 tokens.ts 同源，供组件样式消费；换肤同源调整） */
+:root {
+  --color-primary: #0a59f7;
+  --color-primary-hover: #3178ff;
+  --color-primary-pressed: #0540b4;
+  --color-bg-layout: #f1f3f5;
+  --color-bg-container: #ffffff;
+  --color-text: #182431;
+  --color-text-secondary: #5e6772;
+  --radius: 12px;
+  --radius-small: 8px;
+  --font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background-color: var(--color-bg-layout);
+}
