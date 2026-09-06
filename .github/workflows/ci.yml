@@ -41,6 +41,7 @@ jobs:
       MYSQL_PASSWORD: community
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
+      JWT_SECRET: ci-only-jwt-secret-not-for-production-0123456789abcdef
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
