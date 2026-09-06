@@ -1,8 +1,11 @@
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
+import axios, {
+  type AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig
+} from 'axios'
 import { createDiscreteApi } from 'naive-ui'
-
-/** 登录态持久化键（auth store 与请求拦截器共用，唯一出处在此） */
-export const TOKEN_KEY = 'community.token'
+import { clearTokens, getAccessToken, getRefreshToken, setTokens, type TokenPair } from '@/api/tokenStorage'
 
 /** 后端统一响应体（见 backend com.community.common.Result） */
 export interface ApiResult<T = unknown> {
@@ -19,7 +22,7 @@ const request: AxiosInstance = axios.create({
 })
 
 request.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -32,6 +35,39 @@ function redirectToLogin() {
   }
 }
 
+/** 单飞刷新：并发 401 只触发一次 refresh，其余等待复用结果，避免刷新风暴。 */
+let refreshingPromise: Promise<string | null> | null = null
+
+function tryRefreshOnce(): Promise<string | null> {
+  if (!refreshingPromise) {
+    refreshingPromise = (async () => {
+      const refreshToken = getRefreshToken()
+      if (!refreshToken) {
+        return null
+      }
+      try {
+        // 独立实例：不经过本模块拦截器，避免递归刷新
+        const resp = await axios.post<ApiResult<TokenPair>>(
+          '/api/v1/auth/refresh',
+          { refreshToken },
+          { timeout: 15000 }
+        )
+        const pair = resp.data.data
+        setTokens(pair)
+        return pair.accessToken
+      } catch {
+        return null
+      }
+    })()
+    void refreshingPromise.finally(() => {
+      refreshingPromise = null
+    })
+  }
+  return refreshingPromise
+}
+
+type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean }
+
 request.interceptors.response.use(
   (response) => {
     const body = response.data as ApiResult
@@ -42,14 +78,26 @@ request.interceptors.response.use(
     message.error(body.message || '请求失败')
     return Promise.reject(new Error(body.message))
   },
-  (error) => {
+  async (error: AxiosError<ApiResult>) => {
+    const config = error.config as RetriableConfig | undefined
     const status = error.response?.status
-    const body = error.response?.data as ApiResult | undefined
-    if (status === 401) {
-      localStorage.removeItem(TOKEN_KEY)
+    const isAuthApi = config?.url?.includes('/v1/auth/')
+
+    if (status === 401 && config && !config._retried && !isAuthApi) {
+      config._retried = true
+      const newToken = await tryRefreshOnce()
+      if (newToken) {
+        config.headers.Authorization = `Bearer ${newToken}`
+        return request.request(config)
+      }
+      clearTokens()
+      redirectToLogin()
+    } else if (status === 401) {
+      clearTokens()
       redirectToLogin()
     }
-    message.error(body?.message || '网络异常，请稍后再试')
+
+    message.error(error.response?.data?.message || '网络异常，请稍后再试')
     return Promise.reject(error)
   }
 )

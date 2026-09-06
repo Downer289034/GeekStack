@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import { NButton, NLayout, NLayoutContent, NLayoutFooter, NLayoutHeader } from 'naive-ui'
+import { NButton, NLayout, NLayoutContent, NLayoutFooter, NLayoutHeader, NText } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const auth = useAuthStore()
+
+onMounted(() => {
+  void auth.fetchCurrentUser()
+})
 
 const navItems = [
   { name: 'home', label: '首页', to: '/', match: (n: unknown) => n === 'home' },
@@ -23,7 +28,7 @@ const navItems = [
 ]
 
 function logout() {
-  auth.clearToken()
+  auth.logout()
 }
 </script>
 
@@ -42,10 +47,13 @@ function logout() {
           {{ item.label }}
         </RouterLink>
         <span class="spacer" />
-        <RouterLink v-if="!auth.isLoggedIn" to="/login">
+        <template v-if="auth.isLoggedIn">
+          <n-text class="user-name">{{ auth.user?.nickname ?? auth.user?.username ?? '' }}</n-text>
+          <n-button quaternary @click="logout">退出登录</n-button>
+        </template>
+        <RouterLink v-else to="/login">
           <n-button quaternary type="primary">登录 / 注册</n-button>
         </RouterLink>
-        <n-button v-else quaternary @click="logout">退出登录</n-button>
       </nav>
     </n-layout-header>
     <n-layout-content class="content">
@@ -102,6 +110,10 @@ function logout() {
 
 .spacer {
   flex: 1;
+}
+
+.user-name {
+  font-size: 14px;
 }
 
 .content {
