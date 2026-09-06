@@ -21,6 +21,8 @@
         <java.version>17</java.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <!-- P2-1：消除 maven-compiler-plugin 3.13.0 的 plugin validation 警告 -->
+        <maven.plugin.validation>DEFAULT</maven.plugin.validation>
     </properties>
 
     <dependencies>

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,12 @@ const router = createRouter({
           name: 'share-plaza',
           component: () => import('@/views/share/SharePlazaView.vue'),
           meta: { title: '项目广场' }
+        },
+        {
+          path: 'shares/new',
+          name: 'share-publish',
+          component: () => import('@/views/share/SharePublishView.vue'),
+          meta: { title: '发布项目', requiresAuth: true }
         },
         {
           path: 'shares/:id',
@@ -53,6 +60,16 @@ const router = createRouter({
       meta: { title: '登录 / 注册' }
     }
   ]
+})
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth) {
+    const auth = useAuthStore()
+    if (!auth.isLoggedIn) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
+  }
+  return true
 })
 
 router.afterEach((to) => {

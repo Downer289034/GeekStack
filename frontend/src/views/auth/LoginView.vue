@@ -43,7 +43,8 @@ const rules: FormRules = {
 }
 
 function goHome() {
-  void router.push('/')
+  const redirect = router.currentRoute.value.query.redirect
+  void router.push(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/')
 }
 
 async function onLoginSubmit() {
