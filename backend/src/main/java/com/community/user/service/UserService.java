@@ -12,6 +12,7 @@ import com.community.user.entity.User;
 import com.community.user.mapper.UserMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class UserService {
         this.jwtService = jwtService;
     }
 
-    /** 注册并直接登录（返回令牌对）。用户名/邮箱重复返回 409。 */
+    /** 注册并直接登录（返回令牌对）。用户名/邮箱重复返回 409；并发下由唯一索引兜底。 */
     public TokenResponse register(RegisterRequest request) {
         String username = request.username();
         String email = request.email();
@@ -45,7 +46,12 @@ public class UserService {
         user.setNickname(username);
         user.setRole("USER");
         user.setStatus(0);
-        userMapper.insert(user);
+        try {
+            userMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            // P2-4：并发注册绕过 count 检查时由唯一索引兜底，转统一 409 而非 500
+            throw new BusinessException(ErrorCode.CONFLICT, "用户名或邮箱已被占用");
+        }
         return issueTokens(username);
     }
 

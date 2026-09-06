@@ -48,6 +48,9 @@ function logout() {
         </RouterLink>
         <span class="spacer" />
         <template v-if="auth.isLoggedIn">
+          <RouterLink to="/shares/new">
+            <n-button size="small" type="primary">发布项目</n-button>
+          </RouterLink>
           <n-text class="user-name">{{ auth.user?.nickname ?? auth.user?.username ?? '' }}</n-text>
           <n-button quaternary @click="logout">退出登录</n-button>
         </template>
