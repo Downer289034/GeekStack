@@ -35,6 +35,9 @@ public class UserRepo {
 
     private LocalDateTime syncedAt;
 
+    /** 隐藏：0 显示 1 隐藏。 */
+    private Integer hidden;
+
     private Integer deleted;
 
     private LocalDateTime createdAt;
