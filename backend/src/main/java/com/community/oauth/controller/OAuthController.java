@@ -75,17 +75,26 @@ public class OAuthController {
         return Result.ok(oAuthService.handleCallback(provider, payload.code(), viewer));
     }
 
-    /** 平台浏览器回调（302 落地点）：向浏览器返回极简收尾页，由 opener 把 code 转交 POST 接口。 */
+    /**
+     * 平台浏览器回调（302 落地点）：向浏览器返回极简收尾页，通过双通道把 code 回传给父窗口。
+     * 通道 1：opener.postMessage（opener 存在时走此路径）
+     * 通道 2：localStorage 标记（opener 被浏览器安全策略置 null 时的降级方案）
+     */
     @GetMapping("/callback/{provider}")
     public String callback(@PathVariable String provider, @RequestParam(required = false) String code) {
         String safeProvider = provider == null ? "" : provider.trim().toLowerCase();
         String safeCode = code == null ? "" : code;
-        // 极简内联页：postMessage 给 opener 后自关闭（避免引入额外模板引擎）
+        String storeKey = "oauth_pending_" + safeProvider;
         return "<!doctype html><html><body><script>"
-                + "if (window.opener) { window.opener.postMessage("
-                + "JSON.stringify({provider:'" + escape(safeProvider) + "',code:'" + escape(safeCode) + "'}), '*'); }"
-                + "window.close();"
-                + "</script>授权完成，请返回页面</body></html>";
+                + "(function(){"
+                + "var payload=JSON.stringify({provider:'" + escape(safeProvider) + "',code:'" + escape(safeCode) + "'});"
+                // 通道 1：opener.postMessage
+                + "try{if(window.opener){window.opener.postMessage(payload,'*');}}catch(e){}"
+                // 通道 2：localStorage 标记（父窗口轮询 / 从 storage 事件感知）
+                + "try{localStorage.setItem('" + storeKey + "',payload);}catch(e){}"
+                + "setTimeout(function(){try{window.close();}catch(e){}},300);"
+                + "})()"
+                + "</script><p>授权完成，请返回页面</p></body></html>";
     }
 
     /** 解绑（需认证）。 */

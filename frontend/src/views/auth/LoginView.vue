@@ -28,29 +28,25 @@ const registerFormRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const oauthLoading = ref<OAuthProvider | null>(null)
 
-// OAuth 弹窗回调：后端收尾页 postMessage 回 code，这里转交后端完成登录/绑定
+// OAuth 弹窗回调：双通道接收 code（opener.postMessage + localStorage 降级）
 function onOAuthLogin(provider: OAuthProvider) {
   oauthLoading.value = provider
   let popup: Window | null = null
-  const cleanup = () => {
+  let resolved = false
+
+  const storeKey = `oauth_pending_${provider.toLowerCase()}`
+  let pollTimer: number | null = null
+  let closeWatchTimer: number | null = null
+
+  function resolveCode(payload: { provider?: string; code?: string }) {
+    if (resolved) return
+    if (payload.provider !== provider.toLowerCase() || !payload.code) return
+    resolved = true
+    // 先停轮询与监听（但不清 localStorage——可能由下一个 resolveCode 调用清理）
     window.removeEventListener('message', onMessage)
-    oauthLoading.value = null
-  }
-  const onMessage = (event: MessageEvent) => {
-    // 回调收尾页来自本站后端
-    if (event.origin !== window.location.origin) {
-      return
-    }
-    let payload: { provider?: string; code?: string }
-    try {
-      payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
-    } catch {
-      return
-    }
-    if (payload.provider !== provider.toLowerCase() || !payload.code) {
-      return
-    }
-    window.removeEventListener('message', onMessage)
+    if (pollTimer != null) window.clearInterval(pollTimer)
+    if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
+    try { localStorage.removeItem(storeKey) } catch { /* ignore */ }
     submitOAuthCode(provider, payload.code)
       .then(async (pair) => {
         await auth.applyTokens(pair)
@@ -64,7 +60,25 @@ function onOAuthLogin(provider: OAuthProvider) {
         popup?.close()
       })
   }
+
+  // cleanup 仅在非正常退出（fetch 失败）时调用——不清理 localStorage（可能已被 resolveCode 清理）
+  function cleanup() {
+    window.removeEventListener('message', onMessage)
+    if (pollTimer != null) window.clearInterval(pollTimer)
+    if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
+  }
+
+  function onMessage(event: MessageEvent) {
+    if (event.origin !== window.location.origin) return
+    let payload: { provider?: string; code?: string }
+    try {
+      payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+    } catch { return }
+    resolveCode(payload)
+  }
+
   window.addEventListener('message', onMessage)
+
   void fetchAuthorizeUrl(provider)
     .then((url) => {
       popup = window.open(url, 'oauth_' + provider, 'width=680,height=720')
@@ -73,16 +87,31 @@ function onOAuthLogin(provider: OAuthProvider) {
         window.location.assign(url)
         return
       }
-      // 弹窗被用户直接关闭时复位按钮
-      const timer = window.setInterval(() => {
-        if (popup?.closed) {
-          window.clearInterval(timer)
-          cleanup()
+      // 通道 2：轮询 localStorage（opener 被浏览器置 null 时的降级方案）
+      pollTimer = window.setInterval(() => {
+        try {
+          const raw = localStorage.getItem(storeKey)
+          if (raw) {
+            resolveCode(JSON.parse(raw))
+          }
+        } catch { /* ignore parse errors */ }
+      }, 600)
+      // 弹窗被用户直接关闭时：给 localStorage 留 2.5 秒让轮询读到，超时复位按钮
+      closeWatchTimer = window.setInterval(() => {
+        if (popup?.closed && !resolved) {
+          if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
+          window.setTimeout(() => {
+            if (!resolved) {
+              try { localStorage.removeItem(storeKey) } catch { /* ignore */ }
+              oauthLoading.value = null
+            }
+          }, 2500)
         }
       }, 500)
     })
     .catch(() => {
       cleanup()
+      oauthLoading.value = null
     })
 }
 
