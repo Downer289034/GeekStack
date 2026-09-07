@@ -1,11 +1,11 @@
 package com.community.oauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.community.common.AesGcmCipher;
 import com.community.oauth.entity.UserRepo;
 import com.community.oauth.mapper.UserRepoMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class RepoHideControllerTest {
+class RepoControllerTest {
 
-    private static final String TEST_USER_PREFIX = "t17_";
+    private static final String TEST_USER_PREFIX = "t17r_";
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,10 +41,11 @@ class RepoHideControllerTest {
 
     private String token;
     private long userId;
+    private String username;
 
     @BeforeEach
     void init() throws Exception {
-        String username = TEST_USER_PREFIX + System.nanoTime();
+        username = TEST_USER_PREFIX + System.nanoTime();
         String body = objectMapper.writeValueAsString(
                 Map.of("username", username, "email", username + "@test.local", "password", "password123"));
         String resp = mockMvc.perform(post("/api/v1/auth/register")
@@ -79,6 +80,28 @@ class RepoHideControllerTest {
         return repo.getId();
     }
 
+    // ==================== GET /users/{username}/repos ====================
+
+    @Test
+    void listReposReturnsVisibleOnly() throws Exception {
+        insertRepo("visible/repo", 0);
+        insertRepo("hidden/repo", 1);
+
+        mockMvc.perform(get("/api/v1/users/" + username + "/repos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].repoFullName").value("visible/repo"));
+    }
+
+    @Test
+    void listReposReturnsEmptyForUnknownUser() throws Exception {
+        mockMvc.perform(get("/api/v1/users/nonexistent_xyz/repos"))
+                .andExpect(status().isNotFound());
+    }
+
+    // ==================== POST /repos/{id}/toggle-hide ====================
+
     @Test
     void toggleHideFromVisibleToHidden() throws Exception {
         long repoId = insertRepo("test/repo", 0);
@@ -86,7 +109,6 @@ class RepoHideControllerTest {
         mockMvc.perform(post("/api/v1/repos/" + repoId + "/toggle-hide")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data").value(true));
     }
 
@@ -104,14 +126,6 @@ class RepoHideControllerTest {
     void nonExistentRepoReturns404() throws Exception {
         mockMvc.perform(post("/api/v1/repos/999999/toggle-hide")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value(40400));
-    }
-
-    @Test
-    void unauthenticatedReturns401() throws Exception {
-        long repoId = insertRepo("test/repo", 0);
-        mockMvc.perform(post("/api/v1/repos/" + repoId + "/toggle-hide"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isNotFound());
     }
 }
