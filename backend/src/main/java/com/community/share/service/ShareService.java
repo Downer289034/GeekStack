@@ -14,6 +14,7 @@ import com.community.share.entity.ProjectShare;
 import com.community.share.mapper.ProjectShareMapper;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -90,6 +91,21 @@ public class ShareService {
                 .setSql("view_count = view_count + 1"));
         share.setViewCount(share.getViewCount() == null ? 1 : share.getViewCount() + 1);
         return toResponse(share);
+    }
+
+    /**
+     * 某用户的项目分享（主页聚合用，限量取前 N 条）。
+     * 可见性与详情页一致：PUBLISHED 对所有人可见；HIDDEN 仅作者本人可见（owner=true 时包含）。
+     */
+    public List<ShareResponse> listByUser(long userId, boolean owner, int limit) {
+        LambdaQueryWrapper<ProjectShare> wrapper = Wrappers.<ProjectShare>lambdaQuery()
+                .eq(ProjectShare::getUserId, userId)
+                .orderByDesc(ProjectShare::getCreatedAt, ProjectShare::getId);
+        if (!owner) {
+            wrapper.eq(ProjectShare::getStatus, "PUBLISHED");
+        }
+        wrapper.last("LIMIT " + limit);
+        return shareMapper.selectList(wrapper).stream().map(this::toResponse).toList();
     }
 
     private ShareCardResponse toCard(ProjectShare share) {

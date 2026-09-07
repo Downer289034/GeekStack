@@ -70,6 +70,12 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue'),
       meta: { title: '登录 / 注册' }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/NotFoundView.vue'),
+      meta: { title: '页面不存在' }
     }
   ]
 })
