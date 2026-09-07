@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
+import com.community.event.ContentCreatedEvent;
 import com.community.forum.dto.CategoryResponse;
 import com.community.forum.dto.CreatePostRequest;
 import com.community.forum.dto.PostCardResponse;
@@ -18,6 +19,7 @@ import com.community.forum.mapper.PostMapper;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,11 +34,14 @@ public class PostService {
     private final PostMapper postMapper;
     private final PostCategoryMapper postCategoryMapper;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public PostService(PostMapper postMapper, PostCategoryMapper postCategoryMapper, UserService userService) {
+    public PostService(PostMapper postMapper, PostCategoryMapper postCategoryMapper,
+                       UserService userService, ApplicationEventPublisher eventPublisher) {
         this.postMapper = postMapper;
         this.postCategoryMapper = postCategoryMapper;
         this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     /** 分类列表（按 sort_order 升序）。 */
@@ -62,6 +67,9 @@ public class PostService {
         post.setIsPinned(0);
         post.setIsHot(0);
         postMapper.insert(post);
+        // T14.6：发布 post.created 事件（content_text = 正文全文，截断由 Listener 处理）
+        eventPublisher.publishEvent(
+                new ContentCreatedEvent.PostCreated(this, post.getId(), post.getContentMd(), userId));
         return toDetail(post);
     }
 
