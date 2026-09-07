@@ -67,7 +67,10 @@ public class UserService {
         return issueTokens(user.getUsername());
     }
 
-    /** 用刷新令牌换新令牌对；令牌非法/过期/类型不符返回 401。 */
+    /**
+     * 用刷新令牌换新令牌对；令牌非法/过期/类型不符返回 401。
+     * P2-3：签发前查一次用户状态——封禁用户即使 refresh 令牌仍在有效期也不能续期。
+     */
     public TokenResponse refresh(String refreshToken) {
         Claims claims;
         try {
@@ -78,7 +81,15 @@ public class UserService {
         if (!jwtService.isRefreshToken(claims)) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的刷新令牌");
         }
-        return issueTokens(claims.getSubject());
+        String username = claims.getSubject();
+        User user = selectByUsername(username);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期，请重新登录");
+        }
+        if (user.getStatus() != null && user.getStatus() != 0) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "账号已被封禁");
+        }
+        return issueTokens(username);
     }
 
     /** 按用户名查询当前登录用户资料；不存在返回 404。 */

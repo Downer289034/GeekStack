@@ -163,6 +163,22 @@ class UserAuthIntegrationTest {
     }
 
     @Test
+    void refreshRejectedForBannedUser() throws Exception {
+        // P2-3：封禁用户即使持有有效 refresh 令牌也不能续期
+        JsonNode tokens = registerAndGetTokens();
+        jdbcTemplate.update("UPDATE user SET status = 1 WHERE username = ?", username);
+
+        String refreshBody = objectMapper.writeValueAsString(
+                Map.of("refreshToken", tokens.path("refreshToken").asText()));
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(refreshBody))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300))
+                .andExpect(jsonPath("$.message").value("账号已被封禁"));
+    }
+
+    @Test
     void invalidRegisterParamsReturn400() throws Exception {
         String body = objectMapper.writeValueAsString(
                 Map.of("username", username, "email", email, "password", "123"));
