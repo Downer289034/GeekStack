@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 
 import com.community.event.dto.EventPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -101,6 +105,24 @@ class WebhookPushListenerTest {
         EventPayload payload = objectMapper.readValue(captor.getValue().getBody(), EventPayload.class);
         assertThat(payload.contentText()).hasSize(5000);
         assertThat(payload.metadata().truncated()).isTrue();
+    }
+
+    /** F1：422 应走 HttpStatusCodeException 异常路径（REST 默认行为），不是 status 分支。 */
+    @Test
+    void status422ThrowsAndLogsAsContractBug() {
+        org.mockito.Mockito.when(restTemplate.postForEntity(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .thenThrow(HttpClientErrorException.create(
+                        org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,
+                        "Unprocessable Entity",
+                        new HttpHeaders(),
+                        "schema invalid".getBytes(StandardCharsets.UTF_8),
+                        StandardCharsets.UTF_8));
+
+        // 不应抛异常（推送失败不阻塞）
+        listener.onPostCreated(new ContentCreatedEvent.PostCreated(this, 501, "422测试", 99));
+        verify(restTemplate, atLeastOnce()).postForEntity(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
 
     @Test

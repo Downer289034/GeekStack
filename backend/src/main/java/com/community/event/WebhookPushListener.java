@@ -99,15 +99,29 @@ public class WebhookPushListener {
 
             int status = response.getStatusCode().value();
             if (status == 202) {
-                log.info("Webhook 推送成功: contentId={}, traceId={}, status={}", payload.contentId(), traceId, status);
-            } else if (status == 422) {
-                // 422 = 契约 bug 信号，记 ERROR 上报 Agent PM
-                log.error("Webhook 422 契约违反: contentId={}, traceId={}, body={}", payload.contentId(), traceId, body);
+                // 从 Agent 响应中解析 trace_id（契约 §6：Agent 生成，极客栈记录用于对账）
+                String agentTraceId = null;
+                if (response.getBody() instanceof Map<?, ?> map) {
+                    agentTraceId = map.containsKey("trace_id") ? String.valueOf(map.get("trace_id")) : null;
+                }
+                log.info("Webhook 推送成功: contentId={}, localTrace={}, agentTraceId={}",
+                        payload.contentId(), traceId, agentTraceId);
             } else {
-                log.warn("Webhook 推送非预期状态码: contentId={}, status={}, traceId={}", payload.contentId(), status, traceId);
+                log.warn("Webhook 推送非预期状态码: contentId={}, status={}, localTrace={}",
+                        payload.contentId(), status, traceId);
+            }
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            // RestTemplate 默认对 4xx/5xx 抛异常：401/5xx 仅记 WARN，422 是契约 bug 信号记 ERROR
+            int status = e.getRawStatusCode();
+            if (status == 422) {
+                log.error("Webhook 422 契约违反(需反馈 Agent PM): contentId={}, body={}, response={}",
+                        payload.contentId(), payload.contentText(), e.getResponseBodyAsString());
+            } else {
+                log.warn("Webhook HTTP 错误(不阻塞): contentId={}, status={}, message={}",
+                        payload.contentId(), status, e.getMessage());
             }
         } catch (Exception e) {
-            // 401/5xx/超时：仅记 WARN，不重试，不阻塞主流程
+            // 401/超时/序列化异常：仅记 WARN，不重试，不阻塞主流程
             log.warn("Webhook 推送失败(不阻塞): contentId={}, contentType={}, error={}",
                     payload.contentId(), payload.contentType(), e.getMessage());
         }
