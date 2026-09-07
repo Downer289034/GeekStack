@@ -46,6 +46,12 @@ const router = createRouter({
           meta: { title: '技术论坛' }
         },
         {
+          path: 'forum/new',
+          name: 'post-publish',
+          component: () => import('@/views/forum/PostPublishView.vue'),
+          meta: { title: '发帖', requiresAuth: true }
+        },
+        {
           path: 'forum/posts/:id',
           name: 'post-detail',
           component: () => import('@/views/forum/PostDetailView.vue'),
