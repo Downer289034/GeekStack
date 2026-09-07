@@ -106,12 +106,16 @@ public class PostService {
         return PageResponse.from(page.convert(this::toCard));
     }
 
-    /** 帖子详情（逻辑删除后不可见）。 */
+    /** 帖子详情（逻辑删除后不可见）；浏览数原子 +1（与 share 模块口径一致）。 */
     public PostDetailResponse detail(long id) {
         Post post = postMapper.selectById(id);
         if (post == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
         }
+        postMapper.update(null, Wrappers.<Post>lambdaUpdate()
+                .eq(Post::getId, id)
+                .setSql("view_count = view_count + 1"));
+        post.setViewCount(post.getViewCount() == null ? 1 : post.getViewCount() + 1);
         return toDetail(post);
     }
 

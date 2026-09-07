@@ -1,0 +1,130 @@
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import {
+  NButton,
+  NCard,
+  NForm,
+  NFormItem,
+  NInput,
+  type FormInst,
+  type FormRules
+} from 'naive-ui'
+import { MdEditor } from 'md-editor-v3'
+import type { ToolbarNames } from 'md-editor-v3'
+import 'md-editor-v3/lib/style.css'
+import { createPost, fetchCategories, type Category } from '@/api/forum'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+const formRef = ref<FormInst | null>(null)
+const submitting = ref(false)
+const categories = ref<Category[]>([])
+const categoryId = ref<number | null>(null)
+
+const model = reactive({ title: '', contentMd: '' })
+
+const rules: FormRules = {
+  categoryId: [{ required: true, type: 'number', message: '请选择分类' }],
+  title: [
+    { required: true, message: '请输入标题' },
+    { max: 200, message: '标题最长 200 字' }
+  ],
+  contentMd: [{ required: true, message: '请输入正文（Markdown）' }]
+}
+
+const toolbar: ToolbarNames[] = ['bold', 'italic', 'strikeThrough', 'title', '-', 'code', 'quote', 'unorderedList', 'link', 'table', '-', 'preview']
+
+async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return
+  }
+  if (!auth.isLoggedIn || categoryId.value == null) {
+    return
+  }
+  submitting.value = true
+  try {
+    const post = await createPost({
+      categoryId: categoryId.value,
+      title: model.title,
+      contentMd: model.contentMd
+    })
+    void router.push(`/forum/posts/${post.id}`)
+  } catch {
+    // 错误提示由请求拦截器统一 toast
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function init() {
+  categories.value = await fetchCategories()
+}
+
+void init()
+</script>
+
+<template>
+  <n-card title="发帖">
+    <n-form ref="formRef" :model="model" :rules="rules" label-placement="top">
+      <n-form-item label="分类" path="categoryId">
+        <div class="cat-select">
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            type="button"
+            class="cat-option"
+            :class="{ active: categoryId === cat.id }"
+            @click="categoryId = cat.id"
+          >
+            {{ cat.name }}
+          </button>
+        </div>
+      </n-form-item>
+      <n-form-item label="标题" path="title">
+        <n-input v-model:value="model.title" placeholder="一句话说清你的问题或主题" />
+      </n-form-item>
+      <n-form-item label="正文（Markdown，实时预览）" path="contentMd">
+        <div class="editor-wrap">
+          <MdEditor v-model="model.contentMd" :toolbars="toolbar" placeholder="正文支持 Markdown…" />
+        </div>
+      </n-form-item>
+      <n-button type="primary" :loading="submitting" @click="onSubmit">发布</n-button>
+    </n-form>
+  </n-card>
+</template>
+
+<style scoped>
+.cat-select {
+  display: flex;
+  gap: 8px;
+}
+
+.cat-option {
+  border: 1px solid var(--color-text-secondary);
+  background: transparent;
+  color: var(--color-text);
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cat-option.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.editor-wrap {
+  width: 100%;
+}
+
+.editor-wrap :deep(.md-editor) {
+  height: 380px;
+}
+</style>
