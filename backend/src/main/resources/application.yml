@@ -42,6 +42,8 @@ community:
   oauth:
     # OAuth Token AES-256-GCM 加密密钥（Base64 的 32 字节）；缺失时应用拒绝启动
     aes-key: ${OAUTH_AES_KEY:}
+    # OAuth 回调基地址：dev 用前端源，prod 用域名（域名就绪后改）
+    redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:5173}
     github:
       client-id: ${GITHUB_CLIENT_ID:}
       client-secret: ${GITHUB_CLIENT_SECRET:}
