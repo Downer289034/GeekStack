@@ -119,6 +119,16 @@ public class PostService {
         return toDetail(post);
     }
 
+    /** 某用户的帖子（主页聚合用，限量取前 N 条，仅未逻辑删除——帖无隐藏态，口径天然一致）。 */
+    public List<PostCardResponse> listByUser(long userId, int limit) {
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        // 逻辑删除过滤由 MP 全局配置自动追加；selectList 不会触发分页插件，LIMIT 由 last 提供
+        wrapper.orderByDesc("created_at").orderByDesc("id");
+        wrapper.last("LIMIT " + limit);
+        return postMapper.selectList(wrapper).stream().map(this::toCard).toList();
+    }
+
     private PostCardResponse toCard(Post post) {
         return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
                 post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(), post.getIsPinned(),
