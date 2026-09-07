@@ -12,7 +12,7 @@ FILE="$BACKUP_DIR/community_$STAMP.sql.gz"
 mkdir -p "$BACKUP_DIR"
 # 密码从 .env 读取（source 于容器外），仅传给 mysql 客户端进程，不落日志
 source /opt/community/.env
-docker exec geekstack-mysql mysqldump -ucommunity -p"$MYSQL_PASSWORD" --single-transaction --routines community | gzip > "$FILE"
+docker exec geekstack-mysql mysqldump -ucommunity -p"$MYSQL_PASSWORD" --single-transaction --routines --no-tablespaces community | gzip > "$FILE"
 
 # 轮转：只保留最近 KEEP 份
 ls -1t "$BACKUP_DIR"/community_*.sql.gz | tail -n +$((KEEP + 1)) | xargs -r rm --
