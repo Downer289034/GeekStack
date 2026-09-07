@@ -80,7 +80,7 @@ router.beforeEach((to) => {
 
 router.afterEach((to) => {
   const title = to.meta.title as string | undefined
-  document.title = title ? `${title} · Java & AI 交流社区` : 'Java & AI 交流社区'
+  document.title = title ? `${title} · 极客栈 GeekStack` : '极客栈 GeekStack'
 })
 
 export default router

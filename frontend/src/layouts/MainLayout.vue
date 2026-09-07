@@ -44,7 +44,7 @@ function logout() {
   <n-layout class="layout">
     <n-layout-header class="header" bordered>
       <nav class="nav">
-        <RouterLink class="brand" to="/">JavaAI 社区</RouterLink>
+        <RouterLink class="brand" to="/">极客栈 GeekStack</RouterLink>
         <RouterLink
           v-for="item in navItems"
           :key="item.name"
@@ -73,7 +73,7 @@ function logout() {
       </n-message-provider>
     </n-layout-content>
     <n-layout-footer class="footer" bordered>
-      <span>© 2026 JavaAI 社区 · Java &amp; AI 交流社区（备案号占位）</span>
+      <span>© 2026 极客栈 GeekStack · 代码江湖的落脚点（备案号占位）</span>
     </n-layout-footer>
   </n-layout>
 </template>
