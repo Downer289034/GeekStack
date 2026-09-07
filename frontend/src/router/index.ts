@@ -51,6 +51,13 @@ const router = createRouter({
           component: () => import('@/views/forum/PostPublishView.vue'),
           meta: { title: '发帖', requiresAuth: true }
         },
+        // OAuth 回调路由：后端存储 code 后 redirect 到此，前端轮询 localStorage 读取并完成登录
+        {
+          path: 'oauth/callback/:provider',
+          name: 'oauth-callback',
+          component: () => import('@/views/auth/OAuthCallbackView.vue'),
+          meta: { title: '第三方登录中…' }
+        },
         {
           path: 'forum/posts/:id',
           name: 'post-detail',

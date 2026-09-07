@@ -44,7 +44,7 @@ public class OAuthController {
         this.giteeClientId = giteeClientId;
     }
 
-    /** 发起授权：返回平台授权页 URL（前端跳转/开窗）。state 防 CSRF 由平台 state 参数承担（回调原样带回）。 */
+    /** 发起授权：返回平台授权页 URL（前端 fetch 后弹窗/跳转）。 */
     @GetMapping("/authorize-url/{provider}")
     public Result<Map<String, String>> authorizeUrl(@PathVariable String provider) {
         String normalized = provider == null ? "" : provider.trim().toUpperCase();
@@ -64,6 +64,28 @@ public class OAuthController {
         return Result.ok(Map.of("authorizeUrl", url));
     }
 
+    /** 直接跳转到平台授权页（按钮 href 用此端点，比弹窗可靠）。 */
+    @GetMapping("/login/{provider}")
+    public void redirectToAuthorization(@PathVariable String provider,
+                                        jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        String normalized = provider == null ? "" : provider.trim().toUpperCase();
+        String redirectUri = "http://localhost:8080/api/v1/oauth/callback/" + normalized.toLowerCase();
+        String url;
+        switch (normalized) {
+            case OAuthService.GITHUB -> url = "https://github.com/login/oauth/authorize"
+                    + "?client_id=" + urlEncode(gitHubClientIdValue())
+                    + "&scope=" + urlEncode("read:user user:email")
+                    + "&redirect_uri=" + urlEncode(redirectUri);
+            case OAuthService.GITEE -> url = "https://gitee.com/oauth/authorize"
+                    + "?client_id=" + urlEncode(giteeClientIdValue())
+                    + "&scope=" + urlEncode("user_info projects")
+                    + "&redirect_uri=" + urlEncode(redirectUri)
+                    + "&response_type=code";
+            default -> throw new IllegalArgumentException("不支持的 OAuth 平台");
+        }
+        response.sendRedirect(url);
+    }
+
     /** 前端转交授权码（SPA 主路径）：Authorization 头存在=绑定语义，否则=登录/注册语义。 */
     @PostMapping("/{provider}/code")
     public Result<TokenResponse> submitCode(@PathVariable String provider,
@@ -76,25 +98,21 @@ public class OAuthController {
     }
 
     /**
-     * 平台浏览器回调（302 落地点）：向浏览器返回极简收尾页，通过双通道把 code 回传给父窗口。
-     * 通道 1：opener.postMessage（opener 存在时走此路径）
-     * 通道 2：localStorage 标记（opener 被浏览器安全策略置 null 时的降级方案）
+     * 平台浏览器回调（302 落地点）：将 code 写入 localStorage 后 redirect 到前端 OAuth 回调路由。
+     * 前端路由 OAuthCallbackView 轮询 localStorage 读取 code 并完成登录。
+     * localStorage 在新窗口中可靠工作（无 popup 跨域竞态问题）。
      */
     @GetMapping("/callback/{provider}")
     public String callback(@PathVariable String provider, @RequestParam(required = false) String code) {
         String safeProvider = provider == null ? "" : provider.trim().toLowerCase();
         String safeCode = code == null ? "" : code;
         String storeKey = "oauth_pending_" + safeProvider;
+        String frontendUrl = "/oauth/callback/" + safeProvider;
         return "<!doctype html><html><body><script>"
-                + "(function(){"
-                + "var payload=JSON.stringify({provider:'" + escape(safeProvider) + "',code:'" + escape(safeCode) + "'});"
-                // 通道 1：opener.postMessage
-                + "try{if(window.opener){window.opener.postMessage(payload,'*');}}catch(e){}"
-                // 通道 2：localStorage 标记（父窗口轮询 / 从 storage 事件感知）
-                + "try{localStorage.setItem('" + storeKey + "',payload);}catch(e){}"
-                + "setTimeout(function(){try{window.close();}catch(e){}},300);"
-                + "})()"
-                + "</script><p>授权完成，请返回页面</p></body></html>";
+                + "localStorage.setItem('" + storeKey + "',"
+                + "JSON.stringify({provider:'" + escape(safeProvider) + "',code:'" + escape(safeCode) + "'}));"
+                + "window.location.replace('" + frontendUrl + "');"
+                + "</script><p>正在跳转，请稍候…</p></body></html>";
     }
 
     /** 解绑（需认证）。 */

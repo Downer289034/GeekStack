@@ -73,6 +73,12 @@
 **验收标准**：公网域名 HTTPS 可访问；"注册→分享项目→论坛发帖回帖"全链路真实走通
 **里程碑**：✅ MVP 上线，邀请 5–10 名种子用户内测
 
+### [ ] Task 14.6：发帖/评论/分享事件推送（Agent 对接，契约 v1.0）
+**描述**：按《社区事件对接契约》v1.0（`.agent-contract/docs/community-api-contract.md`，d8613fd）实现事件 webhook 推送。`ApplicationEvent` 发布（post/comment/share 三类创建动作）+ `@Async` 监听器 HMAC 签名推送 `POST <agent>:18000/api/v1/events`。**只推 post.created / comment.created / share.created，编辑/删除不推**；请求体直接用 Agent 冻结的 Event Schema（content_id 带 `post_`/`user_`/`share_` 前缀、content_text 全文快照 ≤5000 字符超长截断置 metadata.truncated=true、评论只推自身文本不推父链、多态宿主写 metadata.target_type）。
+**验收标准**：① 三类创建动作推送到 Agent 返回 202 并记录 trace_id；② HMAC-SHA256 签名（timestamp + "." + raw_body，hex 小写）+ `X-Steward-Timestamp` 头，密钥 32 字节走 .env（`openssl rand -hex 32` 生成，不入 git）；③ 401/5xx/超时仅记日志不重试、不阻塞发帖；④ **422 不静默**——记 ERROR 级日志并按契约 bug 上报 Agent PM；⑤ 推送失败时发帖主流程无感（测试覆盖）。
+**安全红线**：共享密钥线下交换给 Agent PM，不经 git、不经聊天明文长期留存；疑似泄露即轮换（90 天常规轮换 P2 前不强制）。
+**备注**：Agent 侧 T10.1（EventContentType.SHARE 增量）由 Agent 开发者随其 T13 提交；编号撞车已双标注（Agent-T18 = 社区 API 对接 ≠ 本清单 T18 = 一键导入项目分享）。
+
 ---
 
 ## M2 仓库生态（第 6–8 周）

@@ -16,7 +16,6 @@ import {
   type FormRules
 } from 'naive-ui'
 import { register } from '@/api/auth'
-import { fetchAuthorizeUrl, submitOAuthCode, type OAuthProvider } from '@/api/oauth'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -26,113 +25,6 @@ const tab = ref<'login' | 'register'>('login')
 const loginFormRef = ref<FormInst | null>(null)
 const registerFormRef = ref<FormInst | null>(null)
 const submitting = ref(false)
-const oauthLoading = ref<OAuthProvider | null>(null)
-
-// OAuth 弹窗回调：双通道接收 code（opener.postMessage + localStorage 降级）
-function onOAuthLogin(provider: OAuthProvider) {
-  oauthLoading.value = provider
-  let popup: Window | null = null
-  let resolved = false
-
-  const storeKey = `oauth_pending_${provider.toLowerCase()}`
-  let pollTimer: number | null = null
-  let closeWatchTimer: number | null = null
-
-  function resolveCode(payload: { provider?: string; code?: string }) {
-    if (resolved) return
-    if (payload.provider !== provider.toLowerCase() || !payload.code) return
-    resolved = true
-    // 先停轮询与监听（但不清 localStorage——可能由下一个 resolveCode 调用清理）
-    window.removeEventListener('message', onMessage)
-    if (pollTimer != null) window.clearInterval(pollTimer)
-    if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
-    try { localStorage.removeItem(storeKey) } catch { /* ignore */ }
-    submitOAuthCode(provider, payload.code)
-      .then(async (pair) => {
-        await auth.applyTokens(pair)
-        goHome()
-      })
-      .catch(() => {
-        // 错误提示由请求拦截器统一 toast
-      })
-      .finally(() => {
-        oauthLoading.value = null
-        popup?.close()
-      })
-  }
-
-  // cleanup 仅在非正常退出（fetch 失败）时调用——不清理 localStorage（可能已被 resolveCode 清理）
-  function cleanup() {
-    window.removeEventListener('message', onMessage)
-    if (pollTimer != null) window.clearInterval(pollTimer)
-    if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
-  }
-
-  function onMessage(event: MessageEvent) {
-    if (event.origin !== window.location.origin) return
-    let payload: { provider?: string; code?: string }
-    try {
-      payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
-    } catch { return }
-    resolveCode(payload)
-  }
-
-  window.addEventListener('message', onMessage)
-
-  void fetchAuthorizeUrl(provider)
-    .then((url) => {
-      popup = window.open(url, 'oauth_' + provider, 'width=680,height=720')
-      if (!popup) {
-        // 弹窗被拦截：降级为本页跳转（回调后用户手动刷新）
-        window.location.assign(url)
-        return
-      }
-      // 通道 2：轮询 localStorage（opener 被浏览器置 null 时的降级方案）
-      pollTimer = window.setInterval(() => {
-        try {
-          const raw = localStorage.getItem(storeKey)
-          if (raw) {
-            resolveCode(JSON.parse(raw))
-          }
-        } catch { /* ignore parse errors */ }
-      }, 600)
-      // 弹窗被用户直接关闭时：给 localStorage 留 2.5 秒让轮询读到，超时复位按钮
-      closeWatchTimer = window.setInterval(() => {
-        if (popup?.closed && !resolved) {
-          if (closeWatchTimer != null) window.clearInterval(closeWatchTimer)
-          window.setTimeout(() => {
-            if (!resolved) {
-              try { localStorage.removeItem(storeKey) } catch { /* ignore */ }
-              oauthLoading.value = null
-            }
-          }, 2500)
-        }
-      }, 500)
-    })
-    .catch(() => {
-      cleanup()
-      oauthLoading.value = null
-    })
-}
-
-const loginModel = reactive({ username: '', password: '' })
-const registerModel = reactive({ username: '', email: '', password: '' })
-
-const rules: FormRules = {
-  username: [
-    { required: true, message: '请输入用户名' },
-    { min: 3, max: 50, message: '用户名长度需在 3-50 位之间' },
-    { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字与下划线' }
-  ],
-  email: [
-    { required: true, message: '请输入邮箱' },
-    { type: 'email', message: '邮箱格式不正确' }
-  ],
-  password: [
-    { required: true, message: '请输入密码' },
-    { min: 8, max: 64, message: '密码长度需在 8-64 位之间' }
-  ]
-}
 
 function goHome() {
   const redirect = router.currentRoute.value.query.redirect
@@ -172,6 +64,25 @@ async function onRegisterSubmit() {
   } finally {
     submitting.value = false
   }
+}
+
+const loginModel = reactive({ username: '', password: '' })
+const registerModel = reactive({ username: '', email: '', password: '' })
+
+const rules: FormRules = {
+  username: [
+    { required: true, message: '请输入用户名' },
+    { min: 3, max: 50, message: '用户名长度需在 3-50 位之间' },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字与下划线' }
+  ],
+  email: [
+    { required: true, message: '请输入邮箱' },
+    { type: 'email', message: '邮箱格式不正确' }
+  ],
+  password: [
+    { required: true, message: '请输入密码' },
+    { min: 8, max: 64, message: '密码长度需在 8-64 位之间' }
+  ]
 }
 </script>
 
@@ -225,10 +136,11 @@ async function onRegisterSubmit() {
         <n-text depth="3" style="font-size: 12px">第三方登录（未注册将自动创建账号）</n-text>
       </n-divider>
       <n-space vertical size="small">
-        <n-button block :loading="oauthLoading === 'GITHUB'" @click="onOAuthLogin('GITHUB')">
+        <!-- 跳转到后端 redirect 端点，GitHub/Gitee 授权后回调→redirect→前端路由接收 code -->
+        <n-button block tag="a" href="/api/v1/oauth/login/GITHUB">
           使用 GitHub 登录
         </n-button>
-        <n-button block :loading="oauthLoading === 'GITEE'" @click="onOAuthLogin('GITEE')">
+        <n-button block tag="a" href="/api/v1/oauth/login/GITEE">
           使用 Gitee 登录
         </n-button>
       </n-space>
