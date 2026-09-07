@@ -37,14 +37,16 @@ public class RepoController {
         this.repoSyncService = repoSyncService;
     }
 
-    /** 用户公开仓库列表（按 stars 倒序，hidden 过滤对所有人生效）。 */
+    /** 用户仓库列表（公开，默认 hidden=0；导入时传 includeHidden=true）。 */
     @GetMapping("/users/{username}/repos")
-    public Result<List<UserRepo>> listRepos(@PathVariable String username) {
+    public Result<List<UserRepo>> listRepos(@PathVariable String username,
+                                             @RequestParam(defaultValue = "false") boolean includeHidden) {
         UserResponse user = userService.me(username);
-        return Result.ok(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, user.id())
-                .eq(UserRepo::getHidden, 0)
-                .orderByDesc(UserRepo::getStars)));
+        var wrapper = Wrappers.<UserRepo>lambdaQuery().eq(UserRepo::getUserId, user.id());
+        if (!includeHidden) {
+            wrapper.eq(UserRepo::getHidden, 0);
+        }
+        return Result.ok(repoMapper.selectList(wrapper.orderByDesc(UserRepo::getStars)));
     }
 
     /** 切换仓库隐藏状态（仅所属用户）。 */

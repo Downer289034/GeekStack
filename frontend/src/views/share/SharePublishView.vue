@@ -4,10 +4,13 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   NButton,
   NCard,
+  NDrawer,
+  NDrawerContent,
   NForm,
   NFormItem,
   NDynamicTags,
   NInput,
+  NEmpty,
   NSpin,
   type FormInst,
   type FormRules
@@ -16,13 +19,14 @@ import { MdEditor } from 'md-editor-v3'
 import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { createShare, fetchShare, updateShare } from '@/api/share'
+import { fetchRepos, type UserRepo } from '@/api/repo'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-// 编辑模式：/shares/edit/:id 复用同一表单组件（不复制代码）
+// 编辑模式
 const editId = computed(() => {
   const raw = route.params.id
   const id = typeof raw === 'string' ? Number(raw) : NaN
@@ -33,6 +37,11 @@ const isEdit = computed(() => editId.value != null)
 const formRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const loadingShare = ref(isEdit.value)
+
+// 一键导入：抽屉状态
+const showRepoDrawer = ref(false)
+const repoLoading = ref(false)
+const availableRepos = ref<UserRepo[]>([])
 
 const model = reactive({
   title: '',
@@ -57,9 +66,12 @@ const rules: FormRules = {
   demoUrl: [{ type: 'url', message: '在线地址必须是合法 URL' }]
 }
 
-// 精简工具栏：写作场景足够，避免按钮过宽
-const toolbar: ToolbarNames[] = ['bold', 'italic', 'strikeThrough', 'title', '-', 'code', 'quote', 'unorderedList', 'link', 'table', '-', 'preview']
+const toolbar: ToolbarNames[] = [
+  'bold', 'italic', 'strikeThrough', 'title', '-', 'code', 'quote',
+  'unorderedList', 'link', 'table', '-', 'preview'
+]
 
+// 编辑模式预填充
 async function prefillForEdit() {
   if (editId.value == null) return
   try {
@@ -75,8 +87,32 @@ async function prefillForEdit() {
   }
 }
 
+// 一键导入：拉取用户全量仓库（含已隐藏）
+async function openRepoDrawer() {
+  showRepoDrawer.value = true
+  repoLoading.value = true
+  try {
+    availableRepos.value = await fetchRepos(auth.user?.username ?? '', true)
+  } catch {
+    availableRepos.value = []
+  } finally {
+    repoLoading.value = false
+  }
+}
+
+function importRepo(repo: UserRepo) {
+  // 预填仓库 URL，名称作为标题建议（用户可修改）
+  model.repoUrl = repo.repoUrl
+  if (!model.title) {
+    model.title = repo.repoFullName
+  }
+  if (!model.summary && repo.description) {
+    model.summary = repo.description
+  }
+  showRepoDrawer.value = false
+}
+
 function goAfterSave(id: number) {
-  // 编辑后回详情页确认；发布后回广场
   if (isEdit.value) {
     void router.push(`/shares/${id}`)
   } else {
@@ -120,6 +156,13 @@ void prefillForEdit()
   <n-card :title="isEdit ? '编辑项目' : '发布项目'">
     <n-spin :show="loadingShare">
       <n-form ref="formRef" :model="model" :rules="rules" label-placement="top">
+        <!-- 一键导入入口（仅创建模式） -->
+        <template v-if="!isEdit && auth.isLoggedIn">
+          <n-button style="margin-bottom: 12px" block @click="openRepoDrawer">
+            📦 从我的仓库导入（自动填充名称/描述/仓库地址）
+          </n-button>
+        </template>
+
         <n-form-item label="项目名称" path="title">
           <n-input v-model:value="model.title" placeholder="项目名称" />
         </n-form-item>
@@ -145,6 +188,19 @@ void prefillForEdit()
         </n-button>
       </n-form>
     </n-spin>
+
+    <!-- 一键导入仓库选择抽屉 -->
+    <n-drawer v-model:show="showRepoDrawer" :width="400" placement="right">
+      <n-drawer-content title="选择要导入的仓库">
+        <n-spin :show="repoLoading">
+          <n-empty v-if="availableRepos.length === 0" description="暂无可用仓库（未绑定或快照为空）" />
+          <div v-for="repo in availableRepos" :key="repo.id" class="repo-pick-item" @click="importRepo(repo)">
+            <span class="repo-pick-name">{{ repo.repoFullName }}</span>
+            <n-text depth="3" class="repo-pick-desc">{{ repo.description || '暂无描述' }}</n-text>
+          </div>
+        </n-spin>
+      </n-drawer-content>
+    </n-drawer>
   </n-card>
 </template>
 
@@ -154,6 +210,28 @@ void prefillForEdit()
 }
 
 .editor-wrap :deep(.md-editor) {
-  height: 420px;
+  height: 380px;
+}
+
+.repo-pick-item {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-bg-layout);
+  cursor: pointer;
+}
+
+.repo-pick-item:hover {
+  background: var(--color-bg-layout);
+}
+
+.repo-pick-name {
+  display: block;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.repo-pick-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
 }
 </style>
