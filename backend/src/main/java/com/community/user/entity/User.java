@@ -13,6 +13,8 @@ import lombok.Data;
 @TableName("user")
 public class User {
 
+    /** 数据库自增主键（不用 MP 默认雪花 ID，避免超出 JS Number 安全整数范围）。 */
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     private String username;

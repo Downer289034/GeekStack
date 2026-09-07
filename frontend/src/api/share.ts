@@ -25,6 +25,35 @@ export interface ShareResponse {
   createdAt: string
 }
 
+/** 广场卡片（不含正文，与后端 ShareCardResponse 对应） */
+export interface ShareCard {
+  id: number
+  title: string
+  summary: string
+  tags: string[] | null
+  repoUrl: string | null
+  viewCount: number
+  createdAt: string
+}
+
+/** 统一分页响应（与后端 PageResponse 对应） */
+export interface PageResult<T> {
+  total: number
+  current: number
+  size: number
+  records: T[]
+}
+
+export function pageShares(current: number, size: number, tag?: string): Promise<PageResult<ShareCard>> {
+  return unwrap<PageResult<ShareCard>>(
+    request.get('/v1/shares', { params: { current, size, tag: tag || undefined } })
+  )
+}
+
+export function fetchShare(id: number | string): Promise<ShareResponse> {
+  return unwrap<ShareResponse>(request.get(`/v1/shares/${id}`))
+}
+
 export function createShare(payload: SharePayload): Promise<ShareResponse> {
   return unwrap<ShareResponse>(request.post('/v1/shares', payload))
 }

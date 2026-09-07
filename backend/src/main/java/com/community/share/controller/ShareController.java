@@ -1,20 +1,24 @@
 package com.community.share.controller;
 
+import com.community.common.PageResponse;
 import com.community.common.Result;
+import com.community.share.dto.ShareCardResponse;
 import com.community.share.dto.SharePayload;
 import com.community.share.dto.ShareResponse;
 import com.community.share.service.ShareService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 项目分享接口（均需认证）：发布 / 编辑 / 下架。广场列表与详情见 Task 10。
+ * 项目分享接口：广场列表与详情公开（GET），发布/编辑/下架需认证。
  */
 @RestController
 @RequestMapping("/api/v1/shares")
@@ -24,6 +28,27 @@ public class ShareController {
 
     public ShareController(ShareService shareService) {
         this.shareService = shareService;
+    }
+
+    /** 广场分页列表（公开）：仅 PUBLISHED，支持单标签筛选。 */
+    @GetMapping
+    public Result<PageResponse<ShareCardResponse>> page(@RequestParam(defaultValue = "1") long current,
+                                                        @RequestParam(defaultValue = "10") long size,
+                                                        @RequestParam(required = false) String tag) {
+        return Result.ok(shareService.pagePublished(current, size, tag));
+    }
+
+    /**
+     * 项目详情（公开）：浏览数 +1；HIDDEN 仅作者可见。
+     * permitAll 路径下匿名请求的 authentication 为 AnonymousAuthenticationToken，按未登录处理。
+     */
+    @GetMapping("/{id}")
+    public Result<ShareResponse> detail(@PathVariable long id, Authentication authentication) {
+        String username = authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())
+                ? null
+                : authentication.getName();
+        return Result.ok(shareService.getDetail(id, username));
     }
 
     /** 发布项目分享。 */

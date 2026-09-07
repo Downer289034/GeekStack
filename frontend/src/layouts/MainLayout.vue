@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import { NButton, NLayout, NLayoutContent, NLayoutFooter, NLayoutHeader, NText } from 'naive-ui'
+import {
+  NButton,
+  NLayout,
+  NLayoutContent,
+  NLayoutFooter,
+  NLayoutHeader,
+  NMessageProvider,
+  NText
+} from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -60,7 +68,9 @@ function logout() {
       </nav>
     </n-layout-header>
     <n-layout-content class="content">
-      <RouterView />
+      <n-message-provider>
+        <RouterView />
+      </n-message-provider>
     </n-layout-content>
     <n-layout-footer class="footer" bordered>
       <span>© 2026 JavaAI 社区 · Java &amp; AI 交流社区（备案号占位）</span>
