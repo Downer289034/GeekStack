@@ -28,6 +28,12 @@ const router = createRouter({
           meta: { title: '发布项目', requiresAuth: true }
         },
         {
+          path: 'shares/edit/:id',
+          name: 'share-edit',
+          component: () => import('@/views/share/SharePublishView.vue'),
+          meta: { title: '编辑项目', requiresAuth: true }
+        },
+        {
           path: 'shares/:id',
           name: 'share-detail',
           component: () => import('@/views/share/ShareDetailView.vue'),
