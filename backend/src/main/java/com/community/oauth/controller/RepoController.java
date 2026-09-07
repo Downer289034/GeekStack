@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -37,11 +38,23 @@ public class RepoController {
         this.repoSyncService = repoSyncService;
     }
 
-    /** 用户仓库列表（公开，默认 hidden=0；导入时传 includeHidden=true）。 */
+    /**
+     * 用户仓库列表（公开）：
+     * - 默认 hidden=0（仅展示可见仓库），任何人可查
+     * - includeHidden=true 时返回全量（含用户隐藏的）——仅限本人，否则 403
+     */
     @GetMapping("/users/{username}/repos")
     public Result<List<UserRepo>> listRepos(@PathVariable String username,
-                                             @RequestParam(defaultValue = "false") boolean includeHidden) {
+                                             @RequestParam(defaultValue = "false") boolean includeHidden,
+                                             Authentication authentication) {
         UserResponse user = userService.me(username);
+        if (includeHidden) {
+            boolean isOwner = authentication != null && authentication.isAuthenticated()
+                    && username.equals(authentication.getName());
+            if (!isOwner) {
+                throw new BusinessException(ErrorCode.FORBIDDEN, "仅限本人查看隐藏仓库");
+            }
+        }
         var wrapper = Wrappers.<UserRepo>lambdaQuery().eq(UserRepo::getUserId, user.id());
         if (!includeHidden) {
             wrapper.eq(UserRepo::getHidden, 0);

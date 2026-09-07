@@ -100,6 +100,53 @@ class RepoControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    // ==================== includeHidden 越权校验 ====================
+
+    /** F1：匿名传 includeHidden=true → 403（不能看他人隐藏仓库） */
+    @Test
+    void anonymousIncludeHiddenReturns403() throws Exception {
+        insertRepo("hidden/repo", 1);
+        mockMvc.perform(get("/api/v1/users/" + username + "/repos?includeHidden=true"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+    }
+
+    /** F1：他人传 includeHidden=true → 403（不能看他人隐藏仓库） */
+    @Test
+    void otherUserIncludeHiddenReturns403() throws Exception {
+        insertRepo("hidden/repo", 1);
+        // 用另一个已注册用户的 token
+        String otherBody = objectMapper.writeValueAsString(Map.of(
+                "username", "s17other_" + System.nanoTime(),
+                "email", "s17other_" + System.nanoTime() + "@test.local",
+                "password", "password123"));
+        String otherToken = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(otherBody))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        String ot = objectMapper.readTree(otherToken).path("data").path("accessToken").asText();
+
+        mockMvc.perform(get("/api/v1/users/" + username + "/repos?includeHidden=true")
+                        .header("Authorization", "Bearer " + ot))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+    }
+
+    /** F1：本人传 includeHidden=true → 200 + 返回全量（含 hidden=1） */
+    @Test
+    void ownerIncludeHiddenReturnsFullList() throws Exception {
+        insertRepo("visible/repo", 0);
+        insertRepo("hidden/repo", 1);
+
+        mockMvc.perform(get("/api/v1/users/" + username + "/repos?includeHidden=true")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2));
+    }
+
     // ==================== POST /repos/{id}/toggle-hide ====================
 
     @Test
