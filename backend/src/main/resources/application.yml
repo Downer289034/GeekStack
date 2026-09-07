@@ -50,6 +50,11 @@ community:
     gitee:
       client-id: ${GITEE_CLIENT_ID:}
       client-secret: ${GITEE_CLIENT_SECRET:}
+  event:
+    # Agent webhook 推送地址（联调期 Agent 在 WSL2 宿主端口 18000）
+    agent-url: ${AGENT_WEBHOOK_URL:http://172.25.41.137:18000/api/v1/events}
+    # HMAC-SHA256 共享密钥（32 字节随机，线下交换给 Agent PM）
+    webhook-secret: ${STEWARD_WEBHOOK_SECRET:ci-only-placeholder-for-hmac-bean-32bytes!!}
 
 management:
   endpoints:

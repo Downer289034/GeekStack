@@ -3,6 +3,7 @@ package com.community.forum.service;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
+import com.community.event.ContentCreatedEvent;
 import com.community.forum.dto.CommentResponse;
 import com.community.forum.dto.CreateCommentRequest;
 import com.community.forum.entity.Comment;
@@ -14,6 +15,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,13 +37,17 @@ public class CommentService {
     private final UserService userService;
     private final PostMutationSupport postMutationSupport;
     private final ShareExistenceChecker shareExistenceChecker;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CommentService(CommentMapper commentMapper, UserService userService,
-                          PostMutationSupport postMutationSupport, ShareExistenceChecker shareExistenceChecker) {
+                          PostMutationSupport postMutationSupport,
+                          ShareExistenceChecker shareExistenceChecker,
+                          ApplicationEventPublisher eventPublisher) {
         this.commentMapper = commentMapper;
         this.userService = userService;
         this.postMutationSupport = postMutationSupport;
         this.shareExistenceChecker = shareExistenceChecker;
+        this.eventPublisher = eventPublisher;
     }
 
     /** 某宿主下的回帖树（顶级按时间正序，楼中楼按时间正序）。 */
@@ -101,9 +107,12 @@ public class CommentService {
         }
         commentMapper.insert(comment);
 
-        if (TARGET_POST.equals(targetType)) {
+        if (TARGET_POST.equals(comment.getTargetType())) {
             postMutationSupport.bumpReplyCount(targetId);
         }
+        // T14.6：发布 comment.created 事件（content_text = 评论自身文本，不推父链）
+        eventPublisher.publishEvent(new ContentCreatedEvent.CommentCreated(
+                this, comment.getId(), comment.getContentMd(), userId, comment.getTargetType().toLowerCase()));
         return toResponse(comment, null);
     }
 

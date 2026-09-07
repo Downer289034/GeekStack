@@ -1,0 +1,8 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+community:
+  event:
+    agent-url: http://172.25.41.137:18000/api/v1/events
+    webhook-secret: ci-only-webhook-secret-for-testing-0123456789ab

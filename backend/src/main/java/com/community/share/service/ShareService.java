@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
+import com.community.event.ContentCreatedEvent;
 import com.community.share.dto.ShareCardResponse;
 import com.community.share.dto.SharePayload;
 import com.community.share.dto.ShareResponse;
@@ -15,6 +16,7 @@ import com.community.share.mapper.ProjectShareMapper;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -26,10 +28,13 @@ public class ShareService {
 
     private final ProjectShareMapper shareMapper;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ShareService(ProjectShareMapper shareMapper, UserService userService) {
+    public ShareService(ProjectShareMapper shareMapper, UserService userService,
+                        ApplicationEventPublisher eventPublisher) {
         this.shareMapper = shareMapper;
         this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     /** 发布项目分享。 */
@@ -40,6 +45,9 @@ public class ShareService {
         applyPayload(share, payload);
         share.setStatus("PUBLISHED");
         shareMapper.insert(share);
+        // T14.6：发布 share.created 事件（content_text = 标题+摘要，截断由 Listener 处理）
+        String text = share.getTitle() + "\n" + share.getSummary();
+        eventPublisher.publishEvent(new ContentCreatedEvent.ShareCreated(this, share.getId(), text, userId));
         return toResponse(share);
     }
 
