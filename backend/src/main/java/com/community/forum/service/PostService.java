@@ -1,0 +1,151 @@
+package com.community.forum.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.community.common.BusinessException;
+import com.community.common.ErrorCode;
+import com.community.common.PageResponse;
+import com.community.forum.dto.CategoryResponse;
+import com.community.forum.dto.CreatePostRequest;
+import com.community.forum.dto.PostCardResponse;
+import com.community.forum.dto.PostDetailResponse;
+import com.community.forum.dto.UpdatePostRequest;
+import com.community.forum.entity.Post;
+import com.community.forum.entity.PostCategory;
+import com.community.forum.mapper.PostCategoryMapper;
+import com.community.forum.mapper.PostMapper;
+import com.community.user.dto.UserResponse;
+import com.community.user.service.UserService;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+/**
+ * 论坛帖子：发帖 / 编辑 / 删除（逻辑删除）/ 分类列表 / 分类过滤 / 最新与最热分页。
+ * 最热口径：置顶优先，按 reply_count*3 + view_count 加权倒序（权重随 T12 回帖联动再校准）。
+ */
+@Service
+public class PostService {
+
+    private static final String SORT_HOT = "hot";
+
+    private final PostMapper postMapper;
+    private final PostCategoryMapper postCategoryMapper;
+    private final UserService userService;
+
+    public PostService(PostMapper postMapper, PostCategoryMapper postCategoryMapper, UserService userService) {
+        this.postMapper = postMapper;
+        this.postCategoryMapper = postCategoryMapper;
+        this.userService = userService;
+    }
+
+    /** 分类列表（按 sort_order 升序）。 */
+    public List<CategoryResponse> listCategories() {
+        List<PostCategory> categories = postCategoryMapper.selectList(
+                Wrappers.<PostCategory>lambdaQuery().orderByAsc(PostCategory::getSortOrder));
+        return categories.stream()
+                .map(c -> new CategoryResponse(c.getId(), c.getName(), c.getSlug(), c.getSortOrder()))
+                .toList();
+    }
+
+    /** 发帖。 */
+    public PostDetailResponse create(String username, CreatePostRequest request) {
+        long userId = requireUserId(username);
+        requireCategory(request.categoryId());
+        Post post = new Post();
+        post.setUserId(userId);
+        post.setCategoryId(request.categoryId());
+        post.setTitle(request.title());
+        post.setContentMd(request.contentMd());
+        post.setViewCount(0L);
+        post.setReplyCount(0L);
+        post.setIsPinned(0);
+        post.setIsHot(0);
+        postMapper.insert(post);
+        return toDetail(post);
+    }
+
+    /** 编辑帖子，仅限作者本人（分类不可改）。 */
+    public PostDetailResponse update(long id, String username, UpdatePostRequest request) {
+        Post post = requireOwned(id, username);
+        post.setTitle(request.title());
+        post.setContentMd(request.contentMd());
+        postMapper.updateById(post);
+        return toDetail(post);
+    }
+
+    /** 删除帖子（逻辑删除，deleted=1），仅限作者本人；列表与详情随之不可见。 */
+    public void delete(long id, String username) {
+        Post post = requireOwned(id, username);
+        postMapper.deleteById(post.getId());
+    }
+
+    /** 帖子分页：可选分类 slug 过滤；sort=latest（默认）按最新，hot 按最热加权。置顶恒在最前。 */
+    public PageResponse<PostCardResponse> page(long current, long size, String categorySlug, String sort) {
+        Long categoryId = null;
+        if (categorySlug != null && !categorySlug.isBlank()) {
+            PostCategory category = postCategoryMapper.selectOne(
+                    Wrappers.<PostCategory>lambdaQuery().eq(PostCategory::getSlug, categorySlug.trim()));
+            if (category == null) {
+                throw new BusinessException(ErrorCode.PARAM_ERROR, "分类不存在");
+            }
+            categoryId = category.getId();
+        }
+        QueryWrapper<Post> wrapper = new QueryWrapper<>();
+        // 逻辑删除（deleted=0）由 MyBatis-Plus 全局配置自动追加
+        if (categoryId != null) {
+            wrapper.eq("category_id", categoryId);
+        }
+        boolean hot = SORT_HOT.equalsIgnoreCase(sort);
+        if (hot) {
+            wrapper.orderByDesc("is_pinned", "reply_count * 3 + view_count", "id");
+        } else {
+            wrapper.orderByDesc("is_pinned", "created_at", "id");
+        }
+        Page<Post> page = postMapper.selectPage(Page.of(current, size), wrapper);
+        return PageResponse.from(page.convert(this::toCard));
+    }
+
+    /** 帖子详情（逻辑删除后不可见）。 */
+    public PostDetailResponse detail(long id) {
+        Post post = postMapper.selectById(id);
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+        return toDetail(post);
+    }
+
+    private PostCardResponse toCard(Post post) {
+        return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
+                post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(), post.getIsPinned(),
+                post.getIsHot(), post.getCreatedAt());
+    }
+
+    private PostDetailResponse toDetail(Post post) {
+        return new PostDetailResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
+                post.getContentMd(), post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(),
+                post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
+    }
+
+    private Post requireOwned(long id, String username) {
+        Post post = postMapper.selectById(id);
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+        if (!post.getUserId().equals(requireUserId(username))) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "仅限作者本人操作");
+        }
+        return post;
+    }
+
+    private void requireCategory(Long categoryId) {
+        if (categoryId == null || postCategoryMapper.selectById(categoryId) == null) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "分类不存在");
+        }
+    }
+
+    private long requireUserId(String username) {
+        UserResponse user = userService.me(username);
+        return user.id();
+    }
+}
