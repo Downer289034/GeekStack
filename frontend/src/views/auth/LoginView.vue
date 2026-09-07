@@ -85,7 +85,7 @@ async function onRegisterSubmit() {
 
 <template>
   <div class="login-wrap">
-    <n-card class="login-card" title="JavaAI 社区">
+    <n-card class="login-card" title="极客栈">
       <n-tabs v-model:value="tab" type="segment" animated>
         <n-tab-pane name="login" tab="登录">
           <n-form ref="loginFormRef" :model="loginModel" :rules="rules" label-placement="top">
