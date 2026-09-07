@@ -43,11 +43,13 @@ public class OAuthService {
     private final AesGcmCipher cipher;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RepoSyncService repoSyncService;
 
     public OAuthService(UserOauthBindingMapper bindingMapper, UserMapper userMapper,
                         UserService userService, GitHubOAuthService gitHubOAuthService,
                         GiteeOAuthService giteeOAuthService, AesGcmCipher cipher,
-                        JwtService jwtService, PasswordEncoder passwordEncoder) {
+                        JwtService jwtService, PasswordEncoder passwordEncoder,
+                        RepoSyncService repoSyncService) {
         this.bindingMapper = bindingMapper;
         this.userMapper = userMapper;
         this.userService = userService;
@@ -56,6 +58,7 @@ public class OAuthService {
         this.cipher = cipher;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.repoSyncService = repoSyncService;
     }
 
     /** 回调入口：provider = GITHUB | GITEE。 */
@@ -107,6 +110,7 @@ public class OAuthService {
             throw new BusinessException(ErrorCode.CONFLICT, "该" + provider + "账号已绑定其他用户");
         }
         saveOrUpdateBinding(me.id(), provider, info, accessToken, refreshToken, expiresAt);
+        repoSyncService.syncRepos(me.id(), provider);
         return new TokenResponse(jwtService.generateAccess(me.username()), jwtService.generateRefresh(me.username()));
     }
 
@@ -116,6 +120,7 @@ public class OAuthService {
         UserOauthBinding binding = selectByProviderOpenid(provider, info.openid());
         if (binding != null) {
             saveOrUpdateBinding(binding.getUserId(), provider, info, accessToken, refreshToken, expiresAt);
+            repoSyncService.syncRepos(binding.getUserId(), provider);
             User user = userMapper.selectById(binding.getUserId());
             if (user == null) {
                 throw new BusinessException(ErrorCode.NOT_FOUND, "绑定账号不存在");
@@ -159,6 +164,7 @@ public class OAuthService {
             throw new BusinessException(ErrorCode.CONFLICT, "用户名或邮箱已被占用");
         }
         saveOrUpdateBinding(user.getId(), provider, info, accessToken, refreshToken, expiresAt);
+        repoSyncService.syncRepos(user.getId(), provider);
         return new TokenResponse(jwtService.generateAccess(user.getUsername()),
                 jwtService.generateRefresh(user.getUsername()));
     }
