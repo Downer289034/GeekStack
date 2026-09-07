@@ -39,6 +39,15 @@ community:
     secret: ${JWT_SECRET:}
     access-ttl-minutes: 30
     refresh-ttl-days: 7
+  oauth:
+    # OAuth Token AES-256-GCM 加密密钥（Base64 的 32 字节）；缺失时应用拒绝启动
+    aes-key: ${OAUTH_AES_KEY:}
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+    gitee:
+      client-id: ${GITEE_CLIENT_ID:}
+      client-secret: ${GITEE_CLIENT_SECRET:}
 
 management:
   endpoints:
