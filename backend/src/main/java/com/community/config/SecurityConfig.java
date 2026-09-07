@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // OAuth 回调与授权码转交：双语义由是否携带 JWT 决定，匿名必须可达
+                        .requestMatchers("/api/v1/oauth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/shares", "/api/v1/shares/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/categories",
                                 "/api/v1/posts/*", "/api/v1/posts/*/comments",
