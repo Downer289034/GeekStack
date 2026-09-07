@@ -7,12 +7,12 @@
 
 入口：GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**
 
-| 表单项 | 填写值 |
-|--------|--------|
-| Application name | `GeekStack dev` |
-| Homepage URL | `http://localhost:5173` |
+| 表单项                        | 填写值                                                  |
+| -------------------------- | ---------------------------------------------------- |
+| Application name           | `GeekStack dev`                                      |
+| Homepage URL               | `http://localhost:5173`                              |
 | Authorization callback URL | `http://localhost:8080/api/v1/oauth/callback/github` |
-| Enable Device Flow | 不勾 |
+| Enable Device Flow         | 不勾                                                   |
 
 创建后：**Generate a new client secret**（只显示一次）。
 
@@ -20,12 +20,12 @@
 
 入口：Gitee → 设置 → 安全设置 → 第三方应用 → **创建应用**
 
-| 表单项 | 填写值 |
-|--------|--------|
-| 应用名称 | `GeekStack dev` |
-| 应用主页 | `http://localhost:5173` |
+| 表单项    | 填写值                                                 |
+| ------ | --------------------------------------------------- |
+| 应用名称   | `GeekStack dev`                                     |
+| 应用主页   | `http://localhost:5173`                             |
 | 应用回调地址 | `http://localhost:8080/api/v1/oauth/callback/gitee` |
-| 权限 | `user_info`、`projects`（最小化） |
+| 权限     | `user_info`、`projects`（最小化）                         |
 
 创建后：应用详情页可查看 Client ID 与 Client Secret（可重置）。
 
@@ -46,3 +46,17 @@ GITEE_CLIENT_SECRET=<Gitee 的 Client Secret>
 
 geekstack.io 域名+备案就绪后，两家 App 各加一个生产回调地址
 `https://<域名>/api/v1/oauth/callback/<provider>`（保留 localhost 回调用于本地开发）。
+
+## 五、PM 本地自测步骤（T15 验收）
+
+准备：后端已启动（8080）、前端 `cd frontend && npm run dev`（5173）。
+
+1. **第三方登录（GitHub）**：打开 `http://localhost:5173/login` → 点"使用 GitHub 登录" → 弹窗内登录并 Authorize → 弹窗自动关闭、页面跳转首页 → 顶栏显示你的 GitHub 昵称/用户名 = **登录语义通过**
+2. **查库无明文（一票否决）**：
+   `ssh root@172.25.41.137 "source /opt/community-dev/.env 2>/dev/null || source /opt/community/.env; docker exec community-mysql mysql -ucommunity -p\"\$MYSQL_PASSWORD\" community -e \"SELECT provider, openid, LEFT(access_token_enc,20) FROM user_oauth_binding;\""`
+   → access_token_enc 应为乱码式 Base64（无 `gho_`/Gitee 明文前缀）
+3. **绑定语义（绑定到已有账号）**：登出 → 用密码登录已有账号（或注册一个新账号）→ 浏览器地址栏直接访问第 1 步拿到的授权 URL（或再点第三方按钮）→ 授权后该 GitHub 账号即绑定到当前密码账号（库中该 openid 的 user_id 变为当前账号）
+4. **邮箱冲突语义**：若 GitHub 账号主邮箱与某本地账号相同 → 应提示"该邮箱已注册，请使用密码登录后在设置中绑定GITHUB账号"，且不产生新账号
+5. **Gitee**：重复 1–4（按钮"使用 Gitee 登录"）
+
+> 备注：绑定语义的页面化入口（个人主页"绑定 GitHub"按钮）在 T17 主页 v2 落地；当前阶段用"登录状态下点第三方按钮"即触发绑定语义（请求自动带 JWT）。

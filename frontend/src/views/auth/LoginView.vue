@@ -4,15 +4,19 @@ import { useRouter } from 'vue-router'
 import {
   NButton,
   NCard,
+  NDivider,
   NForm,
   NFormItem,
   NInput,
+  NSpace,
   NTabPane,
   NTabs,
+  NText,
   type FormInst,
   type FormRules
 } from 'naive-ui'
 import { register } from '@/api/auth'
+import { fetchAuthorizeUrl, submitOAuthCode, type OAuthProvider } from '@/api/oauth'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -22,6 +26,65 @@ const tab = ref<'login' | 'register'>('login')
 const loginFormRef = ref<FormInst | null>(null)
 const registerFormRef = ref<FormInst | null>(null)
 const submitting = ref(false)
+const oauthLoading = ref<OAuthProvider | null>(null)
+
+// OAuth 弹窗回调：后端收尾页 postMessage 回 code，这里转交后端完成登录/绑定
+function onOAuthLogin(provider: OAuthProvider) {
+  oauthLoading.value = provider
+  let popup: Window | null = null
+  const cleanup = () => {
+    window.removeEventListener('message', onMessage)
+    oauthLoading.value = null
+  }
+  const onMessage = (event: MessageEvent) => {
+    // 回调收尾页来自本站后端
+    if (event.origin !== window.location.origin) {
+      return
+    }
+    let payload: { provider?: string; code?: string }
+    try {
+      payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+    } catch {
+      return
+    }
+    if (payload.provider !== provider.toLowerCase() || !payload.code) {
+      return
+    }
+    window.removeEventListener('message', onMessage)
+    submitOAuthCode(provider, payload.code)
+      .then(async (pair) => {
+        await auth.applyTokens(pair)
+        goHome()
+      })
+      .catch(() => {
+        // 错误提示由请求拦截器统一 toast
+      })
+      .finally(() => {
+        oauthLoading.value = null
+        popup?.close()
+      })
+  }
+  window.addEventListener('message', onMessage)
+  void fetchAuthorizeUrl(provider)
+    .then((url) => {
+      popup = window.open(url, 'oauth_' + provider, 'width=680,height=720')
+      if (!popup) {
+        // 弹窗被拦截：降级为本页跳转（回调后用户手动刷新）
+        window.location.assign(url)
+        return
+      }
+      // 弹窗被用户直接关闭时复位按钮
+      const timer = window.setInterval(() => {
+        if (popup?.closed) {
+          window.clearInterval(timer)
+          cleanup()
+        }
+      }, 500)
+    })
+    .catch(() => {
+      cleanup()
+    })
+}
 
 const loginModel = reactive({ username: '', password: '' })
 const registerModel = reactive({ username: '', email: '', password: '' })
@@ -128,6 +191,18 @@ async function onRegisterSubmit() {
           </n-form>
         </n-tab-pane>
       </n-tabs>
+
+      <n-divider class="oauth-divider">
+        <n-text depth="3" style="font-size: 12px">第三方登录（未注册将自动创建账号）</n-text>
+      </n-divider>
+      <n-space vertical size="small">
+        <n-button block :loading="oauthLoading === 'GITHUB'" @click="onOAuthLogin('GITHUB')">
+          使用 GitHub 登录
+        </n-button>
+        <n-button block :loading="oauthLoading === 'GITEE'" @click="onOAuthLogin('GITEE')">
+          使用 Gitee 登录
+        </n-button>
+      </n-space>
     </n-card>
   </div>
 </template>
