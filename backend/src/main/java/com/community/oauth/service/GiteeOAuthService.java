@@ -25,12 +25,15 @@ public class GiteeOAuthService {
 
     private final String clientId;
     private final String clientSecret;
+    private final String redirectUri;
     private final RestClient restClient;
 
     public GiteeOAuthService(@Value("${community.oauth.gitee.client-id}") String clientId,
-                             @Value("${community.oauth.gitee.client-secret}") String clientSecret) {
+                             @Value("${community.oauth.gitee.client-secret}") String clientSecret,
+                             @Value("${community.oauth.redirect-base-url}") String redirectBaseUrl) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.redirectUri = redirectBaseUrl + "/api/v1/oauth/callback/gitee";
         this.restClient = RestClient.create();
     }
 
@@ -42,7 +45,7 @@ public class GiteeOAuthService {
         form.add("client_secret", clientSecret);
         form.add("code", code);
         form.add("grant_type", "authorization_code");
-        form.add("redirect_uri", "http://localhost:8080/api/v1/oauth/callback/gitee");
+        form.add("redirect_uri", redirectUri);
         Map<String, Object> body = restClient.post()
                 .uri(uriBuilder -> uriBuilder.scheme("https").host("gitee.com").path("/oauth/token").build())
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
