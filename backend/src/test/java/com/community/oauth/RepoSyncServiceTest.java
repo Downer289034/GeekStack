@@ -125,4 +125,38 @@ class RepoSyncServiceTest {
         assertThat(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
                 .eq(UserRepo::getUserId, userId))).isEmpty();
     }
+
+    /** F1 验收：隐藏仓库 → 重新同步 → 隐藏偏好保留（不被抹掉）。 */
+    @Test
+    void hiddenPreferencePreservedAfterResync() {
+        createBinding("GITHUB");
+
+        // 1. 先做一次同步（mock token → 空列表，不抛异常）
+        repoSyncService.syncRepos(userId, "GITHUB");
+
+        // 2. 直接插入一条快照（模拟用户手动隐藏了某个仓库）
+        UserRepo repo = new UserRepo();
+        repo.setUserId(userId);
+        repo.setProvider("GITHUB");
+        repo.setRepoFullName("user/my-hidden-repo");
+        repo.setRepoUrl("https://github.com/user/my-hidden-repo");
+        repo.setStars(50L);
+        repo.setHidden(1); // 用户隐藏了这个仓库
+        repo.setSyncedAt(LocalDateTime.now());
+        repoMapper.insert(repo);
+        assertThat(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
+                .eq(UserRepo::getUserId, userId)
+                .eq(UserRepo::getProvider, "GITHUB")
+                .eq(UserRepo::getHidden, 1))).hasSize(1);
+
+        // 3. 再次同步（mock token → 空列表，但 hidden 偏好应保留）
+        repoSyncService.syncRepos(userId, "GITHUB");
+
+        // mock API 失败 → 旧快照保留 → hidden=1 的记录仍在
+        List<UserRepo> after = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
+                .eq(UserRepo::getUserId, userId)
+                .eq(UserRepo::getProvider, "GITHUB"));
+        assertThat(after).hasSize(1);
+        assertThat(after.get(0).getHidden()).isEqualTo(1);
+    }
 }

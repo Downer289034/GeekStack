@@ -2,6 +2,8 @@ package com.community.oauth.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.community.common.AesGcmCipher;
+import com.community.common.BusinessException;
+import com.community.common.ErrorCode;
 import com.community.oauth.entity.UserOauthBinding;
 import com.community.oauth.entity.UserRepo;
 import com.community.oauth.mapper.UserOauthBindingMapper;
@@ -86,10 +88,18 @@ public class RepoSyncService {
     /**
      * 全量替换快照（在事务中执行，DELETE 失败则回滚，不会丢旧快照）。
      * - DELETE：仅删该 (user_id, provider) 下所有旧快照，不跨 provider
-     * - INSERT：新快照 hidden=0（默认显示）
+     * - INSERT：按 fullName 回填用户已有的隐藏偏好；新仓库默认 hidden=0
      * - 唯一键 (user_id, provider, repo_full_name) 兜底防止重复
      */
     void syncSnapshot(long userId, String provider, List<RepoProvider.RemoteRepo> remoteRepos) {
+        // 删除前先查出用户的隐藏偏好（fullName → hidden 映射），P2-11 注释：重新同步不丢隐藏偏好
+        Map<String, Integer> hiddenPrefs = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
+                .eq(UserRepo::getUserId, userId)
+                .eq(UserRepo::getProvider, provider))
+                .stream()
+                .filter(r -> r.getHidden() != null && r.getHidden() == 1)
+                .collect(Collectors.toMap(UserRepo::getRepoFullName, r -> 1));
+
         repoMapper.delete(Wrappers.<UserRepo>lambdaQuery()
                 .eq(UserRepo::getUserId, userId)
                 .eq(UserRepo::getProvider, provider));
@@ -104,7 +114,8 @@ public class RepoSyncService {
             record.setRepoUrl(repo.url());
             record.setDescription(repo.description());
             record.setStars(repo.stars());
-            record.setHidden(0);
+            // 回填用户已有的隐藏偏好；新仓库默认 0（显示）
+            record.setHidden(hiddenPrefs.getOrDefault(repo.fullName(), 0));
             record.setSyncedAt(now);
             try {
                 repoMapper.insert(record);
@@ -113,5 +124,21 @@ public class RepoSyncService {
                         userId, provider, repo.fullName());
             }
         }
+    }
+
+    /** 切换仓库隐藏状态：0 ↔ 1。仅限仓库所属用户操作。 */
+    public boolean toggleHide(long repoId, long userId) {
+        UserRepo repo = repoMapper.selectById(repoId);
+        if (repo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "仓库不存在");
+        }
+        if (!repo.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "仅限仓库所属用户操作");
+        }
+        int newHidden = repo.getHidden() == null || repo.getHidden() == 0 ? 1 : 0;
+        repoMapper.update(null, Wrappers.<UserRepo>lambdaUpdate()
+                .eq(UserRepo::getId, repoId)
+                .set(UserRepo::getHidden, newHidden));
+        return newHidden == 1;
     }
 }

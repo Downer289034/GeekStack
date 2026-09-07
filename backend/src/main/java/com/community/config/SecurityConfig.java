@@ -34,7 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/shares", "/api/v1/shares/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/categories",
                                 "/api/v1/posts/*", "/api/v1/posts/*/comments",
-                                "/api/v1/shares/*/comments", "/api/v1/users/*/profile").permitAll()
+                                "/api/v1/shares/*/comments", "/api/v1/users/*/profile",
+                                "/api/v1/users/*/repos").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
