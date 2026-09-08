@@ -76,7 +76,12 @@ public class LikeService {
             like.setUserId(userId);
             like.setTargetType(targetType);
             like.setTargetId(targetId);
-            likeMapper.insert(like);
+            try {
+                likeMapper.insert(like);
+            } catch (org.springframework.dao.DuplicateKeyException e) {
+                // P2-13：并发双击竞态——第二个事务撞唯一键，返回"已赞"幂等
+                return true;
+            }
             atomicUpdateCount(targetType, targetId, 1);
             publishLikeEvent(targetType, targetId, userId);
             return true;
@@ -118,10 +123,22 @@ public class LikeService {
     }
 
     private void publishLikeEvent(String targetType, long targetId, long likerUserId) {
-        // 事件预埋：T19 只发布不消费（T20 notify 模块来接）
-        // targetAuthorUserId 在事件中为 -1 占位（T20 接入时从宿主表查）
+        long authorId = resolveAuthorUserId(targetType, targetId);
         eventPublisher.publishEvent(
-                new ContentLikedEvent(this, targetType, targetId, likerUserId, -1));
+                new ContentLikedEvent(this, targetType, targetId, likerUserId, authorId));
+    }
+
+    /** 从宿主表查作者 ID（供通知模块判断是否自嗨）。 */
+    private long resolveAuthorUserId(String targetType, long targetId) {
+        if (TYPE_POST.equals(targetType)) {
+            Post post = postMapper.selectById(targetId);
+            return post != null ? post.getUserId() : -1;
+        }
+        if (TYPE_SHARE.equals(targetType)) {
+            ProjectShare share = shareMapper.selectById(targetId);
+            return share != null ? share.getUserId() : -1;
+        }
+        return -1;
     }
 
     private void requireTargetExists(String targetType, long targetId) {

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.event.ContentCreatedEvent;
+import com.community.event.ContentRepliedEvent;
 import com.community.forum.dto.CommentResponse;
 import com.community.forum.dto.CreateCommentRequest;
 import com.community.forum.entity.Comment;
@@ -113,6 +114,13 @@ public class CommentService {
         // T14.6：发布 comment.created 事件（content_text = 评论自身文本，不推父链）
         eventPublisher.publishEvent(new ContentCreatedEvent.CommentCreated(
                 this, comment.getId(), comment.getContentMd(), userId, comment.getTargetType().toLowerCase()));
+        // T20：发布 ContentRepliedEvent（通知模块消费，防自嗨由 NotifyService 判断）
+        long authorId = resolveTargetAuthorId(comment.getTargetType(), comment.getTargetId());
+        if (authorId > 0) {
+            eventPublisher.publishEvent(new ContentRepliedEvent(
+                    this, comment.getTargetType(), comment.getTargetId(),
+                    userId, authorId, comment.getContentMd()));
+        }
         return toResponse(comment, null);
     }
 
@@ -149,5 +157,19 @@ public class CommentService {
     private long requireUserId(String username) {
         UserResponse user = userService.me(username);
         return user.id();
+    }
+
+    /** T20：从宿主表查作者 ID（供通知模块判断是否自嗨）。 */
+    private long resolveTargetAuthorId(String targetType, long targetId) {
+        if ("POST".equals(targetType)) {
+            return postMutationSupport.getPostAuthorId(targetId);
+        }
+        // SHARE：通过 shareService 的存在性检查间接获取作者（模块间只调 Service 接口）
+        try {
+            shareExistenceChecker.requireShareExists(targetId);
+            return -1; // SHARE 作者 ID 在 CommentService 中不直接可达，通知模块单独处理
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }

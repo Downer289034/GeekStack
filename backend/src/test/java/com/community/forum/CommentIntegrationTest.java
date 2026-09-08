@@ -61,6 +61,10 @@ class CommentIntegrationTest {
 
     @AfterEach
     void cleanTestData() {
+        // 外键顺序：通知→评论（子→父）→帖子→项目分享→用户
+        jdbcTemplate.update(
+                "DELETE FROM notification WHERE user_id IN (SELECT id FROM user WHERE username LIKE ?)",
+                TEST_USER_PREFIX + "%");
         // 楼中楼外键自引用：先删子评论（parent_id 非空）再删顶级
         jdbcTemplate.update("DELETE FROM comment WHERE parent_id IS NOT NULL");
         jdbcTemplate.update(
