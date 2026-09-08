@@ -1,10 +1,18 @@
 /* 鸿蒙设计风 CSS 变量（与 tokens.ts 同源，供组件样式消费；换肤同源调整） */
 :root {
   --color-primary: #0a59f7;
-  --color-primary-hover: #3178ff;
+  --color-primary-hover: #1467e8;
   --color-primary-pressed: #0540b4;
   --color-bg-layout: #f1f3f5;
   --color-bg-container: #ffffff;
+  --color-border: #dfe3e8;
+  /* 语义色：基色作底/图标，文字一律用 -text 变体（标签着色底上 ≥4.5:1） */
+  --color-success: #34c724;
+  --color-warning: #ff9500;
+  --color-error: #d73035;
+  --color-success-text: #217f17;
+  --color-warning-text: #a15e00;
+  --color-error-text: #c72d31;
   --color-text: #182431;
   --color-text-secondary: #5e6772;
   --radius: 12px;

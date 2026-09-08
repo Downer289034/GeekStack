@@ -181,7 +181,7 @@ onMounted(() => {
 /* 仓库卡片 */
 .repo-card {
   padding: 12px 0;
-  border-bottom: 1px solid var(--color-bg-layout);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .repo-card:last-child {
@@ -226,7 +226,7 @@ onMounted(() => {
 /* 项目/帖子列表 */
 .profile-item {
   padding: 10px 0;
-  border-bottom: 1px solid var(--color-bg-layout);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .profile-item:last-child {

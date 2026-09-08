@@ -215,7 +215,7 @@ void prefillForEdit()
 
 .repo-pick-item {
   padding: 12px;
-  border-bottom: 1px solid var(--color-bg-layout);
+  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
 }
 

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="eVwfrwRRFF22fnQXeG8pJ1">
+<head data-page-node-id="oeABBHxAyai4bp6YYbcxlW">
+<meta charset="UTF-8" data-page-node-id="zm1ZNnC7qzcYrHdBJhsCyS">
+<title>T-DESIGN-2 改前改后对比样张</title>
+<style>
+  /* 与 tokens.css 同源的局部复刻：仅用于对比度整改的可视化验收样张 */
+  body { font-family: 'Microsoft YaHei', sans-serif; background: #f1f3f5; margin: 0; padding: 32px; }
+  .cols { display: flex; gap: 24px; max-width: 960px; margin: 0 auto; }
+  .col { flex: 1; background: #fff; border-radius: 12px; padding: 24px; }
+  .col.before { border-top: 4px solid #8a93a0; }
+  .col.after { border-top: 4px solid #0a59f7; }
+  h1 { max-width: 960px; margin: 0 auto 8px; font-size: 20px; color: #182431; }
+  .sub { max-width: 960px; margin: 0 auto 24px; font-size: 13px; color: #5e6772; }
+  h2 { font-size: 15px; color: #182431; margin: 0 0 16px; }
+  .row { margin-bottom: 20px; }
+  .label { font-size: 12px; color: #5e6772; margin-bottom: 8px; }
+  .btn { display: inline-block; padding: 8px 22px; border-radius: 8px; font-size: 14px; color: #fff; margin-right: 10px; }
+  .chip { display: inline-block; padding: 4px 14px; border-radius: 999px; font-size: 13px; margin-right: 8px; border: 1px solid #5e6772; color: #182431; background: transparent; }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 4px; margin-right: 8px; }
+
+  /* ===== 改前（旧值）===== */
+  .before .btn-primary { background: #0a59f7; }
+  .before .btn-primary:hover { background: #3178ff; }   /* 白字 3.99:1 ✗ */
+  .before .tag-success { background: rgba(52,199,36,.12); color: #34c724; }   /* 2.25:1 ✗ */
+  .before .tag-warning { background: rgba(255,149,0,.12); color: #ff9500; }   /* 2.20:1 ✗ */
+  .before .tag-error   { background: rgba(250,56,62,.12); color: #fa383e; }   /* 3.68:1 ✗ */
+  .before .btn-error { background: #fa383e; }           /* 白字 3.68:1 ✗ */
+
+  /* ===== 改后（新值）===== */
+  .after .btn-primary { background: #0a59f7; }
+  .after .btn-primary:hover { background: #1467e8; }    /* 5.08:1 ✓ */
+  .after .tag-success { background: rgba(52,199,36,.12); color: #217f17; }    /* 4.61:1 ✓ */
+  .after .tag-warning { background: rgba(255,149,0,.12); color: #a15e00; }    /* 4.62:1 ✓ */
+  .after .tag-error   { background: rgba(215,48,53,.12); color: #c72d31; }    /* 4.63:1 ✓ */
+  .after .btn-error { background: #d73035; }            /* 4.81:1 ✓ */
+</style>
+</head>
+<body data-page-node-id="q3BfvApu2i6zA775FLNlq9">
+<h1 data-page-node-id="s0lLGpwQ9WG3zwgGSwZXLK">T-DESIGN-2 · 语义色文字变体 / hover 态整改样张</h1>
+<p class="sub" data-page-node-id="Ck5eSTJjOuGiUUILGNNIoe">左侧为改前基线，右侧为改后效果。样式复刻自 naive-ui Tag/Button 渲染规则（着色底 = 基色 12% 透明度叠白）；对比度数值见注释，实测见 wcag_verify 脚本输出。真实页面截图中，登录页/论坛页覆盖主按钮与激活 chip；「置顶」「已下架」「管理员」等标签在接入后端数据后于详情页可见。</p>
+<div class="cols" data-page-node-id="FQeAOISteNKrctF6RnFh5z">
+  <div class="col before" data-page-node-id="8FmnvIQ9XhM0kt5GLANcaR">
+    <h2 data-page-node-id="OIqNKIbJGHv2gxlTbpw6dD">改前（基线）</h2>
+    <div class="row" data-page-node-id="jP1SDpcz6d29gS3HPsJNnh">
+      <div class="label" data-page-node-id="sQAqXGiO6bQ3pBhcH9vm5C">主按钮（默认 / hover）— hover 白字 3.99:1</div>
+      <span class="btn btn-primary" data-page-node-id="ftQzWmFeRoZOoyvgSDnHBN">登录</span>
+      <span class="btn btn-primary" style="background:#3178ff" data-page-node-id="TrXtOx9tcRKEY92j1BbmH3">登录(hover)</span>
+    </div>
+    <div class="row" data-page-node-id="1hgZhAAEw8VeC0QIkFyx7v">
+      <div class="label" data-page-node-id="AdZI6YnBhHBbeqF6CpIci6">语义标签 — 2.20 ~ 3.68:1</div>
+      <span class="tag tag-success" data-page-node-id="q9NlAtk0r1YOtoON2Ob3bg">同步成功</span>
+      <span class="tag tag-warning" data-page-node-id="pUk8fOUcaoQdUqeIeqRtab">置顶</span>
+      <span class="tag tag-error" data-page-node-id="gC9TyiFC7EIZhd4bEfHDPn">管理员</span>
+    </div>
+    <div class="row" data-page-node-id="1M8soAajbWZuUuR7Qb9crq">
+      <div class="label" data-page-node-id="oOpQGovKy8zEMCD7MwqSwB">error 实心按钮 — 白字 3.68:1</div>
+      <span class="btn btn-error" data-page-node-id="fFtfHvODm9QIpCTw673vbU">删除</span>
+    </div>
+  </div>
+  <div class="col after" data-page-node-id="NYswX6QV31ls2AjBINElqo">
+    <h2 data-page-node-id="FBssUcLQYpmL5nXkdQUSvY">改后（新 Token）</h2>
+    <div class="row" data-page-node-id="bzLioYEBzubobGO00p6aYn">
+      <div class="label" data-page-node-id="KHBOI4eI40TLfiH1u7Wq4Z">主按钮（默认 / hover）— hover 白字 5.08:1 ✓</div>
+      <span class="btn btn-primary" data-page-node-id="tEjOAQtprmrsyjCSglzuyK">登录</span>
+      <span class="btn btn-primary" style="background:#1467e8" data-page-node-id="iTvBJkGsLsvnsvj2uBJsx9">登录(hover)</span>
+    </div>
+    <div class="row" data-page-node-id="Cp0PB3TXZEJji05ij9nhXY">
+      <div class="label" data-page-node-id="4D3mosqiNo2RQdhluHzQ4G">语义标签（文字变体）— 4.61 ~ 4.63:1 ✓</div>
+      <span class="tag tag-success" data-page-node-id="HISZBcnqUQt3GU3tNr1KLU">同步成功</span>
+      <span class="tag tag-warning" data-page-node-id="fp2eAzPiNaAepKJO4VDih5">置顶</span>
+      <span class="tag tag-error" data-page-node-id="PSWp5ucJ7sMWesIGAtxll4">管理员</span>
+    </div>
+    <div class="row" data-page-node-id="XG7lKCCqa3wdUvKwY5nRgA">
+      <div class="label" data-page-node-id="ZytscHVoG4JzdbGBFtj1uG">error 实心按钮（#d73035）— 白字 4.81:1 ✓</div>
+      <span class="btn btn-error" data-page-node-id="f94joQlvU69rpP3smuUmdj">删除</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

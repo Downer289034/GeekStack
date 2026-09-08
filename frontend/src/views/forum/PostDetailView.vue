@@ -246,7 +246,7 @@ onMounted(() => {
 
 .comment-block {
   padding: 12px 0;
-  border-bottom: 1px solid var(--color-bg-layout);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .comment {
@@ -292,7 +292,7 @@ onMounted(() => {
 .nested-list {
   margin: 10px 0 0 42px;
   padding-left: 12px;
-  border-left: 2px solid var(--color-bg-layout);
+  border-left: 2px solid var(--color-border);
 }
 
 .nested {
