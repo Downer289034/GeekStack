@@ -36,7 +36,7 @@ public class LikeController {
 
     /** 批量查询用户对帖子列表的点赞状态。 */
     @GetMapping("/status")
-    public Result<List<Long>> likedStatus(@RequestParam String targetType,
+    public Result<List<Long>> likedStatus(
                                           @RequestParam String targetIds,
                                           Authentication authentication) {
         long userId = likeService.requireUserId(authentication.getName());

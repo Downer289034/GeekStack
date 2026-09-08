@@ -55,6 +55,10 @@ class LikeIntegrationTest {
 
     @AfterEach
     void cleanup() {
+        // 外键顺序：通知→点赞→帖子→用户
+        jdbcTemplate.update(
+                "DELETE FROM notification WHERE user_id IN (SELECT id FROM user WHERE username LIKE ?)",
+                TEST_USER_PREFIX + "%");
         jdbcTemplate.update("DELETE FROM user_like WHERE user_id IN (SELECT id FROM (SELECT id FROM user WHERE username LIKE ?) t)", TEST_USER_PREFIX + "%");
         jdbcTemplate.update("DELETE FROM post WHERE user_id IN (SELECT id FROM (SELECT id FROM user WHERE username LIKE ?) t)", TEST_USER_PREFIX + "%");
         jdbcTemplate.update("DELETE FROM user WHERE username LIKE ?", TEST_USER_PREFIX + "%");

@@ -28,6 +28,12 @@ public class PostMutationSupport {
         }
     }
 
+    /** 查帖子作者 ID（供通知/事件使用）。返回 -1 表示不存在。 */
+    public long getPostAuthorId(long postId) {
+        Post post = postMapper.selectById(postId);
+        return post != null ? post.getUserId() : -1;
+    }
+
     /** 回帖后：reply_count +1，last_reply_at 推进为当前时间。 */
     public void bumpReplyCount(long postId) {
         postMapper.update(null, Wrappers.<Post>lambdaUpdate()
