@@ -137,10 +137,9 @@ public class PostService {
         return postMapper.selectList(wrapper).stream().map(this::toCard).toList();
     }
 
+    /** T21.1：委托 PostCardResponse.from 统一入口。 */
     private PostCardResponse toCard(Post post) {
-        return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
-                post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(), post.getIsPinned(),
-                post.getIsHot(), post.getCreatedAt());
+        return PostCardResponse.from(post);
     }
 
     private PostDetailResponse toDetail(Post post) {

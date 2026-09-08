@@ -144,10 +144,9 @@ public class HotPostService {
         return pinned + reply * 3 + view + like * 2;
     }
 
+    /** T21.1：委托 PostCardResponse.from 统一入口。 */
     private PostCardResponse toCard(Post post) {
-        return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(),
-                post.getTitle(), post.getViewCount(), post.getReplyCount(),
-                post.getLastReplyAt(), post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
+        return PostCardResponse.from(post);
     }
 
     private record CacheEntry(List<PostCardResponse> data, long expiryMs) {}
