@@ -30,6 +30,8 @@ public class Post {
 
     private Long replyCount;
 
+    private Long likeCount;
+
     private LocalDateTime lastReplyAt;
 
     /** 置顶：0 否 1 是。 */

@@ -69,9 +69,10 @@ public class NotifyService {
     }
 
     private String targetTypeName(String targetType) {
+        // P2-15 修复：事件传值有大小写两种（ContentCreatedEvent 传小写，ContentRepliedEvent 传 ENUM 大写）
         return switch (targetType) {
-            case "post" -> "帖子";
-            case "share" -> "项目分享";
+            case "POST", "post" -> "帖子";
+            case "SHARE", "share" -> "项目分享";
             default -> "内容";
         };
     }
