@@ -145,6 +145,7 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .profile-avatar {

@@ -148,13 +148,15 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-bottom: 16px;
 }
 
 .cat-row,
 .sort-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 

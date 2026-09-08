@@ -150,13 +150,15 @@ const rules: FormRules = {
 
 <style scoped>
 .login-wrap {
-  min-height: 100vh;
+  /* 100vh 会叠加布局头部(60px)/底部(48px)造成双滚动条，扣除 */
+  min-height: calc(100vh - 108px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .login-card {
-  width: 420px;
+  /* 420px 定宽在 ≤375 视口会溢出，小屏收回为视口减边距 */
+  width: min(420px, calc(100vw - 32px));
 }
 </style>

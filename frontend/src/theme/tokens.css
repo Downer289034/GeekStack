@@ -1,4 +1,11 @@
 /* 鸿蒙设计风 CSS 变量（与 tokens.ts 同源，供组件样式消费；换肤同源调整） */
+/*
+ * 响应式断点口径（T-DESIGN-3，PM 定稿）：手机竖屏 375 / 平板 768 / 桌面 1200+
+ * CSS 媒体查询不支持变量插值，各页面统一按字面值使用：
+ *   @media (max-width: 1200px)  -> 3 列网格降 2 列（1200↔768 过渡带）
+ *   @media (max-width: 768px)   -> 单列 / 纵向排布
+ *   @media (max-width: 480px)   -> 小屏收纳（导航换行等）
+ */
 :root {
   --color-primary: #0a59f7;
   --color-primary-hover: #1467e8;
@@ -30,6 +37,11 @@ body,
   margin: 0;
   padding: 0;
   min-height: 100vh;
+}
+
+/* 抽屉宽度不得超出视口（纯 CSS 护栏，max-width 优先于组件内联 width，无需动组件 prop） */
+.n-drawer {
+  max-width: 92vw;
 }
 
 body {

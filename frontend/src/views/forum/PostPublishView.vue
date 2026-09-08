@@ -101,6 +101,7 @@ void init()
 <style scoped>
 .cat-select {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -124,7 +125,8 @@ void init()
   width: 100%;
 }
 
+/* 380px 定高在手机端占比过高，随视口高度收缩 */
 .editor-wrap :deep(.md-editor) {
-  height: 380px;
+  height: clamp(260px, 55vh, 380px);
 }
 </style>

@@ -295,6 +295,14 @@ onMounted(() => {
   border-left: 2px solid var(--color-border);
 }
 
+/* 小屏收紧嵌套缩进，给正文留宽度 */
+@media (max-width: 480px) {
+  .nested-list {
+    margin-left: 20px;
+    padding-left: 8px;
+  }
+}
+
 .nested {
   padding: 8px 0;
 }

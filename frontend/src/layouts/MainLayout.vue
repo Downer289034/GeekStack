@@ -146,4 +146,48 @@ function logout() {
   font-size: 13px;
   background-color: var(--color-bg-container);
 }
+
+/* 平板 ≤768：收紧内距 */
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 16px;
+    gap: 16px;
+  }
+
+  .brand {
+    font-size: 16px;
+  }
+
+  .nav-item {
+    font-size: 14px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+}
+
+/* 小屏 ≤480：导航换行收纳，避免横向溢出 */
+@media (max-width: 480px) {
+  .header {
+    height: auto;
+    min-height: 60px;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    gap: 8px 14px;
+    row-gap: 4px;
+  }
+
+  .brand {
+    font-size: 15px;
+  }
+
+  .nav-item {
+    font-size: 13px;
+    padding: 4px 0;
+  }
+}
 </style>
