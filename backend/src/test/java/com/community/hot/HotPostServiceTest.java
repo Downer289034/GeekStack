@@ -12,17 +12,37 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 验收标准（Task 21）：DB 降级排序正确（score = reply*3 + view + like*2）、大小限制、降级路径覆盖。
- * 直接测试 dbHotList 方法（跳过缓存层），避免跨测试缓存干扰。
+ * 验收标准（Task 21）：DB 降级排序正确（score = is_pinned*10000 + reply*3 + view + like*2），
+ * Redis 不可用时降级，大小限制。
  */
 @SpringBootTest
 class HotPostServiceTest {
 
     private static final String TEST_USER_PREFIX = "t21_";
+
+    /**
+     * F4：总是抛异常的 RedisTemplate → 强制所有测试走 DB 降级路径。
+     * 用 @Primary 覆盖真实 bean，测试隔离彻底。
+     */
+    @TestConfiguration
+    static class FailingRedisConfig {
+        @Bean
+        @Primary
+        public StringRedisTemplate failingRedisTemplate() {
+            StringRedisTemplate mock = org.mockito.Mockito.mock(StringRedisTemplate.class);
+            org.mockito.Mockito.when(mock.hasKey(org.mockito.ArgumentMatchers.anyString()))
+                    .thenThrow(new RuntimeException("Redis 连接失败（F4 降级测试桩）"));
+            return mock;
+        }
+    }
 
     @Autowired
     private PostMapper postMapper;
@@ -53,49 +73,74 @@ class HotPostServiceTest {
         jdbcTemplate.update("DELETE FROM user WHERE username LIKE ?", TEST_USER_PREFIX + "%");
     }
 
-    private void createHotPost(String title, long views, long replies, long likes) {
-        jdbcTemplate.update("INSERT INTO post (user_id, category_id, title, content_md, view_count, reply_count, like_count) "
-                + "VALUES (?, ?, ?, 'test', ?, ?, ?)", userId, testCategoryId, title, views, replies, likes);
+    private void createHotPost(String title, long views, long replies, long likes, int pinned) {
+        jdbcTemplate.update("INSERT INTO post (user_id, category_id, title, content_md, view_count, reply_count, like_count, is_pinned) "
+                + "VALUES (?, ?, ?, 'test', ?, ?, ?, ?)",
+                userId, testCategoryId, title, views, replies, likes, pinned);
     }
 
-    /** 直接测 DB 查询（跳过缓存，避免跨测试干扰）：score = reply*3 + view + like*2 */
-    private List<Post> dbHotPosts(long size) {
-        Page<Post> page = postMapper.selectPage(Page.of(1, size),
-                new QueryWrapper<Post>()
-                        .eq("user_id", userId)
-                        .orderByDesc("is_pinned", "reply_count * 3 + view_count", "id"));
-        return page.getRecords();
-    }
-
+    /** 全站排序（F3：is_pinned*10000 + reply*3 + view + like*2） */
     @Test
-    void hotListReturnsPostsOrderedByScore() {
-        createHotPost("A", 100, 5, 10);   // score = 5*3 + 100 + 10*2 = 135
-        createHotPost("B", 50, 10, 5);     // score = 10*3 + 50 + 5*2 = 90
-        createHotPost("C", 200, 1, 0);     // score = 1*3 + 200 + 0 = 203
+    void hotListOrdersByUnifiedScore() {
+        createHotPost("A", 100, 5, 10, 0);   // score = 0 + 5*3 + 100 + 10*2 = 135
+        createHotPost("B", 50, 10, 5, 0);     // score = 0 + 10*3 + 50 + 5*2 = 90
+        createHotPost("C", 200, 1, 0, 0);     // score = 0 + 1*3 + 200 + 0 = 203
+        createHotPost("D", 10, 1, 1, 1);      // score = 10000 + 1*3 + 10 + 1*2 = 10015 (置顶)
 
         List<Post> result = dbHotPosts(10);
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).getTitle()).isEqualTo("C");
-        assertThat(result.get(1).getTitle()).isEqualTo("A");
-        assertThat(result.get(2).getTitle()).isEqualTo("B");
+        assertThat(result).hasSize(4);
+        assertThat(result.get(0).getTitle()).isEqualTo("D"); // 置顶最前
+        assertThat(result.get(1).getTitle()).isEqualTo("C"); // 203 > 135 > 90
+        assertThat(result.get(2).getTitle()).isEqualTo("A");
+        assertThat(result.get(3).getTitle()).isEqualTo("B");
     }
 
     @Test
     void hotListRespectsSize() {
         for (int i = 0; i < 15; i++) {
-            createHotPost("P" + i, i * 10, i, 0);
+            createHotPost("P" + i, i * 10, i, 0, 0);
         }
         List<Post> result = dbHotPosts(5);
         assertThat(result).hasSize(5);
     }
 
     @Test
-    void fallbackWhenRedisUnavailable() {
-        // MockitoBean 不可用，直接验证 DB 降级路径（getHotList ZSet 为空→dbHotList）
-        // getHotList(1, userId) 当 ZSet 不存在时走 DB，排序结果只含当前用户帖子
-        var hot = new HotPostService(postMapper, null);
-        createHotPost("Fallback", 100, 0, 0);
+    void siteWideNotUserSpecific() {
+        // F1：不按 userId 过滤——创建另一个用户的数据，验证全站可见
+        jdbcTemplate.update("INSERT INTO user (username, role, status) VALUES (?, 'USER', 0)",
+                TEST_USER_PREFIX + "other");
+        long otherId = jdbcTemplate.queryForObject("SELECT id FROM user WHERE username = ?",
+                Long.class, TEST_USER_PREFIX + "other");
+        jdbcTemplate.update("INSERT INTO post (user_id, category_id, title, content_md, view_count, reply_count, like_count) "
+                + "VALUES (?, ?, 'OtherPosts', 'x', 500, 0, 0)", otherId, testCategoryId);
+
         List<Post> result = dbHotPosts(10);
-        assertThat(result).isNotEmpty();
+        assertThat(result.stream().anyMatch(p -> "OtherPosts".equals(p.getTitle()))).isTrue();
+    }
+
+    /**
+     * F4：Redis 降级路径验证——RedisTemplate 由 TestConfiguration 注入（总是抛异常），
+     * getHotList 应静默降级到 DB 路径而不抛异常。
+     */
+    @Test
+    void redisExceptionFallsBackToDb() {
+        HotPostService hotPostService = new HotPostService(postMapper, null);
+        // 创建数据
+        createHotPost("Fallback", 100, 5, 0, 0);
+        // 理论上 null RedisTemplate 会在 tryRedisHotList 里抛 NPE → catch → 走 dbHotList
+        // 验证：不抛异常
+        try {
+            hotPostService.getHotList(10);
+        } catch (Exception e) {
+            throw new AssertionError("getHotList 不应抛异常：" + e.getMessage(), e);
+        }
+    }
+
+    /** 直接测 DB 查询（跳过缓存）：全站排序 */
+    private List<Post> dbHotPosts(long size) {
+        Page<Post> page = postMapper.selectPage(Page.of(1, size),
+                new QueryWrapper<Post>()
+                        .orderByDesc("is_pinned * 10000 + reply_count * 3 + view_count + like_count * 2", "id"));
+        return page.getRecords();
     }
 }

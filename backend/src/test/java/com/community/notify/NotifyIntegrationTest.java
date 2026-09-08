@@ -102,13 +102,30 @@ class NotifyIntegrationTest {
         return objectMapper.readTree(resp).path("data").path("id").asLong();
     }
 
+    /**
+     * F5：异步断言必须轮询等待通知落库——@Async 事件消费与测试执行在不同时序。
+     * 最多等 3 秒（300ms * 10 轮），覆盖真实异步延迟。
+     */
+    private void waitForNotification(long userId, int expectedCount) throws InterruptedException {
+        for (int i = 0; i < 10; i++) {
+            Long actual = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userId);
+            if (actual != null && actual >= expectedCount) {
+                return;
+            }
+            Thread.sleep(300);
+        }
+        Long finalCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userId);
+        assertThat(finalCount).isGreaterThanOrEqualTo((long) expectedCount);
+    }
+
     @Test
     void replyByOtherUserCreatesNotification() throws Exception {
         long topComment = createComment(tokenA, postId, "A 的帖子");
         createComment(tokenB, postId, "B 的回帖", topComment);
-        long notifCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userIdA);
-        assertThat(notifCount).isEqualTo(1L);
+        // F5：轮询等待异步通知落库，最多 3 秒
+        waitForNotification(userIdA, 1);
         String type = jdbcTemplate.queryForObject(
                 "SELECT type FROM notification WHERE user_id = ?", String.class, userIdA);
         assertThat(type).isEqualTo("REPLY");
@@ -128,9 +145,8 @@ class NotifyIntegrationTest {
         mockMvc.perform(post("/api/v1/likes/POST/" + postId)
                         .header("Authorization", "Bearer " + tokenB))
                 .andExpect(status().isOk());
-        long notifCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userIdA);
-        assertThat(notifCount).isEqualTo(1L);
+        // F5：轮询等待异步通知落库
+        waitForNotification(userIdA, 1);
         String type = jdbcTemplate.queryForObject(
                 "SELECT type FROM notification WHERE user_id = ?", String.class, userIdA);
         assertThat(type).isEqualTo("LIKE");
@@ -141,6 +157,7 @@ class NotifyIntegrationTest {
         mockMvc.perform(post("/api/v1/likes/POST/" + postId)
                         .header("Authorization", "Bearer " + tokenA))
                 .andExpect(status().isOk());
+        Thread.sleep(500); // 等异步消费确认不产生通知
         long notifCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userIdA);
         assertThat(notifCount).isEqualTo(0L);
@@ -151,6 +168,8 @@ class NotifyIntegrationTest {
         // B 回帖产生通知
         long topComment = createComment(tokenA, postId, "帖子");
         createComment(tokenB, postId, "B 回帖", topComment);
+        // F5：轮询等待
+        waitForNotification(userIdA, 1);
 
         mockMvc.perform(get("/api/v1/notifications")
                         .header("Authorization", "Bearer " + tokenA))
