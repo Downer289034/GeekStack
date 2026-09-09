@@ -17,7 +17,8 @@ import {
   GridOutline,
   HomeOutline,
   LogInOutline,
-  LogOutOutline
+  LogOutOutline,
+  SearchOutline
 } from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores/auth'
 
@@ -48,7 +49,14 @@ const navItems: Array<{
     label: '技术论坛',
     to: '/forum',
     icon: ChatbubblesOutline,
-    match: (n) => n === 'forum' || n === 'post-detail'
+    match: (n) => n === 'forum' || n === 'post-detail' || n === 'post-publish'
+  },
+  {
+    name: 'search',
+    label: '搜索',
+    to: '/search',
+    icon: SearchOutline,
+    match: (n) => n === 'search' || n === 'tags' || n === 'tag-detail'
   }
 ]
 

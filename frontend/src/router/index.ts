@@ -69,6 +69,24 @@ const router = createRouter({
           name: 'profile',
           component: () => import('@/views/profile/ProfileView.vue'),
           meta: { title: '个人主页' }
+        },
+        {
+          path: 'search',
+          name: 'search',
+          component: () => import('@/views/search/SearchView.vue'),
+          meta: { title: '搜索' }
+        },
+        {
+          path: 'tags',
+          name: 'tags',
+          component: () => import('@/views/search/TagsView.vue'),
+          meta: { title: '标签云' }
+        },
+        {
+          path: 'tags/:name',
+          name: 'tag-detail',
+          component: () => import('@/views/search/TagDetailView.vue'),
+          meta: { title: '标签详情' }
         }
       ]
     },
