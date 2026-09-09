@@ -5,10 +5,12 @@ import {
   NButton,
   NCard,
   NEmpty,
+  NIcon,
   NPagination,
   NTag,
   NText
 } from 'naive-ui'
+import { AddOutline, ChatbubblesOutline, CreateOutline } from '@vicons/ionicons5'
 import { fetchCategories, pagePosts, type Category, type PostCard } from '@/api/forum'
 
 const PAGE_SIZE = 12
@@ -84,9 +86,17 @@ onMounted(async () => {
 <template>
   <div class="forum">
     <div class="forum-header">
-      <h2 class="forum-title">技术论坛</h2>
+      <h2 class="gs-section-title">
+        <n-icon :component="ChatbubblesOutline" :size="22" />
+        技术论坛
+      </h2>
       <RouterLink to="/forum/new">
-        <n-button size="small" type="primary">发帖</n-button>
+        <n-button size="small" type="primary">
+          <template #icon>
+            <n-icon :component="AddOutline" />
+          </template>
+          发帖
+        </n-button>
       </RouterLink>
     </div>
 
@@ -127,28 +137,43 @@ onMounted(async () => {
       </div>
     </div>
 
-    <n-empty v-if="!loading && posts.length === 0" description="还没有帖子，来发第一帖" class="forum-empty" />
-
-    <n-card
-      v-for="(post, index) in posts"
-      :key="post.id"
-      class="gs-card-elevated post-row"
-      :bordered="false"
+    <n-empty
+      v-if="!loading && posts.length === 0"
+      description="还没有帖子，来发第一帖"
+      class="forum-empty"
     >
-      <RouterLink :to="`/forum/posts/${post.id}`" class="post-row-link">
-        <div class="post-row-main">
-          <span v-if="hotRank(index) != null" class="gs-hot-rank">{{ hotRank(index) }}</span>
-          <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
-          <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
-          <span class="post-row-title">{{ post.title }}</span>
-        </div>
-        <div class="post-row-meta">
-          <n-text depth="3">回帖 {{ post.replyCount }}</n-text>
-          <n-text depth="3">浏览 {{ post.viewCount }}</n-text>
-          <n-text depth="3">最后回复 {{ formatTime(post.lastReplyAt) }}</n-text>
-        </div>
-      </RouterLink>
-    </n-card>
+      <template #icon>
+        <n-icon :component="CreateOutline" :size="48" />
+      </template>
+      <template #extra>
+        <RouterLink to="/forum/new">
+          <n-button type="primary">去发帖</n-button>
+        </RouterLink>
+      </template>
+    </n-empty>
+
+    <template v-else>
+      <n-card
+        v-for="(post, index) in posts"
+        :key="post.id"
+        class="gs-card-elevated post-row"
+        :bordered="false"
+      >
+        <RouterLink :to="`/forum/posts/${post.id}`" class="post-row-link">
+          <div class="post-row-main">
+            <span v-if="hotRank(index) != null" class="gs-hot-rank">{{ hotRank(index) }}</span>
+            <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
+            <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
+            <span class="post-row-title">{{ post.title }}</span>
+          </div>
+          <div class="post-row-meta">
+            <n-text depth="3">回帖 {{ post.replyCount }}</n-text>
+            <n-text depth="3">浏览 {{ post.viewCount }}</n-text>
+            <n-text depth="3">最后回复 {{ formatTime(post.lastReplyAt) }}</n-text>
+          </div>
+        </RouterLink>
+      </n-card>
+    </template>
 
     <div class="forum-pagination">
       <n-pagination
@@ -168,11 +193,6 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-}
-
-.forum-title {
-  margin: 0;
-  font-size: 20px;
 }
 
 .forum-filter {

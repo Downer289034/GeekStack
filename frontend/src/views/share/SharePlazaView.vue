@@ -5,12 +5,14 @@ import {
   NButton,
   NCard,
   NEmpty,
+  NIcon,
   NInput,
   NPagination,
   NSpace,
   NTag,
   NText
 } from 'naive-ui'
+import { CubeOutline, GridOutline, SearchOutline } from '@vicons/ionicons5'
 import { pageShares, type ShareCard } from '@/api/share'
 
 const PAGE_SIZE = 9
@@ -69,7 +71,10 @@ onMounted(() => {
 <template>
   <div class="plaza">
     <div class="plaza-header">
-      <h2 class="plaza-title">项目广场</h2>
+      <h2 class="gs-section-title">
+        <n-icon :component="GridOutline" :size="22" />
+        项目广场
+      </h2>
       <n-space>
         <n-input
           v-model:value="tagInput"
@@ -77,7 +82,11 @@ onMounted(() => {
           size="small"
           style="width: 160px"
           @keyup.enter="applyTagFilter"
-        />
+        >
+          <template #prefix>
+            <n-icon :component="SearchOutline" />
+          </template>
+        </n-input>
         <n-button size="small" @click="applyTagFilter">筛选</n-button>
         <n-button v-if="activeTag" size="small" quaternary @click="clearTagFilter">清除</n-button>
       </n-space>
@@ -87,9 +96,18 @@ onMounted(() => {
       v-if="!loading && cards.length === 0"
       description="暂无项目分享，来发布第一个吧"
       class="plaza-empty"
-    />
+    >
+      <template #icon>
+        <n-icon :component="CubeOutline" :size="48" />
+      </template>
+      <template #extra>
+        <RouterLink to="/shares/new">
+          <n-button type="primary">去发布</n-button>
+        </RouterLink>
+      </template>
+    </n-empty>
 
-    <div class="card-grid">
+    <div v-else class="card-grid">
       <RouterLink
         v-for="card in cards"
         :key="card.id"
@@ -146,11 +164,6 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px 12px;
   margin-bottom: 16px;
-}
-
-.plaza-title {
-  margin: 0;
-  font-size: 20px;
 }
 
 .plaza-empty {

@@ -5,13 +5,17 @@ import {
   NAvatar,
   NButton,
   NCard,
+  NEmpty,
+  NIcon,
   NInput,
   NPageHeader,
   NPopconfirm,
+  NSpace,
   NTag,
   NText,
   useMessage
 } from 'naive-ui'
+import { AlertCircleOutline, ChatbubbleOutline, HeartOutline } from '@vicons/ionicons5'
 import {
   createComment,
   deleteComment,
@@ -118,16 +122,20 @@ onMounted(() => {
 
 <template>
   <div v-if="notFound" class="post-state">
-    <n-card title="帖子不存在">
-      <p>它可能已被作者删除。</p>
-      <RouterLink to="/forum"><n-button>返回论坛</n-button></RouterLink>
-    </n-card>
+    <n-empty size="huge" description="帖子不存在，可能已被作者删除">
+      <template #icon>
+        <n-icon :component="AlertCircleOutline" :size="48" />
+      </template>
+      <template #extra>
+        <RouterLink to="/forum"><n-button type="primary">返回论坛</n-button></RouterLink>
+      </template>
+    </n-empty>
   </div>
 
   <div v-else class="post-detail">
     <n-page-header :title="post?.title ?? '加载中…'" @back="router.back()" />
 
-    <n-card v-if="post" class="post-card">
+    <n-card v-if="post" class="gs-card-detail post-card" :bordered="false">
       <template #header-extra>
         <n-popconfirm v-if="isOwner" @positive-click="onDeletePost">
           <template #trigger>
@@ -138,6 +146,7 @@ onMounted(() => {
       </template>
 
       <n-space class="post-meta">
+        <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
         <n-tag size="small" :bordered="false">浏览 {{ post.viewCount }}</n-tag>
         <n-tag size="small" :bordered="false">回帖 {{ post.replyCount }}</n-tag>
         <n-text depth="3" class="post-time">{{ formatTime(post.createdAt) }}</n-text>
@@ -147,8 +156,19 @@ onMounted(() => {
       <div class="post-content" v-html="renderedContent"></div>
     </n-card>
 
-    <n-card title="回帖（{{ post?.replyCount ?? 0 }}）" class="reply-card">
-      <div v-if="comments.length === 0" class="reply-empty">还没有回帖，来抢沙发</div>
+    <n-card class="gs-card-detail reply-card" :bordered="false">
+      <template #header>
+        <span class="gs-section-title reply-title">
+          <n-icon :component="ChatbubbleOutline" :size="18" />
+          回帖（{{ post?.replyCount ?? 0 }}）
+        </span>
+      </template>
+
+      <n-empty v-if="comments.length === 0" description="还没有回帖，来抢沙发" size="small">
+        <template #icon>
+          <n-icon :component="HeartOutline" :size="40" />
+        </template>
+      </n-empty>
 
       <div v-for="comment in comments" :key="comment.id" class="comment-block">
         <div class="comment">
@@ -239,9 +259,8 @@ onMounted(() => {
   margin-top: 16px;
 }
 
-.reply-empty {
-  color: var(--color-text-secondary);
-  padding: 16px 0;
+.reply-title {
+  font-size: 16px;
 }
 
 .comment-block {
@@ -256,7 +275,7 @@ onMounted(() => {
 
 .comment-avatar {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-container);
   font-size: 12px;
   flex-shrink: 0;
 }

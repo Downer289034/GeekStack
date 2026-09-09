@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, type Component } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import {
   NButton,
+  NIcon,
   NLayout,
   NLayoutContent,
   NLayoutFooter,
@@ -10,6 +11,14 @@ import {
   NMessageProvider,
   NText
 } from 'naive-ui'
+import {
+  AddOutline,
+  ChatbubblesOutline,
+  GridOutline,
+  HomeOutline,
+  LogInOutline,
+  LogOutOutline
+} from '@vicons/ionicons5'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -19,19 +28,27 @@ onMounted(() => {
   void auth.fetchCurrentUser()
 })
 
-const navItems = [
-  { name: 'home', label: '首页', to: '/', match: (n: unknown) => n === 'home' },
+const navItems: Array<{
+  name: string
+  label: string
+  to: string
+  icon: Component
+  match: (n: unknown) => boolean
+}> = [
+  { name: 'home', label: '首页', to: '/', icon: HomeOutline, match: (n) => n === 'home' },
   {
     name: 'share-plaza',
     label: '项目广场',
     to: '/shares',
-    match: (n: unknown) => typeof n === 'string' && n.startsWith('share')
+    icon: GridOutline,
+    match: (n) => typeof n === 'string' && n.startsWith('share')
   },
   {
     name: 'forum',
     label: '技术论坛',
     to: '/forum',
-    match: (n: unknown) => n === 'forum' || n === 'post-detail'
+    icon: ChatbubblesOutline,
+    match: (n) => n === 'forum' || n === 'post-detail'
   }
 ]
 
@@ -52,18 +69,34 @@ function logout() {
           :class="{ active: item.match(route.name) }"
           :to="item.to"
         >
-          {{ item.label }}
+          <n-icon :component="item.icon" :size="16" />
+          <span>{{ item.label }}</span>
         </RouterLink>
         <span class="spacer" />
         <template v-if="auth.isLoggedIn">
           <RouterLink to="/shares/new">
-            <n-button size="small" type="primary">发布项目</n-button>
+            <n-button size="small" type="primary">
+              <template #icon>
+                <n-icon :component="AddOutline" />
+              </template>
+              发布项目
+            </n-button>
           </RouterLink>
           <n-text class="user-name">{{ auth.user?.nickname ?? auth.user?.username ?? '' }}</n-text>
-          <n-button quaternary @click="logout">退出登录</n-button>
+          <n-button quaternary @click="logout">
+            <template #icon>
+              <n-icon :component="LogOutOutline" />
+            </template>
+            退出登录
+          </n-button>
         </template>
         <RouterLink v-else to="/login">
-          <n-button quaternary type="primary">登录 / 注册</n-button>
+          <n-button quaternary type="primary">
+            <template #icon>
+              <n-icon :component="LogInOutline" />
+            </template>
+            登录 / 注册
+          </n-button>
         </RouterLink>
       </nav>
     </n-layout-header>
@@ -108,6 +141,9 @@ function logout() {
 }
 
 .nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--color-text);
   text-decoration: none;
   font-size: 15px;
@@ -147,7 +183,6 @@ function logout() {
   background-color: var(--color-bg-container);
 }
 
-/* 平板 ≤768：收紧内距 */
 @media (max-width: 768px) {
   .nav {
     padding: 0 16px;
@@ -167,7 +202,6 @@ function logout() {
   }
 }
 
-/* 小屏 ≤480：导航换行收纳，避免横向溢出 */
 @media (max-width: 480px) {
   .header {
     height: auto;

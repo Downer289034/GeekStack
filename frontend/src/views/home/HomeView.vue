@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { NButton } from 'naive-ui'
+import { NButton, NIcon } from 'naive-ui'
+import { AddOutline, ChatbubblesOutline } from '@vicons/ionicons5'
 </script>
 
 <template>
@@ -13,10 +14,20 @@ import { NButton } from 'naive-ui'
         <p class="hero__sub">极客落脚，技术常新——分享项目、讨论技术，找到同路人</p>
         <div class="hero__actions">
           <RouterLink to="/shares/new">
-            <n-button class="hero__btn-primary" type="default" size="medium">发布项目</n-button>
+            <n-button class="hero__btn-primary" type="default" size="medium">
+              <template #icon>
+                <n-icon :component="AddOutline" />
+              </template>
+              发布项目
+            </n-button>
           </RouterLink>
           <RouterLink to="/forum">
-            <n-button class="hero__btn-ghost" ghost size="medium">逛论坛</n-button>
+            <n-button class="hero__btn-ghost" ghost size="medium">
+              <template #icon>
+                <n-icon :component="ChatbubblesOutline" />
+              </template>
+              逛论坛
+            </n-button>
           </RouterLink>
         </div>
       </div>

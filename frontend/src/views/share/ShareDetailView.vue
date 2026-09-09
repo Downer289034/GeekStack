@@ -6,12 +6,15 @@ import {
   NCard,
   NDescriptions,
   NDescriptionsItem,
+  NEmpty,
+  NIcon,
   NPageHeader,
   NPopconfirm,
   NSpace,
   NTag,
   useMessage
 } from 'naive-ui'
+import { AlertCircleOutline, CubeOutline } from '@vicons/ionicons5'
 import { fetchShare, hideShare, type ShareResponse } from '@/api/share'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
@@ -68,18 +71,22 @@ onMounted(() => {
 
 <template>
   <div v-if="notFound" class="detail-state">
-    <n-card title="项目分享不存在">
-      <p>它可能已被作者删除或下架。</p>
-      <RouterLink to="/shares">
-        <n-button>返回项目广场</n-button>
-      </RouterLink>
-    </n-card>
+    <n-empty size="huge" description="项目分享不存在，可能已被删除或下架">
+      <template #icon>
+        <n-icon :component="AlertCircleOutline" :size="48" />
+      </template>
+      <template #extra>
+        <RouterLink to="/shares">
+          <n-button type="primary">返回项目广场</n-button>
+        </RouterLink>
+      </template>
+    </n-empty>
   </div>
 
   <div v-else class="detail">
     <n-page-header :title="share?.title ?? '加载中…'" @back="router.back()" />
 
-    <n-card v-if="share" title="项目信息" class="detail-card">
+    <n-card v-if="share" title="项目信息" class="gs-card-detail detail-card" :bordered="false">
       <template #header-extra>
         <n-space v-if="isOwner">
           <RouterLink :to="`/shares/edit/${share.id}`">
@@ -96,7 +103,19 @@ onMounted(() => {
 
       <p class="detail-summary">{{ share.summary }}</p>
       <n-space size="small" class="detail-tags">
-        <n-tag v-for="t in share.tags ?? []" :key="t" size="small" type="info" :bordered="false">
+        <n-tag class="gs-tag-share" size="small" :bordered="false">
+          <template #icon>
+            <n-icon :component="CubeOutline" />
+          </template>
+          项目
+        </n-tag>
+        <n-tag
+          v-for="t in share.tags ?? []"
+          :key="t"
+          class="gs-tag-share"
+          size="small"
+          :bordered="false"
+        >
           {{ t }}
         </n-tag>
       </n-space>
@@ -105,7 +124,11 @@ onMounted(() => {
         <n-descriptions-item label="发布时间">{{ formatTime(share.createdAt) }}</n-descriptions-item>
         <n-descriptions-item label="浏览量">{{ share.viewCount }}</n-descriptions-item>
         <n-descriptions-item label="状态">
-          <n-tag size="small" :type="share.status === 'PUBLISHED' ? 'success' : 'warning'" :bordered="false">
+          <n-tag
+            size="small"
+            :type="share.status === 'PUBLISHED' ? 'success' : 'error'"
+            :bordered="false"
+          >
             {{ share.status === 'PUBLISHED' ? '已发布' : '已下架' }}
           </n-tag>
         </n-descriptions-item>

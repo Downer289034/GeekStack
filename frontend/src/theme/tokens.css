@@ -110,3 +110,22 @@ a:hover .gs-card-elevated {
   line-height: 1;
   flex-shrink: 0;
 }
+
+/* T-DESIGN-5.4：详情主卡固定 md 阴影（无 hover 上浮） */
+.gs-card-detail {
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-md);
+}
+
+.gs-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  color: var(--color-text);
+}
+
+.gs-section-title .n-icon {
+  color: var(--color-primary);
+}
