@@ -104,10 +104,10 @@ class NotifyIntegrationTest {
 
     /**
      * F5：异步断言必须轮询等待通知落库——@Async 事件消费与测试执行在不同时序。
-     * 最多等 3 秒（300ms * 10 轮），覆盖真实异步延迟。
+     * T-BE-1：上限 10 秒（300ms × 30 轮）——CI 容器异步调度+DB 写入比本地慢，原 3s 不够。
      */
     private void waitForNotification(long userId, int expectedCount) throws InterruptedException {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             Long actual = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM notification WHERE user_id = ?", Long.class, userId);
             if (actual != null && actual >= expectedCount) {
@@ -124,7 +124,7 @@ class NotifyIntegrationTest {
     void replyByOtherUserCreatesNotification() throws Exception {
         long topComment = createComment(tokenA, postId, "A 的帖子");
         createComment(tokenB, postId, "B 的回帖", topComment);
-        // F5：轮询等待异步通知落库，最多 3 秒
+        // F5：轮询等待异步通知落库（T-BE-1：上限 10s）
         waitForNotification(userIdA, 1);
         String type = jdbcTemplate.queryForObject(
                 "SELECT type FROM notification WHERE user_id = ?", String.class, userIdA);
