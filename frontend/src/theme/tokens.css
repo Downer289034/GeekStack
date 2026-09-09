@@ -31,7 +31,7 @@
   --color-notice-text: #a54a0f;
   --color-text: #182431;
   --color-text-secondary: #5e6772;
-  /* 卡片层次（T-DESIGN-5）：列表默认 sm，hover 升 md；详情主卡 md 待第 3 步接线 */
+  /* 卡片层次（T-DESIGN-5）：列表默认 sm，hover 升 md；详情主卡 md 见 5.4 */
   --shadow-sm: 0 1px 2px rgba(24, 36, 49, 0.06);
   --shadow-md: 0 4px 12px rgba(24, 36, 49, 0.08);
   --shadow-lg: 0 8px 24px rgba(24, 36, 49, 0.12);
@@ -61,4 +61,52 @@ body {
   font-family: var(--font-family);
   color: var(--color-text);
   background-color: var(--color-bg-layout);
+}
+
+/*
+ * T-DESIGN-5.3 列表卡片层次 + 语义标签工具类
+ * 着色底口径与 naive-ui Tag 一致：基色 12% 叠容器白
+ */
+.gs-card-elevated {
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gs-card-elevated:hover,
+a:hover .gs-card-elevated {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.gs-tag-forum.n-tag,
+.gs-tag-share.n-tag {
+  --n-border-color: transparent !important;
+}
+
+.gs-tag-forum.n-tag {
+  --n-color: color-mix(in srgb, var(--color-forum) 12%, var(--color-bg-container)) !important;
+  --n-text-color: var(--color-forum-text) !important;
+}
+
+.gs-tag-share.n-tag {
+  --n-color: color-mix(in srgb, var(--color-share) 12%, var(--color-bg-container)) !important;
+  --n-text-color: var(--color-share-text) !important;
+}
+
+/* 热榜前三：error 底 + 容器白字（对比度随 F3c 白字/error 4.81:1） */
+.gs-hot-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-small);
+  background: var(--color-error);
+  color: var(--color-bg-container);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }

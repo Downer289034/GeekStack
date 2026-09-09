@@ -55,6 +55,12 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
 }
 
+/** 封面占位色相：按 id 在分区青系内轻微轮换，避免整页同色块 */
+function coverTone(id: number): string {
+  const tones = [0, 8, 16]
+  return `color-mix(in srgb, var(--color-share) ${18 + tones[id % 3]}%, var(--color-bg-container))`
+}
+
 onMounted(() => {
   void load()
 })
@@ -90,19 +96,31 @@ onMounted(() => {
         :to="`/shares/${card.id}`"
         class="card-link"
       >
-        <n-card hoverable>
-          <div class="card-title-row">
-            <span class="card-title">{{ card.title }}</span>
-            <n-tag size="small" :bordered="false">浏览 {{ card.viewCount }}</n-tag>
+        <n-card class="gs-card-elevated plaza-card" :bordered="false">
+          <div class="card-cover" :style="{ background: coverTone(card.id) }" aria-hidden="true">
+            <span class="card-cover__grid" />
+            <n-tag class="gs-tag-share card-cover__badge" size="small" :bordered="false">项目</n-tag>
           </div>
-          <p class="card-summary">{{ card.summary }}</p>
-          <div class="card-footer">
-            <n-space size="small">
-              <n-tag v-for="t in card.tags ?? []" :key="t" size="small" type="info" :bordered="false">
-                {{ t }}
-              </n-tag>
-            </n-space>
-            <n-text depth="3" class="card-time">{{ formatTime(card.createdAt) }}</n-text>
+          <div class="card-body">
+            <div class="card-title-row">
+              <span class="card-title">{{ card.title }}</span>
+              <n-tag size="small" :bordered="false">浏览 {{ card.viewCount }}</n-tag>
+            </div>
+            <p class="card-summary">{{ card.summary }}</p>
+            <div class="card-footer">
+              <n-space size="small">
+                <n-tag
+                  v-for="t in card.tags ?? []"
+                  :key="t"
+                  class="gs-tag-share"
+                  size="small"
+                  :bordered="false"
+                >
+                  {{ t }}
+                </n-tag>
+              </n-space>
+              <n-text depth="3" class="card-time">{{ formatTime(card.createdAt) }}</n-text>
+            </div>
           </div>
         </n-card>
       </RouterLink>
@@ -160,6 +178,53 @@ onMounted(() => {
 
 .card-link {
   text-decoration: none;
+  display: block;
+  min-width: 0;
+}
+
+.plaza-card {
+  overflow: hidden;
+  height: 100%;
+}
+
+.plaza-card :deep(.n-card__content) {
+  padding: 0;
+}
+
+.card-cover {
+  position: relative;
+  height: 112px;
+  overflow: hidden;
+}
+
+.card-cover__grid {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      -18deg,
+      transparent 0,
+      transparent 10px,
+      color-mix(in srgb, var(--color-share) 10%, transparent) 10px,
+      color-mix(in srgb, var(--color-share) 10%, transparent) 11px
+    ),
+    radial-gradient(
+      circle at 86% 20%,
+      color-mix(in srgb, var(--color-share-text) 18%, transparent),
+      transparent 45%
+    );
+  opacity: 0.9;
+}
+
+.card-cover__badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1;
+}
+
+.card-body {
+  padding: 14px 16px 16px;
 }
 
 .card-title-row {
@@ -173,6 +238,10 @@ onMounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-summary {
@@ -191,6 +260,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .card-time {

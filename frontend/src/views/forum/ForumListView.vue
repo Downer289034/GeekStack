@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   NButton,
@@ -20,6 +20,18 @@ const posts = ref<PostCard[]>([])
 const total = ref(0)
 const current = ref(1)
 const loading = ref(false)
+
+const categoryById = computed(() => {
+  const map = new Map<number, Category>()
+  for (const cat of categories.value) {
+    map.set(cat.id, cat)
+  }
+  return map
+})
+
+function categoryLabel(post: PostCard): string {
+  return categoryById.value.get(post.categoryId)?.name ?? '讨论'
+}
 
 async function load() {
   loading.value = true
@@ -45,6 +57,12 @@ function pickSort(sort: 'latest' | 'hot') {
 function formatTime(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
+}
+
+/** 热榜前三徽标：仅最热排序 + 第一页前三项 */
+function hotRank(index: number): number | null {
+  if (sortBy.value !== 'hot' || current.value !== 1 || index >= 3) return null
+  return index + 1
 }
 
 watch([activeCategory, sortBy], () => {
@@ -111,10 +129,17 @@ onMounted(async () => {
 
     <n-empty v-if="!loading && posts.length === 0" description="还没有帖子，来发第一帖" class="forum-empty" />
 
-    <n-card v-for="post in posts" :key="post.id" class="post-row" hoverable>
+    <n-card
+      v-for="(post, index) in posts"
+      :key="post.id"
+      class="gs-card-elevated post-row"
+      :bordered="false"
+    >
       <RouterLink :to="`/forum/posts/${post.id}`" class="post-row-link">
         <div class="post-row-main">
+          <span v-if="hotRank(index) != null" class="gs-hot-rank">{{ hotRank(index) }}</span>
           <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
+          <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
           <span class="post-row-title">{{ post.title }}</span>
         </div>
         <div class="post-row-meta">
@@ -126,7 +151,13 @@ onMounted(async () => {
     </n-card>
 
     <div class="forum-pagination">
-      <n-pagination :page="current" :page-size="PAGE_SIZE" :item-count="total" :disabled="loading" />
+      <n-pagination
+        :page="current"
+        :page-size="PAGE_SIZE"
+        :item-count="total"
+        :disabled="loading"
+        @update:page="(p: number) => (current = p)"
+      />
     </div>
   </div>
 </template>
@@ -162,7 +193,7 @@ onMounted(async () => {
 
 .cat-chip,
 .sort-chip {
-  border: 1px solid var(--color-text-secondary);
+  border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text);
   border-radius: 999px;
@@ -175,7 +206,7 @@ onMounted(async () => {
 .sort-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: #fff;
+  color: var(--color-bg-container);
 }
 
 .forum-empty {
@@ -189,22 +220,26 @@ onMounted(async () => {
 .post-row-link {
   text-decoration: none;
   display: block;
+  min-width: 0;
 }
 
 .post-row-main {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .post-row-title {
   font-size: 15px;
   font-weight: 500;
   color: var(--color-text);
+  min-width: 0;
 }
 
 .post-row-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 6px;
   font-size: 12px;
