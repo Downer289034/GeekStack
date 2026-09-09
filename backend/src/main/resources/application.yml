@@ -55,6 +55,9 @@ community:
     agent-url: ${AGENT_WEBHOOK_URL:http://172.25.41.137:18000/api/v1/events}
     # HMAC-SHA256 共享密钥（32 字节随机，线下交换给 Agent PM）
     webhook-secret: ${STEWARD_WEBHOOK_SECRET:ci-only-placeholder-for-hmac-bean-32bytes!!}
+    # Webhook RestTemplate 超时（缺省会饿死默认 @Async 线程池，拖死站内通知）
+    connect-timeout-ms: ${WEBHOOK_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${WEBHOOK_READ_TIMEOUT_MS:3000}
 
 management:
   endpoints:

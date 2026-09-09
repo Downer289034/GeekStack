@@ -4,5 +4,7 @@ spring:
       on-profile: test
 community:
   event:
-    agent-url: http://172.25.41.137:18000/api/v1/events
+    agent-url: http://127.0.0.1:9/api/v1/events
     webhook-secret: ci-only-webhook-secret-for-testing-0123456789ab
+    connect-timeout-ms: 2000
+    read-timeout-ms: 3000

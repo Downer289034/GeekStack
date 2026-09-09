@@ -44,6 +44,8 @@ jobs:
       JWT_SECRET: ci-only-jwt-secret-not-for-production-0123456789abcdef
       OAUTH_AES_KEY: KvHeyXDrI3JbB+9d7v2ONcHPe1rpGDUR3iMUcIVDYAQ=
       STEWARD_WEBHOOK_SECRET: ci-only-webhook-secret-32-bytes-hex-0123456789abcdef
+      # 端口 9（discard）快速拒绝，避免 CI runner 连私网 IP 黑洞饿死 @Async 线程池
+      AGENT_WEBHOOK_URL: http://127.0.0.1:9/api/v1/events
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

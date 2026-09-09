@@ -19,6 +19,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,6 +122,18 @@ class WebhookPushListenerTest {
 
         // 不应抛异常（推送失败不阻塞）
         listener.onPostCreated(new ContentCreatedEvent.PostCreated(this, 501, "422测试", 99));
+        verify(restTemplate, atLeastOnce()).postForEntity(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    /** F1：连接/读取超时走 ResourceAccessException → WARN 吞掉，不向外抛。 */
+    @Test
+    void connectTimeoutIsSwallowedAndDoesNotPropagate() {
+        org.mockito.Mockito.when(restTemplate.postForEntity(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+                .thenThrow(new ResourceAccessException("Connect timed out"));
+
+        listener.onPostCreated(new ContentCreatedEvent.PostCreated(this, 502, "超时测试", 100));
         verify(restTemplate, atLeastOnce()).postForEntity(
                 org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
     }
