@@ -1,5 +1,5 @@
 # 开发基础设施：MySQL 8 + Redis 7
-# 部署位置：服务器 /opt/community/docker-compose.yml
+# 部署位置：服务器 /opt/community-dev/docker-compose.yml（开发栈；生产栈见 deploy/prod）
 # 凭据来自同目录 .env（服务器上 chmod 600，不入 git）
 services:
   mysql:

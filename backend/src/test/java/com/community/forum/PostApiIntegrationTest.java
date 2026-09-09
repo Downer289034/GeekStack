@@ -164,38 +164,46 @@ class PostApiIntegrationTest {
         long earlier = createPost(tokenA, javaId, "较早的帖子");
         long later = createPost(tokenA, javaId, "较新的帖子");
 
-        // 最新：后创建的在前
+        // 共享库可能有 demo 置顶帖：只断言本用例两帖的相对序
         String latestResp = mockMvc.perform(get("/api/v1/posts")
-                        .param("category", "java").param("sort", "latest"))
+                        .param("category", "java").param("sort", "latest").param("size", "50"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
-        assertThat(objectMapper.readTree(latestResp).path("data").path("records").get(0)
-                .path("id").asLong()).isEqualTo(later);
+        assertThat(indexOfId(latestResp, later)).isLessThan(indexOfId(latestResp, earlier));
 
         // 最热：给较早帖子加权（测试数据准备，直接调计数）
         jdbcTemplate.update("UPDATE post SET view_count = 100 WHERE id = ?", earlier);
 
         String hotResp = mockMvc.perform(get("/api/v1/posts")
-                        .param("category", "java").param("sort", "hot"))
+                        .param("category", "java").param("sort", "hot").param("size", "50"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
-        assertThat(objectMapper.readTree(hotResp).path("data").path("records").get(0)
-                .path("id").asLong()).isEqualTo(earlier);
+        assertThat(indexOfId(hotResp, earlier)).isLessThan(indexOfId(hotResp, later));
 
-        // 置顶恒在最前
+        // 置顶恒优先于未置顶的较新帖
         jdbcTemplate.update("UPDATE post SET is_pinned = 1 WHERE id = ?", earlier);
         String pinnedResp = mockMvc.perform(get("/api/v1/posts")
-                        .param("category", "java").param("sort", "latest"))
+                        .param("category", "java").param("sort", "latest").param("size", "50"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
-        assertThat(objectMapper.readTree(pinnedResp).path("data").path("records").get(0)
-                .path("id").asLong()).isEqualTo(earlier);
+        assertThat(indexOfId(pinnedResp, earlier)).isLessThan(indexOfId(pinnedResp, later));
+    }
+
+    /** 返回 records 中目标 id 的下标；不存在则 -1。 */
+    private int indexOfId(String listJson, long id) throws Exception {
+        JsonNode records = objectMapper.readTree(listJson).path("data").path("records");
+        for (int i = 0; i < records.size(); i++) {
+            if (records.get(i).path("id").asLong() == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Test

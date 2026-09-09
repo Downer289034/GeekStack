@@ -87,12 +87,12 @@ class HotPostServiceTest {
         createHotPost("C", 200, 1, 0, 0);     // score = 0 + 1*3 + 200 + 0 = 203
         createHotPost("D", 10, 1, 1, 1);      // score = 10000 + 1*3 + 10 + 1*2 = 10015 (置顶)
 
-        List<Post> result = dbHotPosts(10);
-        assertThat(result).hasSize(4);
-        assertThat(result.get(0).getTitle()).isEqualTo("D"); // 置顶最前
-        assertThat(result.get(1).getTitle()).isEqualTo("C"); // 203 > 135 > 90
-        assertThat(result.get(2).getTitle()).isEqualTo("A");
-        assertThat(result.get(3).getTitle()).isEqualTo("B");
+        // 共享 community-dev 可能有演示/残留帖：只断言本用例 4 帖的相对序（全站同公式下序不变）
+        List<String> orderedOurs = dbHotPosts(50).stream()
+                .filter(p -> userId == p.getUserId())
+                .map(Post::getTitle)
+                .toList();
+        assertThat(orderedOurs).containsExactly("D", "C", "A", "B");
     }
 
     @Test
