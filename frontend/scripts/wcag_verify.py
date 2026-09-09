@@ -72,6 +72,18 @@ for name, fg, bg in td5:
     all_ok &= ok
     print(f"  {name:<42} {r:.2f}:1  {mark(ok)}")
 
+print("\n== T-DESIGN-5 Hero 渐变白字预算 ==")
+hero = [
+    ("Hero 白字 / 渐变深端 #0540b4", "#ffffff", "#0540b4"),
+    ("Hero 白字 / 渐变中段 #0a59f7", "#ffffff", "#0a59f7"),
+    ("Hero 白字 / 渐变浅端 #2666f0", "#ffffff", "#2666f0"),
+]
+for name, fg, bg in hero:
+    r = ratio(fg, bg)
+    ok = r >= 4.5
+    all_ok &= ok
+    print(f"  {name:<42} {r:.2f}:1  {mark(ok)}")
+
 print("\n== 存量组合回归（应保持达标）==")
 regress = [
     ("正文 #182431 / 卡片白底", "#182431", "#ffffff"),

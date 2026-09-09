@@ -10,6 +10,11 @@ export const themeTokens = {
   /** hover 取 #1467e8：白字压底 / 作文字均 5.08:1（原 #3178ff 仅 3.99:1，WCAG AA 不达标） */
   colorPrimaryHover: '#1467e8',
   colorPrimaryPressed: '#0540b4',
+  /**
+   * Hero 渐变浅端（T-DESIGN-5）：规范原稿 #3178ff 白字仅 3.99:1（不达标）。
+   * 校正为 #2666f0（白字 4.95:1）。渐变：pressed → primary → soft。
+   */
+  colorPrimarySoft: '#2666f0',
   colorSuccess: '#34c724',
   colorWarning: '#ff9500',
   colorError: '#d73035',
