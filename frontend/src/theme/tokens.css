@@ -20,8 +20,19 @@
   --color-success-text: #217f17;
   --color-warning-text: #a15e00;
   --color-error-text: #c72d31;
+  /* 内容分区色（T-DESIGN-5）：基色 + 文字变体；着色底实测 forum 5.85 / share 5.31 / notice 5.11 */
+  --color-forum: #7a5af8;
+  --color-share: #0e9384;
+  --color-notice: #e06616;
+  --color-forum-text: #5b3fd1;
+  --color-share-text: #0a6e63;
+  --color-notice-text: #a54a0f;
   --color-text: #182431;
   --color-text-secondary: #5e6772;
+  /* 卡片层次（T-DESIGN-5）：列表默认 sm，hover 升 md；详情主卡 md 待第 3 步接线 */
+  --shadow-sm: 0 1px 2px rgba(24, 36, 49, 0.06);
+  --shadow-md: 0 4px 12px rgba(24, 36, 49, 0.08);
+  --shadow-lg: 0 8px 24px rgba(24, 36, 49, 0.12);
   --radius: 12px;
   --radius-small: 8px;
   --font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;

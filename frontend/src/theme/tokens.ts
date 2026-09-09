@@ -21,6 +21,16 @@ export const themeTokens = {
   colorSuccessText: '#217f17',
   colorWarningText: '#a15e00',
   colorErrorText: '#c72d31',
+  /**
+   * 内容分区色（T-DESIGN-5）：基色作图标底/色条/标签底，文字一律用变体。
+   * 实测（标签着色底 = 基色 12% 透明度叠白）：forum 5.85 / share 5.31 / notice 5.11。
+   */
+  colorForum: '#7a5af8',
+  colorShare: '#0e9384',
+  colorNotice: '#e06616',
+  colorForumText: '#5b3fd1',
+  colorShareText: '#0a6e63',
+  colorNoticeText: '#a54a0f',
   /** 页面底色 / 卡片底色 */
   colorBgLayout: '#f1f3f5',
   colorBgContainer: '#ffffff',
