@@ -4,7 +4,7 @@ import pluginVue from 'eslint-plugin-vue'
 
 export default defineConfigWithVueTs(
   {
-    ignores: ['dist/**', 'node_modules/**']
+    ignores: ['dist/**', 'node_modules/**', 'scripts/**']
   },
   pluginVue.configs['flat/recommended'],
   vueTsConfigs.recommended,

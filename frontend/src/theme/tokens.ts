@@ -15,6 +15,11 @@ export const themeTokens = {
    * 校正为 #2666f0（白字 4.95:1）。渐变：pressed → primary → soft。
    */
   colorPrimarySoft: '#2666f0',
+  /**
+   * 品牌色上的前景字/图标（P2-17）：主按钮、选中 chip、热榜徽标等「压在 primary 上」的白。
+   * 与 colorBgContainer 同值但语义独立——容器底可变灰，on-primary 仍保持品牌上的对比白。
+   */
+  colorOnPrimary: '#ffffff',
   colorSuccess: '#34c724',
   colorWarning: '#ff9500',
   colorError: '#d73035',

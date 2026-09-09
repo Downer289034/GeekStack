@@ -226,7 +226,7 @@ onMounted(async () => {
 .sort-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-bg-container);
+  color: var(--color-on-primary);
 }
 
 .forum-empty {

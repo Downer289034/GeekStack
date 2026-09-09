@@ -12,6 +12,8 @@
   --color-primary-pressed: #0540b4;
   /* Hero 渐变浅端：规范 #3178ff 白字仅 3.99:1，校正为 #2666f0（4.95:1） */
   --color-primary-soft: #2666f0;
+  /* 品牌色上的前景白（P2-17），与容器白语义分离 */
+  --color-on-primary: #ffffff;
   --color-bg-layout: #f1f3f5;
   --color-bg-container: #ffffff;
   --color-border: #dfe3e8;
@@ -104,7 +106,7 @@ a:hover .gs-card-elevated {
   padding: 0 6px;
   border-radius: var(--radius-small);
   background: var(--color-error);
-  color: var(--color-bg-container);
+  color: var(--color-on-primary);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
