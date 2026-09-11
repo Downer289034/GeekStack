@@ -1,0 +1,6 @@
+ts=20260911-172711
+http=200
+bytes=69
+url=http://172.25.41.137:9080/media/smoke/20260911-172711-m72.png
+key=media/smoke/20260911-172711-m72.png
+file=PNG image data, 1 x 1, 8-bit/color RGB, non-interlaced
