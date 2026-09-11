@@ -3,8 +3,10 @@ withDefaults(
   defineProps<{
     /** 可点击时渲染为 button */
     interactive?: boolean
+    /** 选中态（筛选/分类） */
+    selected?: boolean
   }>(),
-  { interactive: false }
+  { interactive: false, selected: false }
 )
 
 defineEmits<{
@@ -17,11 +19,13 @@ defineEmits<{
     v-if="interactive"
     type="button"
     class="gs-tag"
+    :class="{ 'is-selected': selected }"
+    :aria-pressed="selected"
     @click="$emit('click', $event)"
   >
     <slot />
   </button>
-  <span v-else class="gs-tag">
+  <span v-else class="gs-tag" :class="{ 'is-selected': selected }">
     <slot />
   </span>
 </template>
@@ -53,5 +57,11 @@ button.gs-tag:hover,
 a:hover .gs-tag {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+.gs-tag.is-selected {
+  color: var(--accent-text);
+  border-color: var(--accent);
+  background: var(--accent);
 }
 </style>

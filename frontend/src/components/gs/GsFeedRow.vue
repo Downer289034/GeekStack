@@ -27,7 +27,7 @@ withDefaults(
 </script>
 
 <template>
-  <article class="gs-feed-row">
+  <article class="gs-feed-row" :class="{ 'is-pinned': pinned }">
     <RouterLink v-if="to" class="gs-feed-row__inner" :to="to">
       <span
         v-if="showRank || rank != null"
@@ -70,6 +70,14 @@ withDefaults(
 <style scoped>
 .gs-feed-row {
   border-bottom: 1px solid var(--border);
+}
+
+.gs-feed-row.is-pinned {
+  background: color-mix(in oklch, var(--accent) 14%, transparent);
+  border-radius: var(--radius-small);
+  padding-inline: 12px;
+  margin-inline: -12px;
+  border-bottom-color: transparent;
 }
 
 .gs-feed-row__inner {

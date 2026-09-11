@@ -1,19 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NIcon,
-  NInput,
-  NPagination,
-  NSpace,
-  NTag,
-  NText
-} from 'naive-ui'
+import { NEmpty, NIcon, NInput, NPagination, NSpace } from 'naive-ui'
 import { CubeOutline, GridOutline, SearchOutline } from '@vicons/ionicons5'
 import { pageShares, type ShareCard } from '@/api/share'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsProjectCard from '@/components/gs/GsProjectCard.vue'
 
 const PAGE_SIZE = 9
 
@@ -57,12 +48,6 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
 }
 
-/** 封面占位色相：按 id 在分区青系内轻微轮换，避免整页同色块 */
-function coverTone(id: number): string {
-  const tones = [0, 8, 16]
-  return `color-mix(in srgb, var(--color-share) ${18 + tones[id % 3]}%, var(--color-bg-container))`
-}
-
 onMounted(() => {
   void load()
 })
@@ -71,25 +56,29 @@ onMounted(() => {
 <template>
   <div class="plaza">
     <div class="plaza-header">
-      <h2 class="gs-section-title">
+      <h2 class="plaza-title font-display">
         <n-icon :component="GridOutline" :size="22" />
         项目广场
       </h2>
-      <n-space>
+      <n-space align="center" :wrap="true">
         <n-input
           v-model:value="tagInput"
           placeholder="按标签筛选"
           size="small"
-          style="width: 160px"
+          style="width: 180px"
           @keyup.enter="applyTagFilter"
         >
           <template #prefix>
             <n-icon :component="SearchOutline" />
           </template>
         </n-input>
-        <n-button size="small" @click="applyTagFilter">筛选</n-button>
-        <n-button v-if="activeTag" size="small" quaternary @click="clearTagFilter">清除</n-button>
+        <GsButton variant="ghost" @click="applyTagFilter">筛选</GsButton>
+        <GsButton v-if="activeTag" variant="text" @click="clearTagFilter">清除</GsButton>
       </n-space>
+    </div>
+
+    <div class="plaza-toolbar">
+      <span class="plaza-count font-mono">共 {{ total }} 个项目</span>
     </div>
 
     <n-empty
@@ -101,47 +90,21 @@ onMounted(() => {
         <n-icon :component="CubeOutline" :size="48" />
       </template>
       <template #extra>
-        <RouterLink to="/shares/new">
-          <n-button type="primary">去发布</n-button>
-        </RouterLink>
+        <GsButton variant="primary" to="/shares/new">去发布</GsButton>
       </template>
     </n-empty>
 
     <div v-else class="card-grid">
-      <RouterLink
-        v-for="card in cards"
+      <GsProjectCard
+        v-for="(card, index) in cards"
         :key="card.id"
+        :title="card.title"
         :to="`/shares/${card.id}`"
-        class="card-link"
-      >
-        <n-card class="gs-card-elevated plaza-card" :bordered="false">
-          <div class="card-cover" :style="{ background: coverTone(card.id) }" aria-hidden="true">
-            <span class="card-cover__grid" />
-            <n-tag class="gs-tag-share card-cover__badge" size="small" :bordered="false">项目</n-tag>
-          </div>
-          <div class="card-body">
-            <div class="card-title-row">
-              <span class="card-title">{{ card.title }}</span>
-              <n-tag size="small" :bordered="false">浏览 {{ card.viewCount }}</n-tag>
-            </div>
-            <p class="card-summary">{{ card.summary }}</p>
-            <div class="card-footer">
-              <n-space size="small">
-                <n-tag
-                  v-for="t in card.tags ?? []"
-                  :key="t"
-                  class="gs-tag-share"
-                  size="small"
-                  :bordered="false"
-                >
-                  {{ t }}
-                </n-tag>
-              </n-space>
-              <n-text depth="3" class="card-time">{{ formatTime(card.createdAt) }}</n-text>
-            </div>
-          </div>
-        </n-card>
-      </RouterLink>
+        :tags="card.tags ?? []"
+        :view-count="card.viewCount"
+        :time="formatTime(card.createdAt)"
+        :featured="current === 1 && index === 0"
+      />
     </div>
 
     <div class="plaza-pagination">
@@ -163,7 +126,29 @@ onMounted(() => {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.plaza-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.plaza-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   margin-bottom: 16px;
+}
+
+.plaza-count {
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .plaza-empty {
@@ -176,7 +161,6 @@ onMounted(() => {
   gap: 16px;
 }
 
-/* 断点口径见 tokens.css：1200↔768 过渡带 2 列，≤768 单列 */
 @media (max-width: 1200px) {
   .card-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -187,98 +171,6 @@ onMounted(() => {
   .card-grid {
     grid-template-columns: 1fr;
   }
-}
-
-.card-link {
-  text-decoration: none;
-  display: block;
-  min-width: 0;
-}
-
-.plaza-card {
-  overflow: hidden;
-  height: 100%;
-}
-
-.plaza-card :deep(.n-card__content) {
-  padding: 0;
-}
-
-.card-cover {
-  position: relative;
-  height: 112px;
-  overflow: hidden;
-}
-
-.card-cover__grid {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      transparent 0,
-      transparent 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 11px
-    ),
-    radial-gradient(
-      circle at 86% 20%,
-      color-mix(in srgb, var(--color-share-text) 18%, transparent),
-      transparent 45%
-    );
-  opacity: 0.9;
-}
-
-.card-cover__badge {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 1;
-}
-
-.card-body {
-  padding: 14px 16px 16px;
-}
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-summary {
-  margin: 8px 0 12px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 36px;
-}
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.card-time {
-  font-size: 12px;
-  white-space: nowrap;
 }
 
 .plaza-pagination {

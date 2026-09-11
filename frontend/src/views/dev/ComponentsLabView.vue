@@ -5,6 +5,7 @@ import GsButton from '@/components/gs/GsButton.vue'
 import GsCodeChip from '@/components/gs/GsCodeChip.vue'
 import GsFeedFeatured from '@/components/gs/GsFeedFeatured.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
+import GsProjectCard from '@/components/gs/GsProjectCard.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 
@@ -65,6 +66,27 @@ const tabs = [
         meta="2 小时前 · 1.2k 阅读"
         to="/forum"
       />
+    </section>
+
+    <section class="lab-block">
+      <h2 class="lab-label font-mono">Project Card</h2>
+      <div class="lab-grid">
+        <GsProjectCard
+          title="GeekStack 夜栈灯码"
+          to="/shares"
+          :tags="['Vue3', 'Design Token']"
+          :view-count="128"
+          time="2026-04-08 12:00:00"
+          featured
+        />
+        <GsProjectCard
+          title="内容审核 Agent"
+          to="/shares"
+          :tags="['LangGraph', 'Spring']"
+          :view-count="86"
+          time="2026-04-07 09:30:00"
+        />
+      </div>
     </section>
 
     <section class="lab-block">
@@ -138,5 +160,17 @@ const tabs = [
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .lab-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
