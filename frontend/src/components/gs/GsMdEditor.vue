@@ -4,9 +4,10 @@ import { storeToRefs } from 'pinia'
 import { MdEditor } from 'md-editor-v3'
 import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import { uploadMedia } from '@/api/media'
 import { useThemeStore } from '@/stores/theme'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     modelValue: string
     placeholder?: string
@@ -14,9 +15,14 @@ withDefaults(
     /** 默认单栏编辑；设 true 为分栏预览 */
     preview?: boolean
     disabled?: boolean
+    /**
+     * 自定义批量上传；默认逐张 POST /api/v1/media/upload?scene=editor。
+     * 返回与 files 同序的 URL 列表。
+     */
+    uploadHandler?: (files: File[]) => Promise<string[]>
   }>(),
   {
-    placeholder: '支持 Markdown…',
+    placeholder: '支持 Markdown…\n粘贴或拖入图片可直接上传',
     toolbars: () =>
       [
         'bold',
@@ -35,14 +41,13 @@ withDefaults(
         'preview'
       ] as ToolbarNames[],
     preview: false,
-    disabled: false
+    disabled: false,
+    uploadHandler: undefined
   }
 )
 
 const emit = defineEmits<{
   'update:modelValue': [string]
-  /** 透传 md-editor onUploadImg，由调用方或后续 M7-1.5 接入 */
-  uploadImg: [files: File[], callback: (urls: string[]) => void]
 }>()
 
 const { theme } = storeToRefs(useThemeStore())
@@ -54,8 +59,25 @@ function onUpdate(v: string) {
   emit('update:modelValue', v)
 }
 
-function onUploadImg(files: File[], callback: (urls: string[]) => void) {
-  emit('uploadImg', files, callback)
+async function defaultUpload(files: File[]): Promise<string[]> {
+  const urls: string[] = []
+  for (const file of files) {
+    const result = await uploadMedia(file, 'editor')
+    urls.push(result.url)
+  }
+  return urls
+}
+
+async function onUploadImg(files: File[], callback: (urls: string[]) => void) {
+  try {
+    const urls = props.uploadHandler
+      ? await props.uploadHandler(files)
+      : await defaultUpload(files)
+    callback(urls)
+  } catch {
+    // request 拦截器已 toast；空列表让 md-editor 不插入坏链
+    callback([])
+  }
 }
 </script>
 
