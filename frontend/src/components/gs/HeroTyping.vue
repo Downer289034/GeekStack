@@ -190,8 +190,6 @@ onUnmounted(() => {
 }
 
 .hero-typing {
-
-.hero-typing {
   margin: 0;
   font-size: clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem);
   font-weight: 700;
