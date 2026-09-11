@@ -11,6 +11,7 @@ import {
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
+import GsButton from '@/components/gs/GsButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -133,15 +134,11 @@ function logout() {
           <n-icon :component="theme === 'dark' ? SunnyOutline : MoonOutline" :size="16" />
         </button>
 
-        <RouterLink
-          v-if="auth.isLoggedIn"
-          class="gs-btn-primary"
-          to="/forum/new"
-        >
+        <GsButton v-if="auth.isLoggedIn" variant="primary" to="/forum/new">
           <n-icon :component="CreateOutline" :size="16" />
           写文章
-        </RouterLink>
-        <RouterLink v-else class="gs-btn-primary" to="/login">写文章</RouterLink>
+        </GsButton>
+        <GsButton v-else variant="primary" to="/login">写文章</GsButton>
 
         <template v-if="auth.isLoggedIn">
           <RouterLink
@@ -364,34 +361,6 @@ function logout() {
   height: 16px;
 }
 
-.gs-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--accent);
-  color: var(--accent-text);
-  border: none;
-  border-radius: 10px;
-  padding: 9px 16px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background 0.15s var(--ease-out),
-    transform 0.2s var(--ease-out);
-}
-
-.gs-btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
-
-.gs-btn-primary__icon {
-  width: 16px;
-  height: 16px;
-}
-
 .gs-avatar {
   width: 36px;
   height: 36px;
@@ -483,11 +452,6 @@ function logout() {
     padding-bottom: 8px;
     flex-wrap: wrap;
     gap: 10px;
-  }
-
-  .gs-btn-primary {
-    padding: 8px 12px;
-    font-size: 0.82rem;
   }
 }
 </style>

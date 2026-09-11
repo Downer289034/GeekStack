@@ -65,6 +65,12 @@ const router = createRouter({
           meta: { title: '帖子详情', containerWidth: 'md' }
         },
         {
+          path: 'dev/components',
+          name: 'components-lab',
+          component: () => import('@/views/dev/ComponentsLabView.vue'),
+          meta: { title: '组件实验室' }
+        },
+        {
           path: 'users/:username',
           name: 'profile',
           component: () => import('@/views/profile/ProfileView.vue'),
