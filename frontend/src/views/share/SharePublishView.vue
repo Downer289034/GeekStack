@@ -12,12 +12,10 @@ import {
   type FormInst,
   type FormRules
 } from 'naive-ui'
-import { MdEditor } from 'md-editor-v3'
-import type { ToolbarNames } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
 import { createShare, fetchShare, updateShare } from '@/api/share'
 import { fetchRepos, type UserRepo } from '@/api/repo'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsMdEditor from '@/components/gs/GsMdEditor.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -62,21 +60,6 @@ const rules: FormRules = {
   repoUrl: [{ type: 'url', message: '仓库地址必须是合法 URL' }],
   demoUrl: [{ type: 'url', message: '在线地址必须是合法 URL' }]
 }
-
-const toolbar: ToolbarNames[] = [
-  'bold',
-  'italic',
-  'strikeThrough',
-  'title',
-  '-',
-  'code',
-  'quote',
-  'unorderedList',
-  'link',
-  'table',
-  '-',
-  'preview'
-]
 
 async function prefillForEdit() {
   if (editId.value == null) return
@@ -184,14 +167,11 @@ void prefillForEdit()
         <n-form-item label="在线 Demo 地址（可选，留空提交即清除）" path="demoUrl">
           <n-input v-model:value="model.demoUrl" placeholder="https://your-demo.example.com" />
         </n-form-item>
-        <n-form-item label="项目介绍（Markdown，实时预览）" path="contentMd">
-          <div class="editor-wrap">
-            <MdEditor
-              v-model="model.contentMd"
-              :toolbars="toolbar"
-              placeholder="用 Markdown 介绍你的项目…"
-            />
-          </div>
+        <n-form-item label="项目介绍（Markdown）" path="contentMd">
+          <GsMdEditor
+            v-model="model.contentMd"
+            placeholder="用 Markdown 介绍你的项目…"
+          />
         </n-form-item>
         <GsButton variant="primary" :disabled="submitting" @click="onSubmit">
           {{ isEdit ? '保存修改' : '发布' }}
@@ -233,14 +213,6 @@ void prefillForEdit()
 .import-btn {
   margin-bottom: 16px;
   width: 100%;
-}
-
-.editor-wrap {
-  width: 100%;
-}
-
-.editor-wrap :deep(.md-editor) {
-  height: clamp(260px, 55vh, 380px);
 }
 
 .repo-pick-item {

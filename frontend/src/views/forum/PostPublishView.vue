@@ -2,11 +2,9 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { NForm, NFormItem, NInput, type FormInst, type FormRules } from 'naive-ui'
-import { MdEditor } from 'md-editor-v3'
-import type { ToolbarNames } from 'md-editor-v3'
-import 'md-editor-v3/lib/style.css'
 import { createPost, fetchCategories, type Category } from '@/api/forum'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsMdEditor from '@/components/gs/GsMdEditor.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -28,21 +26,6 @@ const rules: FormRules = {
   ],
   contentMd: [{ required: true, message: '请输入正文（Markdown）' }]
 }
-
-const toolbar: ToolbarNames[] = [
-  'bold',
-  'italic',
-  'strikeThrough',
-  'title',
-  '-',
-  'code',
-  'quote',
-  'unorderedList',
-  'link',
-  'table',
-  '-',
-  'preview'
-]
 
 async function onSubmit() {
   try {
@@ -95,10 +78,11 @@ void init()
       <n-form-item label="标题" path="title">
         <n-input v-model:value="model.title" placeholder="一句话说清你的问题或主题" />
       </n-form-item>
-      <n-form-item label="正文（Markdown，实时预览）" path="contentMd">
-        <div class="editor-wrap">
-          <MdEditor v-model="model.contentMd" :toolbars="toolbar" placeholder="正文支持 Markdown…" />
-        </div>
+      <n-form-item label="正文（Markdown）" path="contentMd">
+        <GsMdEditor
+          v-model="model.contentMd"
+          placeholder="支持 Markdown，问题贴请附上：环境版本 · 复现步骤 · 期望与实际表现"
+        />
       </n-form-item>
       <GsButton variant="primary" :disabled="submitting" @click="onSubmit">发布</GsButton>
     </n-form>
@@ -117,13 +101,5 @@ void init()
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.editor-wrap {
-  width: 100%;
-}
-
-.editor-wrap :deep(.md-editor) {
-  height: clamp(260px, 55vh, 380px);
 }
 </style>
