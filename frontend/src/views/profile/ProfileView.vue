@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
-import { NAvatar, NButton, NCard, NEmpty, NIcon, NTag, NText, useMessage } from 'naive-ui'
+import { useRoute } from 'vue-router'
+import { NAvatar, NEmpty, NIcon, useMessage } from 'naive-ui'
 import { CubeOutline, CreateOutline, PersonOutline } from '@vicons/ionicons5'
 import { fetchProfile, type ProfileAggregate } from '@/api/profile'
 import { fetchRepos, toggleRepoHide, type UserRepo } from '@/api/repo'
+import GsBadge from '@/components/gs/GsBadge.vue'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsCodeChip from '@/components/gs/GsCodeChip.vue'
+import GsFeedRow from '@/components/gs/GsFeedRow.vue'
+import GsTag from '@/components/gs/GsTag.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -37,7 +42,6 @@ async function onToggleHide(repo: UserRepo) {
     const nowHidden = await toggleRepoHide(repo.id)
     repo.hidden = nowHidden ? 1 : 0
     message.success(nowHidden ? '已隐藏（不会展示在主页）' : '已恢复显示')
-    // 隐藏后从可见列表中移除
     if (nowHidden) {
       repos.value = repos.value.filter((r) => r.id !== repo.id)
     }
@@ -67,108 +71,105 @@ onMounted(() => {
         <n-icon :component="PersonOutline" :size="48" />
       </template>
       <template #extra>
-        <RouterLink to="/"><n-button type="primary">回到首页</n-button></RouterLink>
+        <GsButton variant="primary" to="/">回到首页</GsButton>
       </template>
     </n-empty>
   </div>
 
   <div v-else class="profile">
-    <n-card class="profile-card gs-card-detail" :bordered="false">
-      <div class="profile-head">
-        <n-avatar round :size="64" class="profile-avatar">
-          {{ profile?.profile.nickname?.charAt(0) ?? '?' }}
-        </n-avatar>
-        <div class="profile-info">
-          <div class="profile-name-row">
-            <h2 class="profile-name">{{ profile?.profile.nickname ?? profile?.profile.username ?? '加载中…' }}</h2>
-            <n-tag v-if="profile?.profile.role === 'ADMIN'" size="small" type="error" :bordered="false">管理员</n-tag>
-            <n-tag v-if="isOwner" size="small" type="info" :bordered="false">这是你</n-tag>
-          </div>
-          <n-text depth="3" class="profile-sub">
-            @{{ profile?.profile.username }} · 加入于 {{ formatTime(profile?.profile.createdAt ?? '') }}
-          </n-text>
-          <p class="profile-bio">{{ profile?.profile.bio || '这个人很懒，什么都没写' }}</p>
+    <header class="profile-head">
+      <n-avatar round :size="64" class="profile-avatar">
+        {{ profile?.profile.nickname?.charAt(0) ?? '?' }}
+      </n-avatar>
+      <div class="profile-info">
+        <div class="profile-name-row">
+          <h2 class="profile-name font-display">
+            {{ profile?.profile.nickname ?? profile?.profile.username ?? '加载中…' }}
+          </h2>
+          <GsBadge v-if="profile?.profile.role === 'ADMIN'" tone="error">管理员</GsBadge>
+          <GsBadge v-if="isOwner" tone="info">这是你</GsBadge>
         </div>
+        <p class="profile-sub font-mono">
+          @{{ profile?.profile.username }} · 加入于 {{ formatTime(profile?.profile.createdAt ?? '') }}
+        </p>
+        <p class="profile-bio">{{ profile?.profile.bio || '这个人很懒，什么都没写' }}</p>
       </div>
-    </n-card>
+    </header>
 
-    <!-- 仓库卡片区（T17 收尾） -->
-    <n-card title="我的仓库" class="profile-section gs-card-detail" :bordered="false">
+    <section class="profile-section">
+      <h3 class="section-title font-display">我的仓库</h3>
       <n-empty v-if="!loading && repos.length === 0" description="未绑定仓库或同步失败" size="small" />
-      <div v-for="repo in repos" :key="repo.id" class="repo-card">
+      <article v-for="repo in repos" :key="repo.id" class="repo-card">
         <div class="repo-card-head">
-          <a :href="repo.repoUrl" target="_blank" rel="noopener noreferrer" class="repo-name">
+          <a :href="repo.repoUrl" target="_blank" rel="noopener noreferrer" class="repo-name font-mono">
             {{ repo.repoFullName }}
           </a>
-          <n-tag size="small" :bordered="false">⭐ {{ repo.stars }}</n-tag>
+          <GsTag>★ {{ repo.stars }}</GsTag>
         </div>
         <p v-if="repo.description" class="repo-desc">{{ repo.description }}</p>
         <div class="repo-card-foot">
-          <n-tag size="small" type="info" :bordered="false">{{ repo.provider }}</n-tag>
-          <n-text depth="3" class="repo-synced">
-            同步于 {{ formatTime(repo.syncedAt) }}
-          </n-text>
-          <n-button v-if="isOwner" text size="tiny" @click="onToggleHide(repo)">
-            隐藏
-          </n-button>
+          <GsCodeChip>{{ repo.provider }}</GsCodeChip>
+          <span class="repo-synced font-mono">同步于 {{ formatTime(repo.syncedAt) }}</span>
+          <GsButton v-if="isOwner" variant="text" @click="onToggleHide(repo)">隐藏</GsButton>
         </div>
-      </div>
-    </n-card>
+      </article>
+    </section>
 
-    <n-card title="项目分享" class="profile-section gs-card-detail" :bordered="false">
+    <section class="profile-section">
+      <h3 class="section-title font-display">项目分享</h3>
       <n-empty v-if="profile && profile.shares.length === 0" description="还没有分享项目" size="small">
         <template #icon>
           <n-icon :component="CubeOutline" :size="36" />
         </template>
         <template v-if="isOwner" #extra>
-          <RouterLink to="/shares/new"><n-button size="small" type="primary">去发布</n-button></RouterLink>
+          <GsButton variant="primary" to="/shares/new">去发布</GsButton>
         </template>
       </n-empty>
-      <div v-for="share in (profile?.shares ?? [])" :key="share.id" class="profile-item">
-        <RouterLink :to="`/shares/${share.id}`" class="profile-item-link">
-          <span class="profile-item-title">{{ share.title }}</span>
-          <n-tag v-if="share.status === 'HIDDEN'" size="small" type="error" :bordered="false">已下架</n-tag>
-        </RouterLink>
-        <n-text depth="3" class="profile-item-meta">{{ share.summary }}</n-text>
-      </div>
-    </n-card>
+      <GsFeedRow
+        v-for="share in profile?.shares ?? []"
+        :key="share.id"
+        :title="share.title"
+        :to="`/shares/${share.id}`"
+        :excerpt="share.summary"
+        :tags="share.status === 'HIDDEN' ? ['已下架'] : undefined"
+      />
+    </section>
 
-    <n-card title="帖子" class="profile-section gs-card-detail" :bordered="false">
+    <section class="profile-section">
+      <h3 class="section-title font-display">帖子</h3>
       <n-empty v-if="profile && profile.posts.length === 0" description="还没有发过帖子" size="small">
         <template #icon>
           <n-icon :component="CreateOutline" :size="36" />
         </template>
         <template v-if="isOwner" #extra>
-          <RouterLink to="/forum/new"><n-button size="small" type="primary">去发帖</n-button></RouterLink>
+          <GsButton variant="primary" to="/forum/new">去发帖</GsButton>
         </template>
       </n-empty>
-      <div v-for="post in (profile?.posts ?? [])" :key="post.id" class="profile-item">
-        <RouterLink :to="`/forum/posts/${post.id}`" class="profile-item-link">
-          <span class="profile-item-title">{{ post.title }}</span>
-        </RouterLink>
-        <n-text depth="3" class="profile-item-meta">
-          回帖 {{ post.replyCount }} · 浏览 {{ post.viewCount }} · {{ formatTime(post.createdAt) }}
-        </n-text>
-      </div>
-    </n-card>
+      <GsFeedRow
+        v-for="post in profile?.posts ?? []"
+        :key="post.id"
+        :title="post.title"
+        :to="`/forum/posts/${post.id}`"
+        :meta="`回帖 ${post.replyCount} · 浏览 ${post.viewCount} · ${formatTime(post.createdAt)}`"
+      />
+    </section>
   </div>
 </template>
 
 <style scoped>
-.profile-card {
-  margin-bottom: 16px;
-}
-
 .profile-head {
   display: flex;
   gap: 20px;
   align-items: flex-start;
   flex-wrap: wrap;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .profile-avatar {
-  background: var(--color-primary);
-  color: var(--color-bg-container);
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 24px;
   flex-shrink: 0;
 }
@@ -177,30 +178,42 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .profile-name {
   margin: 0;
-  font-size: 20px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-1);
 }
 
 .profile-sub {
-  font-size: 13px;
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-3);
 }
 
 .profile-bio {
-  margin: 8px 0 0;
-  color: var(--color-text);
+  margin: 10px 0 0;
+  color: var(--text-2);
+  max-width: 62ch;
 }
 
 .profile-section {
-  margin-bottom: 16px;
+  margin-bottom: 28px;
 }
 
-/* 仓库卡片 */
+.section-title {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
 .repo-card {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .repo-card:last-child {
@@ -215,9 +228,9 @@ onMounted(() => {
 }
 
 .repo-name {
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: var(--color-primary);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -226,48 +239,22 @@ onMounted(() => {
 }
 
 .repo-desc {
-  margin: 4px 0 0;
-  color: var(--color-text-secondary);
-  font-size: 13px;
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 0.85rem;
 }
 
 .repo-card-foot {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .repo-synced {
-  font-size: 12px;
-}
-
-/* 项目/帖子列表 */
-.profile-item {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.profile-item:last-child {
-  border-bottom: none;
-}
-
-.profile-item-link {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.profile-item-title {
-  color: var(--color-text);
-  font-weight: 500;
-}
-
-.profile-item-meta {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
+  font-size: 0.72rem;
+  color: var(--text-3);
 }
 
 .profile-404 {
