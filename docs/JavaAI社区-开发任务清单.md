@@ -194,9 +194,12 @@
 **前置**：M6-1
 **产出**：`frontend/src/components/gs/*`；`docs/assets/m6-3-components/`
 
-### [ ] M6-4：页面迁移
-**描述**：首页 → 论坛 → 广场 → 详情 → 发布 → 主页 → 搜索/标签/404（逐页）
+### [x] M6-4：页面迁移
+**描述**：广场 → 论坛 → 帖子详情 → 项目详情 → 发布 → 主页 → 搜索/标签 → 404；列表行/头条/Tag/Tab 换 Gs*；业务逻辑零改动
+**验收标准**：截图对照蓝图；零硬编码色；三断点；按页分 commit；Primary 口径：导航层唯一 + 每屏表单主按钮合规
 **前置**：M6-2 / M6-3
+**产出**：`frontend/src/components/gs/GsProjectCard.vue`；页面迁入 Gs*；`docs/assets/m6-4-pages/`
+**口径备忘**：登录/注册等页内表单 Primary 按「每屏一个」执行，不与顶栏「写文章」冲突
 
 ### [ ] M6-5：状态与动效
 **描述**：骨架屏、reveal 入场、焦点环、prefers-reduced-motion
