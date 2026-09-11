@@ -1,4 +1,4 @@
-# 开发基础设施：MySQL 8 + Redis 7
+# 开发基础设施：MySQL 8 + Redis 7 + MinIO
 # 部署位置：服务器 /opt/community-dev/docker-compose.yml（开发栈；生产栈见 deploy/prod）
 # 凭据来自同目录 .env（服务器上 chmod 600，不入 git）
 services:
@@ -43,6 +43,60 @@ services:
       timeout: 5s
       retries: 12
 
+  # M7-2：对象存储；dev 暴露 9000 供本机调试（控制台 9001 仅本机）
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: community-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      TZ: Asia/Shanghai
+    ports:
+      - "9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-11-17T19-35-56Z
+    container_name: community-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-geekstack}
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
+      mc mb -p local/$$MINIO_BUCKET || true;
+      mc anonymous set download local/$$MINIO_BUCKET/media || true;
+      echo minio-init-done;
+      "
+
+  # 仅反代 /media/ → MinIO（9080，避开 prod 的 80）
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: community-nginx-media
+    restart: unless-stopped
+    ports:
+      - "9080:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+
 volumes:
   mysql-data:
   redis-data:
+  minio-data:

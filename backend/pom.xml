@@ -91,6 +91,13 @@
             <artifactId>flyway-mysql</artifactId>
         </dependency>
 
+        <!-- M7-2：MinIO / S3 兼容对象存储客户端 -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.17</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

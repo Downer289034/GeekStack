@@ -16,6 +16,7 @@ public enum ErrorCode {
     FORBIDDEN(40300, HttpStatus.FORBIDDEN, "无权限"),
     NOT_FOUND(40400, HttpStatus.NOT_FOUND, "资源不存在"),
     CONFLICT(40900, HttpStatus.CONFLICT, "资源冲突"),
+    TOO_MANY_REQUESTS(42900, HttpStatus.TOO_MANY_REQUESTS, "请求过于频繁"),
     SYSTEM_ERROR(50000, HttpStatus.INTERNAL_SERVER_ERROR, "系统繁忙，请稍后再试");
 
     private final int code;

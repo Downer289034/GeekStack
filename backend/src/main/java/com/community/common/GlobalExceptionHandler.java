@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -38,6 +39,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<Result<Void>> handleUnreadable() {
         return build(ErrorCode.PARAM_ERROR.getHttpStatus(), Result.fail(ErrorCode.PARAM_ERROR));
+    }
+
+    /** multipart 超 Spring 配置上限：400（与业务超限文案对齐）。 */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Result<Void>> handleMaxUpload() {
+        return build(ErrorCode.PARAM_ERROR.getHttpStatus(),
+                Result.fail(ErrorCode.PARAM_ERROR, "文件超过大小限制"));
     }
 
     /** 静态资源与路径未命中：404。 */
