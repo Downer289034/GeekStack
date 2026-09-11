@@ -2,8 +2,6 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  NButton,
-  NCard,
   NDrawer,
   NDrawerContent,
   NForm,
@@ -20,13 +18,13 @@ import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { createShare, fetchShare, updateShare } from '@/api/share'
 import { fetchRepos, type UserRepo } from '@/api/repo'
+import GsButton from '@/components/gs/GsButton.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
-// 编辑模式
 const editId = computed(() => {
   const raw = route.params.id
   const id = typeof raw === 'string' ? Number(raw) : NaN
@@ -38,7 +36,6 @@ const formRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const loadingShare = ref(isEdit.value)
 
-// 一键导入：抽屉状态
 const showRepoDrawer = ref(false)
 const repoLoading = ref(false)
 const availableRepos = ref<UserRepo[]>([])
@@ -67,11 +64,20 @@ const rules: FormRules = {
 }
 
 const toolbar: ToolbarNames[] = [
-  'bold', 'italic', 'strikeThrough', 'title', '-', 'code', 'quote',
-  'unorderedList', 'link', 'table', '-', 'preview'
+  'bold',
+  'italic',
+  'strikeThrough',
+  'title',
+  '-',
+  'code',
+  'quote',
+  'unorderedList',
+  'link',
+  'table',
+  '-',
+  'preview'
 ]
 
-// 编辑模式预填充
 async function prefillForEdit() {
   if (editId.value == null) return
   try {
@@ -87,7 +93,6 @@ async function prefillForEdit() {
   }
 }
 
-// 一键导入：拉取用户全量仓库（含已隐藏）
 async function openRepoDrawer() {
   showRepoDrawer.value = true
   repoLoading.value = true
@@ -101,7 +106,6 @@ async function openRepoDrawer() {
 }
 
 function importRepo(repo: UserRepo) {
-  // 预填仓库 URL，名称作为标题建议（用户可修改）
   model.repoUrl = repo.repoUrl
   if (!model.title) {
     model.title = repo.repoFullName
@@ -140,7 +144,9 @@ async function onSubmit() {
       demoUrl: model.demoUrl || undefined,
       tags: model.tags.length > 0 ? model.tags : undefined
     }
-    const saved = isEdit.value ? await updateShare(editId.value as number, payload) : await createShare(payload)
+    const saved = isEdit.value
+      ? await updateShare(editId.value as number, payload)
+      : await createShare(payload)
     goAfterSave(saved.id)
   } catch {
     // 错误提示由请求拦截器统一 toast
@@ -153,14 +159,14 @@ void prefillForEdit()
 </script>
 
 <template>
-  <n-card :title="isEdit ? '编辑项目' : '发布项目'">
+  <div class="publish">
+    <h2 class="publish-title font-display">{{ isEdit ? '编辑项目' : '发布项目' }}</h2>
     <n-spin :show="loadingShare">
       <n-form ref="formRef" :model="model" :rules="rules" label-placement="top">
-        <!-- 一键导入入口（仅创建模式） -->
         <template v-if="!isEdit && auth.isLoggedIn">
-          <n-button style="margin-bottom: 12px" block @click="openRepoDrawer">
-            📦 从我的仓库导入（自动填充名称/描述/仓库地址）
-          </n-button>
+          <GsButton variant="ghost" class="import-btn" @click="openRepoDrawer">
+            从我的仓库导入（自动填充名称/描述/仓库地址）
+          </GsButton>
         </template>
 
         <n-form-item label="项目名称" path="title">
@@ -180,59 +186,89 @@ void prefillForEdit()
         </n-form-item>
         <n-form-item label="项目介绍（Markdown，实时预览）" path="contentMd">
           <div class="editor-wrap">
-            <MdEditor v-model="model.contentMd" :toolbars="toolbar" placeholder="用 Markdown 介绍你的项目…" />
+            <MdEditor
+              v-model="model.contentMd"
+              :toolbars="toolbar"
+              placeholder="用 Markdown 介绍你的项目…"
+            />
           </div>
         </n-form-item>
-        <n-button type="primary" :loading="submitting" @click="onSubmit">
+        <GsButton variant="primary" :disabled="submitting" @click="onSubmit">
           {{ isEdit ? '保存修改' : '发布' }}
-        </n-button>
+        </GsButton>
       </n-form>
     </n-spin>
 
-    <!-- 一键导入仓库选择抽屉 -->
     <n-drawer v-model:show="showRepoDrawer" :width="400" placement="right">
       <n-drawer-content title="选择要导入的仓库">
         <n-spin :show="repoLoading">
-          <n-empty v-if="availableRepos.length === 0" description="暂无可用仓库（未绑定或快照为空）" />
-          <div v-for="repo in availableRepos" :key="repo.id" class="repo-pick-item" @click="importRepo(repo)">
-            <span class="repo-pick-name">{{ repo.repoFullName }}</span>
-            <n-text depth="3" class="repo-pick-desc">{{ repo.description || '暂无描述' }}</n-text>
-          </div>
+          <n-empty
+            v-if="availableRepos.length === 0"
+            description="暂无可用仓库（未绑定或快照为空）"
+          />
+          <button
+            v-for="repo in availableRepos"
+            :key="repo.id"
+            type="button"
+            class="repo-pick-item"
+            @click="importRepo(repo)"
+          >
+            <span class="repo-pick-name font-mono">{{ repo.repoFullName }}</span>
+            <span class="repo-pick-desc">{{ repo.description || '暂无描述' }}</span>
+          </button>
         </n-spin>
       </n-drawer-content>
     </n-drawer>
-  </n-card>
+  </div>
 </template>
 
 <style scoped>
+.publish-title {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.import-btn {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
 .editor-wrap {
   width: 100%;
 }
 
-/* 380px 定高在手机端占比过高，随视口高度收缩 */
 .editor-wrap :deep(.md-editor) {
   height: clamp(260px, 55vh, 380px);
 }
 
 .repo-pick-item {
+  display: block;
+  width: 100%;
+  text-align: left;
   padding: 12px;
-  border-bottom: 1px solid var(--color-border);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .repo-pick-item:hover {
-  background: var(--color-bg-layout);
+  background: var(--surface-2);
 }
 
 .repo-pick-name {
   display: block;
   font-weight: 500;
-  color: var(--color-primary);
+  color: var(--accent);
 }
 
 .repo-pick-desc {
   display: block;
   margin-top: 2px;
   font-size: 12px;
+  color: var(--text-3);
 }
 </style>

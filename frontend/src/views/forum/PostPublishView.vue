@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  NButton,
-  NCard,
-  NForm,
-  NFormItem,
-  NInput,
-  type FormInst,
-  type FormRules
-} from 'naive-ui'
+import { NForm, NFormItem, NInput, type FormInst, type FormRules } from 'naive-ui'
 import { MdEditor } from 'md-editor-v3'
 import type { ToolbarNames } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { createPost, fetchCategories, type Category } from '@/api/forum'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsTag from '@/components/gs/GsTag.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
@@ -35,7 +29,20 @@ const rules: FormRules = {
   contentMd: [{ required: true, message: '请输入正文（Markdown）' }]
 }
 
-const toolbar: ToolbarNames[] = ['bold', 'italic', 'strikeThrough', 'title', '-', 'code', 'quote', 'unorderedList', 'link', 'table', '-', 'preview']
+const toolbar: ToolbarNames[] = [
+  'bold',
+  'italic',
+  'strikeThrough',
+  'title',
+  '-',
+  'code',
+  'quote',
+  'unorderedList',
+  'link',
+  'table',
+  '-',
+  'preview'
+]
 
 async function onSubmit() {
   try {
@@ -69,20 +76,20 @@ void init()
 </script>
 
 <template>
-  <n-card title="发帖">
+  <div class="publish">
+    <h2 class="publish-title font-display">发帖</h2>
     <n-form ref="formRef" :model="model" :rules="rules" label-placement="top">
       <n-form-item label="分类" path="categoryId">
         <div class="cat-select">
-          <button
+          <GsTag
             v-for="cat in categories"
             :key="cat.id"
-            type="button"
-            class="cat-option"
-            :class="{ active: categoryId === cat.id }"
+            interactive
+            :selected="categoryId === cat.id"
             @click="categoryId = cat.id"
           >
             {{ cat.name }}
-          </button>
+          </GsTag>
         </div>
       </n-form-item>
       <n-form-item label="标题" path="title">
@@ -93,39 +100,29 @@ void init()
           <MdEditor v-model="model.contentMd" :toolbars="toolbar" placeholder="正文支持 Markdown…" />
         </div>
       </n-form-item>
-      <n-button type="primary" :loading="submitting" @click="onSubmit">发布</n-button>
+      <GsButton variant="primary" :disabled="submitting" @click="onSubmit">发布</GsButton>
     </n-form>
-  </n-card>
+  </div>
 </template>
 
 <style scoped>
+.publish-title {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
 .cat-select {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.cat-option {
-  border: 1px solid var(--color-text-secondary);
-  background: transparent;
-  color: var(--color-text);
-  border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.cat-option.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
 .editor-wrap {
   width: 100%;
 }
 
-/* 380px 定高在手机端占比过高，随视口高度收缩 */
 .editor-wrap :deep(.md-editor) {
   height: clamp(260px, 55vh, 380px);
 }
