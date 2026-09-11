@@ -24,6 +24,7 @@ import {
 } from '@/api/forum'
 import GsBadge from '@/components/gs/GsBadge.vue'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
@@ -36,6 +37,7 @@ const message = useMessage()
 const post = ref<PostDetail | null>(null)
 const comments = ref<CommentNode[]>([])
 const notFound = ref(false)
+const loading = ref(true)
 const replyText = ref('')
 const nestedReplyTo = ref<CommentNode | null>(null)
 const submitting = ref(false)
@@ -50,14 +52,16 @@ function canModerate(comment: CommentNode): boolean {
 }
 
 async function loadAll() {
+  loading.value = true
   const id = route.params.id as string
   try {
     post.value = await fetchPost(id)
+    comments.value = await fetchComments('posts', id)
   } catch {
     notFound.value = true
-    return
+  } finally {
+    loading.value = false
   }
-  comments.value = await fetchComments('posts', id)
 }
 
 async function submitReply() {
@@ -133,9 +137,11 @@ onMounted(() => {
   </div>
 
   <div v-else class="post-detail">
-    <n-page-header :title="post?.title ?? '加载中…'" @back="router.back()" />
+    <n-page-header :title="post?.title ?? (loading ? '…' : '加载中…')" @back="router.back()" />
 
-    <article v-if="post" class="post-card">
+    <GsSkeleton v-if="loading" variant="detail" />
+
+    <article v-else-if="post" v-reveal class="post-card">
       <div class="post-card__toolbar">
         <n-space align="center" :wrap="true" class="post-meta">
           <GsBadge v-if="post.isPinned === 1" tone="pinned">置顶</GsBadge>
@@ -155,7 +161,7 @@ onMounted(() => {
       <div class="post-content" v-html="renderedContent"></div>
     </article>
 
-    <section class="reply-card">
+    <section v-if="!loading && post" class="reply-card">
       <h3 class="reply-title font-display">
         <n-icon :component="ChatbubbleOutline" :size="18" />
         回帖（{{ post?.replyCount ?? 0 }}）

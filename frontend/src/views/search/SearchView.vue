@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { NEmpty, NIcon, NInput, NPagination, NSpin } from 'naive-ui'
+import { NEmpty, NIcon, NInput, NPagination } from 'naive-ui'
 import {
   ChatbubblesOutline,
   CubeOutline,
@@ -14,6 +14,7 @@ import { searchContent, type SearchType } from '@/api/search'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
 import GsProjectCard from '@/components/gs/GsProjectCard.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 
 const PAGE_SIZE = 10
@@ -192,9 +193,15 @@ onMounted(async () => {
       <span> · {{ searchType === 'post' ? '帖子' : '项目' }} · 共 {{ total }} 条</span>
     </p>
 
-    <n-spin :show="loading">
+    <GsSkeleton
+      v-if="loading"
+      :variant="searchType === 'share' ? 'card' : 'row'"
+      :count="searchType === 'share' ? 6 : 6"
+    />
+
+    <template v-else>
       <n-empty
-        v-if="!loading && searched && qActive && total === 0"
+        v-if="searched && qActive && total === 0"
         description="没有找到相关结果"
       >
         <template #icon>
@@ -216,7 +223,7 @@ onMounted(async () => {
         </template>
       </n-empty>
 
-      <n-empty v-else-if="!loading && !qActive" description="输入关键字开始搜索">
+      <n-empty v-else-if="!qActive" description="输入关键字开始搜索">
         <template #icon>
           <n-icon :component="SearchOutline" :size="48" />
         </template>
@@ -226,6 +233,7 @@ onMounted(async () => {
         <GsFeedRow
           v-for="post in postRecords"
           :key="post.id"
+          v-reveal
           :title="post.title"
           :to="`/forum/posts/${post.id}`"
           :tags="[categoryLabel(post)]"
@@ -238,6 +246,7 @@ onMounted(async () => {
         <GsProjectCard
           v-for="(card, index) in shareRecords"
           :key="card.id"
+          v-reveal
           :title="card.title"
           :to="`/shares/${card.id}`"
           :tags="card.tags ?? []"
@@ -256,7 +265,7 @@ onMounted(async () => {
           @update:page="onPageChange"
         />
       </div>
-    </n-spin>
+    </template>
   </div>
 </template>
 

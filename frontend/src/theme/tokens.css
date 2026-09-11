@@ -44,6 +44,7 @@
   --radius-small: 6px;
   --radius-logo: 8px;
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --container-max: 1180px;
 }
 
@@ -176,6 +177,57 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ---------- M6-5 骨架屏（surface-2 + 微呼吸） ---------- */
+@keyframes gs-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.gs-skeleton-block {
+  display: block;
+  background: var(--surface-2);
+  border-radius: var(--radius-small);
+  animation: gs-breathe 1.6s var(--ease-out) infinite;
+}
+
+/* ---------- M6-5 reveal 入场 ---------- */
+.gs-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.5s var(--ease-expo),
+    transform 0.5s var(--ease-expo);
+}
+
+.gs-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- M6-5 prefers-reduced-motion（照搬原型） ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .gs-reveal {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .n-drawer {

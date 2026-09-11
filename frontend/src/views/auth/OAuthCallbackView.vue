@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { NCard, NSpin } from 'naive-ui'
 import { onMounted, onUnmounted } from 'vue'
 import { submitOAuthCode, type OAuthProvider } from '@/api/oauth'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -17,8 +17,6 @@ function goHome() {
 }
 
 onMounted(() => {
-  // 后端回调页已将 code 写入 localStorage 并 redirect 到本路由
-  // 轮询读取后转交后端完成登录
   let resolved = false
   const pollTimer = window.setInterval(() => {
     if (resolved) return
@@ -52,9 +50,10 @@ onMounted(() => {
 
 <template>
   <div class="oauth-callback-wrap">
-    <n-card class="oauth-callback-card">
-      <n-spin description="正在完成登录，请稍候…" size="large" />
-    </n-card>
+    <div class="oauth-callback-card">
+      <p class="oauth-hint">正在完成登录，请稍候…</p>
+      <GsSkeleton variant="detail" />
+    </div>
   </div>
 </template>
 
@@ -67,7 +66,13 @@ onMounted(() => {
 }
 
 .oauth-callback-card {
-  width: 320px;
+  width: min(420px, 92vw);
+}
+
+.oauth-hint {
+  margin: 0 0 16px;
   text-align: center;
+  color: var(--text-2);
+  font-size: 0.925rem;
 }
 </style>

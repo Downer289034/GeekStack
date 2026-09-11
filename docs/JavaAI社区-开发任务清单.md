@@ -201,9 +201,11 @@
 **产出**：`frontend/src/components/gs/GsProjectCard.vue`；页面迁入 Gs*；`docs/assets/m6-4-pages/`
 **口径备忘**：登录/注册等页内表单 Primary 按「每屏一个」执行，不与顶栏「写文章」冲突
 
-### [ ] M6-5：状态与动效
-**描述**：骨架屏、reveal 入场、焦点环、prefers-reduced-motion
-**前置**：M6-3
+### [x] M6-5：状态与动效
+**描述**：骨架屏（surface-2 + 微呼吸）、v-reveal 入场（IO threshold 0.12）、`:focus-visible` 琥珀环、全局 `prefers-reduced-motion`
+**验收标准**：消灭页面级 spinner；只动画 transform/opacity；指数缓动；三绿 + 截图
+**前置**：M6-3 / M6-4
+**产出**：`GsSkeleton`；`directives/reveal.ts`；`docs/assets/m6-5-motion/`；`docs/geekstack-introduction.md` 入库
 
 ### [ ] M6-6：红线巡检
 **描述**：规范第 8 节 6 条逐项验收 + 对比度抽检 + 键盘 Tab 巡检

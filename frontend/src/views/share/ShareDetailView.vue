@@ -13,6 +13,7 @@ import { AlertCircleOutline } from '@vicons/ionicons5'
 import { fetchShare, hideShare, type ShareResponse } from '@/api/share'
 import GsBadge from '@/components/gs/GsBadge.vue'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
@@ -80,9 +81,11 @@ onMounted(() => {
   </div>
 
   <div v-else class="detail">
-    <n-page-header :title="share?.title ?? '加载中…'" @back="router.back()" />
+    <n-page-header :title="share?.title ?? (loading ? '…' : '加载中…')" @back="router.back()" />
 
-    <article v-if="share" class="detail-card">
+    <GsSkeleton v-if="loading" variant="detail" />
+
+    <article v-else-if="share" v-reveal class="detail-card">
       <div class="detail-card__toolbar">
         <p class="detail-summary">{{ share.summary }}</p>
         <n-space v-if="isOwner" :wrap="true">

@@ -5,6 +5,7 @@ import { AddOutline, ChatbubblesOutline, CreateOutline } from '@vicons/ionicons5
 import { fetchCategories, pagePosts, type Category, type PostCard } from '@/api/forum'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 
 const PAGE_SIZE = 12
@@ -15,7 +16,7 @@ const sortBy = ref<'latest' | 'hot'>('latest')
 const posts = ref<PostCard[]>([])
 const total = ref(0)
 const current = ref(1)
-const loading = ref(false)
+const loading = ref(true)
 
 const categoryById = computed(() => {
   const map = new Map<number, Category>()
@@ -115,8 +116,10 @@ onMounted(async () => {
       />
     </div>
 
+    <GsSkeleton v-if="loading" variant="row" :count="8" />
+
     <n-empty
-      v-if="!loading && posts.length === 0"
+      v-else-if="posts.length === 0"
       description="还没有帖子，来发第一帖"
       class="forum-empty"
     >
@@ -132,6 +135,7 @@ onMounted(async () => {
       <GsFeedRow
         v-for="(post, index) in posts"
         :key="post.id"
+        v-reveal
         :title="post.title"
         :to="`/forum/posts/${post.id}`"
         :tags="[categoryLabel(post)]"

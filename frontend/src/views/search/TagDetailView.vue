@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { NEmpty, NIcon, NPagination, NSpin } from 'naive-ui'
+import { NEmpty, NIcon, NPagination } from 'naive-ui'
 import { CubeOutline, PricetagOutline } from '@vicons/ionicons5'
 import { pageShares, type ShareCard } from '@/api/share'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsProjectCard from '@/components/gs/GsProjectCard.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 
 const PAGE_SIZE = 9
@@ -14,7 +15,7 @@ const router = useRouter()
 
 const tagName = computed(() => decodeURIComponent(String(route.params.name ?? '')))
 
-const loading = ref(false)
+const loading = ref(true)
 const cards = ref<ShareCard[]>([])
 const total = ref(0)
 const current = ref(1)
@@ -66,8 +67,10 @@ onMounted(() => {
       <span class="tag-detail__count font-mono">共 {{ total }} 个项目</span>
     </div>
 
-    <n-spin :show="loading">
-      <n-empty v-if="!loading && cards.length === 0" description="该标签下暂无项目">
+    <GsSkeleton v-if="loading" variant="card" :count="6" />
+
+    <template v-else>
+      <n-empty v-if="cards.length === 0" description="该标签下暂无项目">
         <template #icon>
           <n-icon :component="CubeOutline" :size="48" />
         </template>
@@ -80,6 +83,7 @@ onMounted(() => {
         <GsProjectCard
           v-for="(card, index) in cards"
           :key="card.id"
+          v-reveal
           :title="card.title"
           :to="`/shares/${card.id}`"
           :tags="card.tags ?? []"
@@ -98,7 +102,7 @@ onMounted(() => {
           @update:page="onPageChange"
         />
       </div>
-    </n-spin>
+    </template>
   </div>
 </template>
 

@@ -9,7 +9,6 @@ import {
   NDynamicTags,
   NInput,
   NEmpty,
-  NSpin,
   type FormInst,
   type FormRules
 } from 'naive-ui'
@@ -19,6 +18,7 @@ import 'md-editor-v3/lib/style.css'
 import { createShare, fetchShare, updateShare } from '@/api/share'
 import { fetchRepos, type UserRepo } from '@/api/repo'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -161,8 +161,8 @@ void prefillForEdit()
 <template>
   <div class="publish">
     <h2 class="publish-title font-display">{{ isEdit ? '编辑项目' : '发布项目' }}</h2>
-    <n-spin :show="loadingShare">
-      <n-form ref="formRef" :model="model" :rules="rules" label-placement="top">
+    <GsSkeleton v-if="loadingShare" variant="detail" />
+    <n-form v-else ref="formRef" :model="model" :rules="rules" label-placement="top">
         <template v-if="!isEdit && auth.isLoggedIn">
           <GsButton variant="ghost" class="import-btn" @click="openRepoDrawer">
             从我的仓库导入（自动填充名称/描述/仓库地址）
@@ -197,11 +197,11 @@ void prefillForEdit()
           {{ isEdit ? '保存修改' : '发布' }}
         </GsButton>
       </n-form>
-    </n-spin>
 
     <n-drawer v-model:show="showRepoDrawer" :width="400" placement="right">
       <n-drawer-content title="选择要导入的仓库">
-        <n-spin :show="repoLoading">
+        <GsSkeleton v-if="repoLoading" variant="row" :count="4" />
+        <template v-else>
           <n-empty
             v-if="availableRepos.length === 0"
             description="暂无可用仓库（未绑定或快照为空）"
@@ -216,7 +216,7 @@ void prefillForEdit()
             <span class="repo-pick-name font-mono">{{ repo.repoFullName }}</span>
             <span class="repo-pick-desc">{{ repo.description || '暂无描述' }}</span>
           </button>
-        </n-spin>
+        </template>
       </n-drawer-content>
     </n-drawer>
   </div>

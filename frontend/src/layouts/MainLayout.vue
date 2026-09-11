@@ -319,6 +319,11 @@ function logout() {
   font-family: inherit;
 }
 
+.gs-search input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .gs-search input::placeholder {
   color: var(--text-3);
 }

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { NButton, NEmpty, NSpin } from 'naive-ui'
+import { NButton, NEmpty } from 'naive-ui'
 import type { Category, PostCard } from '@/api/forum'
 import type { ShareCard } from '@/api/share'
 import { loadHomeFeed } from '@/utils/homeFeedCache'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsFeedFeatured from '@/components/gs/GsFeedFeatured.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 import type { GsTabItem } from '@/components/gs/GsUnderlineTabs.vue'
@@ -117,111 +118,113 @@ onMounted(() => {
       </div>
     </header>
 
-    <n-spin :show="loading">
-      <div v-if="loadError" class="home-error">
-        <n-empty description="首页动态加载失败，请稍后重试">
+    <GsSkeleton v-if="loading" variant="home" />
+
+    <div v-else-if="loadError" class="home-error">
+      <n-empty description="首页动态加载失败，请稍后重试">
+        <template #extra>
+          <n-button type="primary" @click="load">重试</n-button>
+        </template>
+      </n-empty>
+    </div>
+
+    <div v-else class="gs-main-grid home-grid">
+      <section v-reveal class="home-feed" aria-label="客栈动态">
+        <div class="feed-head">
+          <h2 class="feed-head__title">客栈动态</h2>
+          <GsUnderlineTabs v-model="feedTab" :items="tabItems" aria-label="动态过滤" />
+          <GsButton variant="text" to="/forum">更多</GsButton>
+        </div>
+
+        <n-empty
+          v-if="feedPosts.length === 0"
+          description="这个分类暂时还没有新内容，去写第一篇吧。"
+        >
           <template #extra>
-            <n-button type="primary" @click="load">重试</n-button>
+            <GsButton variant="primary" to="/forum/new">去写第一篇</GsButton>
           </template>
         </n-empty>
-      </div>
 
-      <div v-else class="gs-main-grid home-grid">
-        <section class="home-feed" aria-label="客栈动态">
-          <div class="feed-head">
-            <h2 class="feed-head__title">客栈动态</h2>
-            <GsUnderlineTabs v-model="feedTab" :items="tabItems" aria-label="动态过滤" />
-            <GsButton variant="text" to="/forum">更多</GsButton>
+        <template v-else>
+          <GsFeedFeatured
+            v-if="featured"
+            v-reveal
+            :title="featured.title"
+            :to="`/forum/posts/${featured.id}`"
+            :tags="[categoryLabel(featured)]"
+            :pinned="featured.isPinned === 1"
+            :meta="postMeta(featured)"
+          />
+          <GsFeedRow
+            v-for="(post, i) in listPosts"
+            :key="post.id"
+            v-reveal
+            :rank="i + 2"
+            show-rank
+            :title="post.title"
+            :to="`/forum/posts/${post.id}`"
+            :tags="[categoryLabel(post)]"
+            :pinned="post.isPinned === 1"
+            :meta="postMeta(post)"
+          />
+        </template>
+
+        <div class="feed-foot">
+          <GsButton variant="text" to="/forum">进入论坛 →</GsButton>
+        </div>
+      </section>
+
+      <aside v-reveal class="gs-sidebar home-side" aria-label="侧栏">
+        <section class="side-block">
+          <h3 class="side-block__title">热榜 Top5</h3>
+          <GsFeedRow
+            v-for="(post, i) in hot.slice(0, 5)"
+            :key="post.id"
+            :rank="i + 1"
+            show-rank
+            :title="post.title"
+            :to="`/forum/posts/${post.id}`"
+          />
+        </section>
+
+        <section class="side-block">
+          <div class="side-block__head">
+            <h3 class="side-block__title">最新项目</h3>
+            <GsButton variant="text" to="/shares">全部</GsButton>
           </div>
+          <ul class="mini-shares">
+            <li v-for="card in miniShares" :key="card.id">
+              <RouterLink :to="`/shares/${card.id}`" class="mini-share">
+                <span class="mini-share__glyph" aria-hidden="true">{{ card.title.slice(0, 1) }}</span>
+                <span class="mini-share__body">
+                  <span class="mini-share__title">{{ card.title }}</span>
+                  <span class="mini-share__tags">
+                    <GsTag v-for="t in (card.tags ?? []).slice(0, 2)" :key="t">{{ t }}</GsTag>
+                  </span>
+                </span>
+              </RouterLink>
+            </li>
+          </ul>
+        </section>
 
-          <n-empty
-            v-if="!loading && feedPosts.length === 0"
-            description="这个分类暂时还没有新内容，去写第一篇吧。"
-          >
-            <template #extra>
-              <GsButton variant="primary" to="/forum/new">去写第一篇</GsButton>
-            </template>
-          </n-empty>
-
-          <template v-else>
-            <GsFeedFeatured
-              v-if="featured"
-              :title="featured.title"
-              :to="`/forum/posts/${featured.id}`"
-              :tags="[categoryLabel(featured)]"
-              :pinned="featured.isPinned === 1"
-              :meta="postMeta(featured)"
-            />
-            <GsFeedRow
-              v-for="(post, i) in listPosts"
-              :key="post.id"
-              :rank="i + 2"
-              show-rank
-              :title="post.title"
-              :to="`/forum/posts/${post.id}`"
-              :tags="[categoryLabel(post)]"
-              :pinned="post.isPinned === 1"
-              :meta="postMeta(post)"
-            />
-          </template>
-
-          <div class="feed-foot">
-            <GsButton variant="text" to="/forum">进入论坛 →</GsButton>
+        <section v-if="topicChips.length" class="side-block">
+          <h3 class="side-block__title">热门话题</h3>
+          <div class="topic-chips">
+            <RouterLink
+              v-for="name in topicChips"
+              :key="name"
+              :to="`/tags/${encodeURIComponent(name)}`"
+            >
+              <GsTag>{{ name }}</GsTag>
+            </RouterLink>
           </div>
         </section>
 
-        <aside class="gs-sidebar home-side" aria-label="侧栏">
-          <section class="side-block">
-            <h3 class="side-block__title">热榜 Top5</h3>
-            <GsFeedRow
-              v-for="(post, i) in hot.slice(0, 5)"
-              :key="post.id"
-              :rank="i + 1"
-              show-rank
-              :title="post.title"
-              :to="`/forum/posts/${post.id}`"
-            />
-          </section>
-
-          <section class="side-block">
-            <div class="side-block__head">
-              <h3 class="side-block__title">最新项目</h3>
-              <GsButton variant="text" to="/shares">全部</GsButton>
-            </div>
-            <ul class="mini-shares">
-              <li v-for="card in miniShares" :key="card.id">
-                <RouterLink :to="`/shares/${card.id}`" class="mini-share">
-                  <span class="mini-share__glyph" aria-hidden="true">{{ card.title.slice(0, 1) }}</span>
-                  <span class="mini-share__body">
-                    <span class="mini-share__title">{{ card.title }}</span>
-                    <span class="mini-share__tags">
-                      <GsTag v-for="t in (card.tags ?? []).slice(0, 2)" :key="t">{{ t }}</GsTag>
-                    </span>
-                  </span>
-                </RouterLink>
-              </li>
-            </ul>
-          </section>
-
-          <section v-if="topicChips.length" class="side-block">
-            <h3 class="side-block__title">热门话题</h3>
-            <div class="topic-chips">
-              <RouterLink
-                v-for="name in topicChips"
-                :key="name"
-                :to="`/tags/${encodeURIComponent(name)}`"
-              >
-                <GsTag>{{ name }}</GsTag>
-              </RouterLink>
-            </div>
-          </section>
-
-          <p class="side-stats font-mono">
-            热帖 {{ hot.length }} · 项目 {{ shares.length }} · 帖子 {{ posts.length }}
-          </p>
-        </aside>
-      </div>
-    </n-spin>
+        <p class="side-stats font-mono">
+          热帖 {{ hot.length }} · 项目 {{ shares.length }} · 帖子 {{ posts.length }}
+        </p>
+      </aside>
+    </div>
   </div>
 </template>
 

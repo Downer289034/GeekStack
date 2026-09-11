@@ -5,10 +5,11 @@ import { CubeOutline, GridOutline, SearchOutline } from '@vicons/ionicons5'
 import { pageShares, type ShareCard } from '@/api/share'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsProjectCard from '@/components/gs/GsProjectCard.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 
 const PAGE_SIZE = 9
 
-const loading = ref(false)
+const loading = ref(true)
 const cards = ref<ShareCard[]>([])
 const total = ref(0)
 const current = ref(1)
@@ -81,8 +82,10 @@ onMounted(() => {
       <span class="plaza-count font-mono">共 {{ total }} 个项目</span>
     </div>
 
+    <GsSkeleton v-if="loading" variant="card" :count="6" />
+
     <n-empty
-      v-if="!loading && cards.length === 0"
+      v-else-if="cards.length === 0"
       description="暂无项目分享，来发布第一个吧"
       class="plaza-empty"
     >
@@ -98,6 +101,7 @@ onMounted(() => {
       <GsProjectCard
         v-for="(card, index) in cards"
         :key="card.id"
+        v-reveal
         :title="card.title"
         :to="`/shares/${card.id}`"
         :tags="card.tags ?? []"

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { NEmpty, NIcon, NSpin } from 'naive-ui'
+import { NEmpty, NIcon } from 'naive-ui'
 import { CubeOutline, PricetagOutline, SearchOutline } from '@vicons/ionicons5'
 import { fetchTagCloud, type TagCount } from '@/api/search'
 import GsButton from '@/components/gs/GsButton.vue'
+import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 
 const loading = ref(true)
 const tags = ref<TagCount[]>([])
@@ -59,14 +60,16 @@ onMounted(() => {
 
     <p class="tags-hint">当前为项目分享标签（share-only）；帖子标签待后端字段就绪后再扩展。</p>
 
-    <n-spin :show="loading">
+    <GsSkeleton v-if="loading" variant="row" :count="4" />
+
+    <template v-else>
       <n-empty v-if="loadError" description="标签云加载失败">
         <template #extra>
           <GsButton variant="primary" @click="load">重试</GsButton>
         </template>
       </n-empty>
       <n-empty
-        v-else-if="!loading && tags.length === 0"
+        v-else-if="tags.length === 0"
         description="暂无标签，去发布带标签的项目吧"
       >
         <template #icon>
@@ -76,7 +79,7 @@ onMounted(() => {
           <GsButton variant="primary" to="/shares/new">去发布</GsButton>
         </template>
       </n-empty>
-      <div v-else class="tag-cloud">
+      <div v-else v-reveal class="tag-cloud">
         <RouterLink
           v-for="tag in tags"
           :key="tag.name"
@@ -89,7 +92,7 @@ onMounted(() => {
           <span class="tag-cloud__count">{{ tag.count }}</span>
         </RouterLink>
       </div>
-    </n-spin>
+    </template>
   </div>
 </template>
 
