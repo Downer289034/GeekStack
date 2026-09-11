@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { NButton, NEmpty, NIcon, NSpin } from 'naive-ui'
+import { NEmpty, NIcon, NSpin } from 'naive-ui'
 import { CubeOutline, PricetagOutline, SearchOutline } from '@vicons/ionicons5'
 import { fetchTagCloud, type TagCount } from '@/api/search'
+import GsButton from '@/components/gs/GsButton.vue'
 
 const loading = ref(true)
 const tags = ref<TagCount[]>([])
@@ -21,7 +22,7 @@ function tagStyle(count: number): Record<string, string> {
   return {
     fontSize: `${fontSize}px`,
     opacity,
-    color: 'var(--color-share-text)'
+    color: 'var(--accent)'
   }
 }
 
@@ -46,7 +47,7 @@ onMounted(() => {
 <template>
   <div class="tags-page">
     <div class="tags-header">
-      <h2 class="gs-section-title">
+      <h2 class="tags-title font-display">
         <n-icon :component="PricetagOutline" :size="22" />
         项目标签
       </h2>
@@ -61,7 +62,7 @@ onMounted(() => {
     <n-spin :show="loading">
       <n-empty v-if="loadError" description="标签云加载失败">
         <template #extra>
-          <n-button type="primary" @click="load">重试</n-button>
+          <GsButton variant="primary" @click="load">重试</GsButton>
         </template>
       </n-empty>
       <n-empty
@@ -72,16 +73,14 @@ onMounted(() => {
           <n-icon :component="CubeOutline" :size="48" />
         </template>
         <template #extra>
-          <RouterLink to="/shares/new">
-            <n-button type="primary">去发布</n-button>
-          </RouterLink>
+          <GsButton variant="primary" to="/shares/new">去发布</GsButton>
         </template>
       </n-empty>
       <div v-else class="tag-cloud">
         <RouterLink
           v-for="tag in tags"
           :key="tag.name"
-          class="tag-cloud__item"
+          class="tag-cloud__item font-mono"
           :to="`/tags/${encodeURIComponent(tag.name)}`"
           :style="tagStyle(tag.count)"
           :title="`${tag.name} · ${tag.count}`"
@@ -109,12 +108,22 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
+.tags-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
 .tags-to-search {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-primary);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -125,7 +134,7 @@ onMounted(() => {
 .tags-hint {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--text-2);
 }
 
 .tag-cloud {
@@ -140,7 +149,7 @@ onMounted(() => {
   text-decoration: none;
   font-weight: 600;
   line-height: 1.3;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s var(--ease-out);
 }
 
 .tag-cloud__item:hover {
@@ -153,5 +162,15 @@ onMounted(() => {
   font-size: 0.75em;
   font-weight: 500;
   opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tag-cloud__item {
+    transition: none;
+  }
+
+  .tag-cloud__item:hover {
+    transform: none;
+  }
 }
 </style>

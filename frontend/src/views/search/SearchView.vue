@@ -1,20 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NIcon,
-  NInput,
-  NPagination,
-  NSpace,
-  NSpin,
-  NTabPane,
-  NTabs,
-  NTag,
-  NText
-} from 'naive-ui'
+import { NEmpty, NIcon, NInput, NPagination, NSpin } from 'naive-ui'
 import {
   ChatbubblesOutline,
   CubeOutline,
@@ -24,6 +11,10 @@ import {
 import { fetchCategories, type Category, type PostCard } from '@/api/forum'
 import type { ShareCard } from '@/api/share'
 import { searchContent, type SearchType } from '@/api/search'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsFeedRow from '@/components/gs/GsFeedRow.vue'
+import GsProjectCard from '@/components/gs/GsProjectCard.vue'
+import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 
 const PAGE_SIZE = 10
 const DEBOUNCE_MS = 350
@@ -48,6 +39,21 @@ let requestSeq = 0
 /** 挂载完成后再响应输入防抖，避免 URL 回显触发二次请求 */
 let inputReady = false
 
+const typeTabs = [
+  { key: 'post', label: '帖子' },
+  { key: 'share', label: '项目' }
+]
+
+const typeModel = computed({
+  get: () => searchType.value,
+  set: (v: string) => {
+    if (v === 'post' || v === 'share') {
+      searchType.value = v
+      void runSearch(1)
+    }
+  }
+})
+
 const categoryById = computed(() => {
   const map = new Map<number, Category>()
   for (const cat of categories.value) {
@@ -63,11 +69,6 @@ function categoryLabel(post: PostCard): string {
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
-}
-
-function coverTone(id: number): string {
-  const tones = [0, 8, 16]
-  return `color-mix(in srgb, var(--color-share) ${18 + tones[id % 3]}%, var(--color-bg-container))`
 }
 
 function syncRoute(q: string, type: SearchType, page: number) {
@@ -128,11 +129,6 @@ function scheduleSearch(resetPage = true) {
   }, DEBOUNCE_MS)
 }
 
-function onTabChange(name: string | number) {
-  searchType.value = name === 'share' ? 'share' : 'post'
-  void runSearch(1)
-}
-
 function onPageChange(page: number) {
   void runSearch(page)
 }
@@ -166,7 +162,7 @@ onMounted(async () => {
 <template>
   <div class="search-page">
     <div class="search-header">
-      <h2 class="gs-section-title">
+      <h2 class="search-title font-display">
         <n-icon :component="SearchOutline" :size="22" />
         搜索
       </h2>
@@ -189,19 +185,11 @@ onMounted(async () => {
       </template>
     </n-input>
 
-    <n-tabs
-      :value="searchType"
-      type="segment"
-      class="search-tabs"
-      @update:value="onTabChange"
-    >
-      <n-tab-pane name="post" tab="帖子" />
-      <n-tab-pane name="share" tab="项目" />
-    </n-tabs>
+    <GsUnderlineTabs v-model="typeModel" :items="typeTabs" aria-label="搜索类型" />
 
-    <p v-if="qActive" class="search-echo">
+    <p v-if="qActive" class="search-echo font-mono">
       关键词：<strong>{{ qActive }}</strong>
-      <n-text depth="3"> · {{ searchType === 'post' ? '帖子' : '项目' }} · 共 {{ total }} 条</n-text>
+      <span> · {{ searchType === 'post' ? '帖子' : '项目' }} · 共 {{ total }} 条</span>
     </p>
 
     <n-spin :show="loading">
@@ -216,85 +204,47 @@ onMounted(async () => {
           />
         </template>
         <template #extra>
-          <n-space>
-            <RouterLink to="/tags">
-              <n-button>浏览标签</n-button>
-            </RouterLink>
-            <RouterLink :to="searchType === 'post' ? '/forum/new' : '/shares/new'">
-              <n-button type="primary">{{ searchType === 'post' ? '去发帖' : '去发布' }}</n-button>
-            </RouterLink>
-          </n-space>
+          <div class="empty-actions">
+            <GsButton variant="ghost" to="/tags">浏览标签</GsButton>
+            <GsButton
+              variant="primary"
+              :to="searchType === 'post' ? '/forum/new' : '/shares/new'"
+            >
+              {{ searchType === 'post' ? '去发帖' : '去发布' }}
+            </GsButton>
+          </div>
         </template>
       </n-empty>
 
-      <n-empty
-        v-else-if="!loading && !qActive"
-        description="输入关键字开始搜索"
-      >
+      <n-empty v-else-if="!loading && !qActive" description="输入关键字开始搜索">
         <template #icon>
           <n-icon :component="SearchOutline" :size="48" />
         </template>
       </n-empty>
 
-      <!-- 帖子结果 -->
       <div v-else-if="searchType === 'post' && postRecords.length" class="result-list">
-        <n-card
+        <GsFeedRow
           v-for="post in postRecords"
           :key="post.id"
-          class="gs-card-elevated result-row"
-          :bordered="false"
-        >
-          <RouterLink :to="`/forum/posts/${post.id}`" class="row-link">
-            <div class="row-main">
-              <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
-              <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
-              <span class="row-title">{{ post.title }}</span>
-            </div>
-            <div class="row-meta">
-              <n-text depth="3">回帖 {{ post.replyCount }}</n-text>
-              <n-text depth="3">浏览 {{ post.viewCount }}</n-text>
-              <n-text depth="3">{{ formatTime(post.createdAt) }}</n-text>
-            </div>
-          </RouterLink>
-        </n-card>
+          :title="post.title"
+          :to="`/forum/posts/${post.id}`"
+          :tags="[categoryLabel(post)]"
+          :pinned="post.isPinned === 1"
+          :meta="`回帖 ${post.replyCount} · 浏览 ${post.viewCount} · ${formatTime(post.createdAt)}`"
+        />
       </div>
 
-      <!-- 项目结果 -->
       <div v-else-if="searchType === 'share' && shareRecords.length" class="card-grid">
-        <RouterLink
-          v-for="card in shareRecords"
+        <GsProjectCard
+          v-for="(card, index) in shareRecords"
           :key="card.id"
+          :title="card.title"
           :to="`/shares/${card.id}`"
-          class="card-link"
-        >
-          <n-card class="gs-card-elevated plaza-card" :bordered="false">
-            <div class="card-cover" :style="{ background: coverTone(card.id) }" aria-hidden="true">
-              <span class="card-cover__grid" />
-              <n-tag class="gs-tag-share card-cover__badge" size="small" :bordered="false">项目</n-tag>
-            </div>
-            <div class="card-body">
-              <div class="card-title-row">
-                <span class="card-title">{{ card.title }}</span>
-                <n-tag size="small" :bordered="false">浏览 {{ card.viewCount }}</n-tag>
-              </div>
-              <p class="card-summary">{{ card.summary }}</p>
-              <div class="card-footer">
-                <n-space size="small">
-                  <n-tag
-                    v-for="t in card.tags ?? []"
-                    :key="t"
-                    class="gs-tag-share"
-                    size="small"
-                    :bordered="false"
-                  >
-                    {{ t }}
-                  </n-tag>
-                </n-space>
-                <n-text depth="3" class="card-time">{{ formatTime(card.createdAt) }}</n-text>
-              </div>
-            </div>
-          </n-card>
-        </RouterLink>
+          :tags="card.tags ?? []"
+          :view-count="card.viewCount"
+          :time="formatTime(card.createdAt)"
+          :featured="current === 1 && index === 0"
+        />
       </div>
 
       <div v-if="total > PAGE_SIZE" class="pager">
@@ -325,12 +275,22 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.search-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
 .search-tags-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-primary);
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -342,57 +302,31 @@ onMounted(async () => {
   max-width: 640px;
 }
 
-.search-tabs {
-  max-width: 320px;
-}
-
 .search-echo {
   margin: 0;
-  font-size: 13px;
-  color: var(--color-text);
+  font-size: 0.8rem;
+  color: var(--text-2);
 }
 
 .search-echo strong {
-  color: var(--color-primary);
+  color: var(--accent);
   font-weight: 600;
   word-break: break-word;
 }
 
-.result-list {
+.search-echo span {
+  color: var(--text-3);
+}
+
+.empty-actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
-.result-row {
-  margin: 0;
-}
-
-.row-link {
-  text-decoration: none;
-  display: block;
-  min-width: 0;
-}
-
-.row-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.row-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.row-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 6px;
-  font-size: 12px;
+.result-list {
+  margin-top: 4px;
 }
 
 .card-grid {
@@ -411,98 +345,6 @@ onMounted(async () => {
   .card-grid {
     grid-template-columns: 1fr;
   }
-}
-
-.card-link {
-  text-decoration: none;
-  display: block;
-  min-width: 0;
-}
-
-.plaza-card {
-  overflow: hidden;
-  height: 100%;
-}
-
-.plaza-card :deep(.n-card__content) {
-  padding: 0;
-}
-
-.card-cover {
-  position: relative;
-  height: 96px;
-  overflow: hidden;
-}
-
-.card-cover__grid {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      transparent 0,
-      transparent 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 11px
-    ),
-    radial-gradient(
-      circle at 86% 20%,
-      color-mix(in srgb, var(--color-share-text) 18%, transparent),
-      transparent 45%
-    );
-  opacity: 0.9;
-}
-
-.card-cover__badge {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 1;
-}
-
-.card-body {
-  padding: 12px 14px 14px;
-}
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-summary {
-  margin: 8px 0 10px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 36px;
-}
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.card-time {
-  font-size: 12px;
-  white-space: nowrap;
 }
 
 .pager {
