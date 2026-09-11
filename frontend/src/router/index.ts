@@ -71,6 +71,12 @@ const router = createRouter({
           meta: { title: '组件实验室' }
         },
         {
+          path: 'dev/md-editor-spike',
+          name: 'md-editor-spike',
+          component: () => import('@/views/dev/MdEditorThemeSpike.vue'),
+          meta: { title: 'md-editor 主题透传 Spike', containerWidth: 'md' }
+        },
+        {
           path: 'users/:username',
           name: 'profile',
           component: () => import('@/views/profile/ProfileView.vue'),
