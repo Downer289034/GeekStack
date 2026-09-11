@@ -66,7 +66,7 @@ services:
       start_period: 10s
 
   minio-init:
-    image: minio/mc:RELEASE.2024-11-17T19-35-25Z
+    image: minio/mc:RELEASE.2024-11-21T17-21-54Z
     container_name: community-minio-init
     depends_on:
       minio:
@@ -97,6 +97,9 @@ services:
         condition: service_healthy
 
 volumes:
+  # 钉死历史卷名，避免 compose project 解析变化时新建空卷冲掉开发数据
   mysql-data:
+    name: community-dev_mysql-data-dev
   redis-data:
+    name: community-dev_redis-data-dev
   minio-data:
