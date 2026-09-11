@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
-  NButton,
-  NCard,
-  NDescriptions,
-  NDescriptionsItem,
   NEmpty,
   NIcon,
   NPageHeader,
   NPopconfirm,
   NSpace,
-  NTag,
   useMessage
 } from 'naive-ui'
-import { AlertCircleOutline, CubeOutline } from '@vicons/ionicons5'
+import { AlertCircleOutline } from '@vicons/ionicons5'
 import { fetchShare, hideShare, type ShareResponse } from '@/api/share'
+import GsBadge from '@/components/gs/GsBadge.vue'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsTag from '@/components/gs/GsTag.vue'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
 
@@ -76,9 +74,7 @@ onMounted(() => {
         <n-icon :component="AlertCircleOutline" :size="48" />
       </template>
       <template #extra>
-        <RouterLink to="/shares">
-          <n-button type="primary">返回项目广场</n-button>
-        </RouterLink>
+        <GsButton variant="primary" to="/shares">返回项目广场</GsButton>
       </template>
     </n-empty>
   </div>
@@ -86,66 +82,66 @@ onMounted(() => {
   <div v-else class="detail">
     <n-page-header :title="share?.title ?? '加载中…'" @back="router.back()" />
 
-    <n-card v-if="share" title="项目信息" class="gs-card-detail detail-card" :bordered="false">
-      <template #header-extra>
-        <n-space v-if="isOwner">
-          <RouterLink :to="`/shares/edit/${share.id}`">
-            <n-button size="small">编辑</n-button>
-          </RouterLink>
+    <article v-if="share" class="detail-card">
+      <div class="detail-card__toolbar">
+        <p class="detail-summary">{{ share.summary }}</p>
+        <n-space v-if="isOwner" :wrap="true">
+          <GsButton variant="ghost" :to="`/shares/edit/${share.id}`">编辑</GsButton>
           <n-popconfirm @positive-click="onHide">
             <template #trigger>
-              <n-button size="small" type="warning" :loading="hiding">下架</n-button>
+              <GsButton variant="text" :disabled="hiding">下架</GsButton>
             </template>
             下架后其他人将无法看到该项目，确定吗？
           </n-popconfirm>
         </n-space>
-      </template>
+      </div>
 
-      <p class="detail-summary">{{ share.summary }}</p>
-      <n-space size="small" class="detail-tags">
-        <n-tag class="gs-tag-share" size="small" :bordered="false">
-          <template #icon>
-            <n-icon :component="CubeOutline" />
-          </template>
-          项目
-        </n-tag>
-        <n-tag
-          v-for="t in share.tags ?? []"
-          :key="t"
-          class="gs-tag-share"
-          size="small"
-          :bordered="false"
+      <div class="detail-tags">
+        <GsTag>项目</GsTag>
+        <GsTag v-for="t in share.tags ?? []" :key="t">{{ t }}</GsTag>
+      </div>
+
+      <dl class="detail-meta font-mono">
+        <div>
+          <dt>发布时间</dt>
+          <dd>{{ formatTime(share.createdAt) }}</dd>
+        </div>
+        <div>
+          <dt>浏览量</dt>
+          <dd>{{ share.viewCount }}</dd>
+        </div>
+        <div>
+          <dt>状态</dt>
+          <dd>
+            <GsBadge :tone="share.status === 'PUBLISHED' ? 'success' : 'error'">
+              {{ share.status === 'PUBLISHED' ? '已发布' : '已下架' }}
+            </GsBadge>
+          </dd>
+        </div>
+      </dl>
+
+      <div class="detail-links">
+        <a
+          v-if="share.repoUrl"
+          :href="share.repoUrl"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          {{ t }}
-        </n-tag>
-      </n-space>
-
-      <n-descriptions size="small" :column="3" class="detail-meta" label-placement="left">
-        <n-descriptions-item label="发布时间">{{ formatTime(share.createdAt) }}</n-descriptions-item>
-        <n-descriptions-item label="浏览量">{{ share.viewCount }}</n-descriptions-item>
-        <n-descriptions-item label="状态">
-          <n-tag
-            size="small"
-            :type="share.status === 'PUBLISHED' ? 'success' : 'error'"
-            :bordered="false"
-          >
-            {{ share.status === 'PUBLISHED' ? '已发布' : '已下架' }}
-          </n-tag>
-        </n-descriptions-item>
-      </n-descriptions>
-
-      <n-space class="detail-links">
-        <a v-if="share.repoUrl" :href="share.repoUrl" target="_blank" rel="noopener noreferrer">
-          <n-button size="small" type="primary">仓库地址</n-button>
+          <GsButton variant="primary">仓库地址</GsButton>
         </a>
-        <a v-if="share.demoUrl" :href="share.demoUrl" target="_blank" rel="noopener noreferrer">
-          <n-button size="small">在线 Demo</n-button>
+        <a
+          v-if="share.demoUrl"
+          :href="share.demoUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <GsButton variant="ghost">在线 Demo</GsButton>
         </a>
-      </n-space>
+      </div>
 
       <!-- eslint-disable-next-line vue/no-v-html -- 内容经 utils/markdown.ts 的 DOMPurify 白名单消毒，全站唯一渲染出口 -->
       <div class="detail-content" v-html="renderedContent"></div>
-    </n-card>
+    </article>
   </div>
 </template>
 
@@ -154,27 +150,75 @@ onMounted(() => {
   margin-top: 16px;
 }
 
+.detail-card__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
 .detail-summary {
-  font-size: 15px;
-  color: var(--color-text-secondary);
-  margin: 0 0 12px;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  color: var(--text-2);
+  margin: 0;
+  max-width: 62ch;
 }
 
 .detail-tags {
-  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .detail-meta {
-  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-meta dt {
+  margin: 0 0 4px;
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.detail-meta dd {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-1);
+}
+
+@media (max-width: 768px) {
+  .detail-meta {
+    grid-template-columns: 1fr;
+  }
 }
 
 .detail-links {
-  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.detail-links a {
+  text-decoration: none;
 }
 
 .detail-content {
   line-height: 1.75;
   word-break: break-word;
+  color: var(--text-1);
+  max-width: 62ch;
 }
 
 .detail-state {
