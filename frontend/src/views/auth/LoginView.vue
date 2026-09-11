@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import {
   NButton,
-  NCard,
+  NCheckbox,
   NDivider,
   NForm,
   NFormItem,
   NInput,
   NSpace,
-  NTabPane,
-  NTabs,
   NText,
   type FormInst,
   type FormRules
@@ -25,6 +23,7 @@ const tab = ref<'login' | 'register'>('login')
 const loginFormRef = ref<FormInst | null>(null)
 const registerFormRef = ref<FormInst | null>(null)
 const submitting = ref(false)
+const rememberMe = ref(false)
 
 function goHome() {
   const redirect = router.currentRoute.value.query.redirect
@@ -87,78 +86,204 @@ const rules: FormRules = {
 </script>
 
 <template>
-  <div class="login-wrap">
-    <n-card class="login-card" title="极客栈">
-      <n-tabs v-model:value="tab" type="segment" animated>
-        <n-tab-pane name="login" tab="登录">
-          <n-form ref="loginFormRef" :model="loginModel" :rules="rules" label-placement="top">
-            <n-form-item label="用户名" path="username">
-              <n-input v-model:value="loginModel.username" placeholder="用户名" />
-            </n-form-item>
-            <n-form-item label="密码" path="password">
-              <n-input
-                v-model:value="loginModel.password"
-                type="password"
-                show-password-on="click"
-                placeholder="密码"
-                @keyup.enter="onLoginSubmit"
-              />
-            </n-form-item>
-            <n-button type="primary" block :loading="submitting" @click="onLoginSubmit">
-              登录
-            </n-button>
-          </n-form>
-        </n-tab-pane>
-        <n-tab-pane name="register" tab="注册">
-          <n-form ref="registerFormRef" :model="registerModel" :rules="rules" label-placement="top">
-            <n-form-item label="用户名" path="username">
-              <n-input v-model:value="registerModel.username" placeholder="3-50 位字母、数字或下划线" />
-            </n-form-item>
-            <n-form-item label="邮箱" path="email">
-              <n-input v-model:value="registerModel.email" placeholder="邮箱" />
-            </n-form-item>
-            <n-form-item label="密码" path="password">
-              <n-input
-                v-model:value="registerModel.password"
-                type="password"
-                show-password-on="click"
-                placeholder="8-64 位"
-              />
-            </n-form-item>
-            <n-button type="primary" block :loading="submitting" @click="onRegisterSubmit">
-              注册并登录
-            </n-button>
-          </n-form>
-        </n-tab-pane>
-      </n-tabs>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="login-brand__mark" aria-hidden="true">极</span>
+        <div>
+          <div class="login-brand__name">极客栈</div>
+          <div class="login-brand__slogan font-mono">代码为灯，技术为栈</div>
+        </div>
+      </div>
+
+      <div class="login-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="tab === 'login'"
+          @click="tab = 'login'"
+        >
+          登录
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="tab === 'register'"
+          @click="tab = 'register'"
+        >
+          注册
+        </button>
+      </div>
+
+      <div v-show="tab === 'login'" class="login-body" role="tabpanel">
+        <n-form ref="loginFormRef" :model="loginModel" :rules="rules" label-placement="top">
+          <n-form-item label="用户名" path="username">
+            <n-input v-model:value="loginModel.username" placeholder="用户名" />
+          </n-form-item>
+          <n-form-item label="密码" path="password">
+            <n-input
+              v-model:value="loginModel.password"
+              type="password"
+              show-password-on="click"
+              placeholder="密码"
+              @keyup.enter="onLoginSubmit"
+            />
+          </n-form-item>
+          <div class="login-row">
+            <n-checkbox v-model:checked="rememberMe">记住我</n-checkbox>
+            <n-text depth="3" class="login-forgot">忘记密码？</n-text>
+          </div>
+          <n-button type="primary" block :loading="submitting" @click="onLoginSubmit">登录</n-button>
+        </n-form>
+      </div>
+
+      <div v-show="tab === 'register'" class="login-body" role="tabpanel">
+        <n-form ref="registerFormRef" :model="registerModel" :rules="rules" label-placement="top">
+          <n-form-item label="用户名" path="username">
+            <n-input v-model:value="registerModel.username" placeholder="3-50 位字母、数字或下划线" />
+          </n-form-item>
+          <n-form-item label="邮箱" path="email">
+            <n-input v-model:value="registerModel.email" placeholder="邮箱" />
+          </n-form-item>
+          <n-form-item label="密码" path="password">
+            <n-input
+              v-model:value="registerModel.password"
+              type="password"
+              show-password-on="click"
+              placeholder="8-64 位"
+            />
+          </n-form-item>
+          <n-button type="primary" block :loading="submitting" @click="onRegisterSubmit">
+            注册并登录
+          </n-button>
+        </n-form>
+      </div>
 
       <n-divider class="oauth-divider">
-        <n-text depth="3" style="font-size: 12px">第三方登录（未注册将自动创建账号）</n-text>
+        <n-text depth="3" style="font-size: 12px">第三方登录</n-text>
       </n-divider>
       <n-space vertical size="small">
-        <!-- 跳转到后端 redirect 端点，GitHub/Gitee 授权后回调→redirect→前端路由接收 code -->
-        <n-button block tag="a" href="/api/v1/oauth/login/GITHUB">
-          使用 GitHub 登录
-        </n-button>
-        <n-button block tag="a" href="/api/v1/oauth/login/GITEE">
-          使用 Gitee 登录
-        </n-button>
+        <n-button block secondary tag="a" href="/api/v1/oauth/login/GITHUB">使用 GitHub 登录</n-button>
+        <n-button block secondary tag="a" href="/api/v1/oauth/login/GITEE">使用 Gitee 登录</n-button>
       </n-space>
-    </n-card>
+
+      <RouterLink class="login-back" to="/">← 返回首页</RouterLink>
+    </div>
+    <p class="login-copy">© 2026 极客栈 GeekStack</p>
   </div>
 </template>
 
 <style scoped>
-.login-wrap {
-  /* 100vh 会叠加布局头部(60px)/底部(48px)造成双滚动条，扣除 */
-  min-height: calc(100vh - 108px);
+.login-page {
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  background: var(--bg);
 }
 
 .login-card {
-  /* 420px 定宽在 ≤375 视口会溢出，小屏收回为视口减边距 */
-  width: min(420px, calc(100vw - 32px));
+  width: min(400px, calc(100vw - 32px));
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px 24px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.login-brand__mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.login-brand__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.login-brand__slogan {
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+.login-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.login-tabs button {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+}
+
+.login-tabs button[aria-selected='true'] {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.login-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.login-forgot {
+  font-size: 0.85rem;
+  color: var(--accent) !important;
+}
+
+.login-back {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
+.login-back:hover {
+  color: var(--accent);
+}
+
+.login-copy {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
 }
 </style>

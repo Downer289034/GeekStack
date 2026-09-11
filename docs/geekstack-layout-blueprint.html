@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-page-node-id="JlO9FcnxoDMeJqDfdlnXIv">
+<head data-page-node-id="AwYBdBqpgdC5WDi9Ii8k3k">
+<meta charset="UTF-8" data-page-node-id="s6bgWdxdIBLATR5akYsRYJ">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="rxu0IffHkJZcy7qgBXr3w7">
+<title>极客栈 GeekStack · 布局蓝图 v1.0（线框稿）</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" data-page-node-id="XDvJWBehcyf9EgoHII6FLV">
+<style>
+/* ================================================================
+   极客栈 GeekStack · 布局蓝图（线框稿，非视觉稿）
+   用途：定义 5 个页面的结构 / 栅格 / 信息优先级
+   视觉样式以 geekstack-ui-design.html v1.1 为准
+   线框约定：实线框=已确定组件；虚线框=数据占位；琥珀=批注
+   ================================================================ */
+:root {
+  --ink-950: oklch(13% 0.015 262);
+  --ink-900: oklch(16% 0.018 262);
+  --ink-800: oklch(21% 0.02 262);
+  --ink-700: oklch(28% 0.02 262);
+  --ink-300: oklch(72% 0.01 262);
+  --ink-500: oklch(52% 0.015 262);
+  --amber: oklch(76% 0.15 75);
+  --amber-dim: oklch(76% 0.15 75 / 0.14);
+  --border: oklch(28% 0.02 262 / 0.9);
+  --border-strong: oklch(38% 0.02 262);
+  --text-1: var(--ink-300);
+  --text-2: var(--ink-500);
+  --text-3: var(--ink-500);
+  --font-display: 'Space Grotesk', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--ink-950); color: var(--text-1);
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.85rem; line-height: 1.65;
+}
+.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+/* 页眉 */
+.bp-head { padding: 48px 0 8px; }
+.bp-head h1 { font-family: var(--font-display); font-size: 1.6rem; color: #fff; letter-spacing: -0.01em; }
+.bp-head p { color: var(--text-2); margin-top: 6px; }
+.bp-nav { position: sticky; top: 0; z-index: 10; background: var(--ink-950); border-bottom: 1px solid var(--border); margin-top: 20px; }
+.bp-nav-inner { display: flex; gap: 4px; height: 48px; align-items: center; }
+.bp-nav a { color: var(--text-2); text-decoration: none; font-size: 0.82rem; padding: 6px 12px; border-radius: 6px; }
+.bp-nav a:hover { color: var(--amber); background: var(--ink-900); }
+
+/* 页面画布 */
+.page { margin: 44px 0 64px; }
+.page-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px; }
+.page-head h2 { font-family: var(--font-display); font-size: 1.2rem; color: #fff; }
+.page-head .mono { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-2); }
+.canvas {
+  background: var(--ink-900); border: 1px solid var(--border-strong);
+  border-radius: 12px; padding: 22px; overflow: hidden;
+}
+.canvas + .canvas { margin-top: 14px; }
+.canvas-title { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.12em; color: var(--text-2); margin-bottom: 14px; text-transform: uppercase; }
+
+/* 线框原子 */
+.wf { background: var(--ink-800); border: 1px solid var(--border); border-radius: 8px; }
+.wf-dash { border: 1px dashed var(--border-strong); border-radius: 8px; background: transparent; }
+.wf-line { height: 8px; border-radius: 4px; background: var(--ink-700); }
+.wf-line.short { width: 40%; }
+.wf-line.mid { width: 65%; }
+.wf-amber { background: var(--amber-dim); border-color: oklch(76% 0.15 75 / 0.4); }
+.lbl { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-2); padding: 6px 10px; display: flex; align-items: center; gap: 8px; }
+.lbl b { color: var(--text-1); font-weight: 600; }
+.h-fill { flex: 1; }
+
+/* 批注 */
+.anno-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.anno { display: flex; gap: 10px; font-size: 0.82rem; color: var(--text-1); }
+.anno .n {
+  flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--amber); color: var(--ink-950);
+  font-family: var(--font-mono); font-size: 0.66rem; font-weight: 700;
+  display: grid; place-items: center; margin-top: 2px;
+}
+.anno b { color: #fff; }
+.anno.fix { border-left: 2px solid var(--amber); padding-left: 10px; }
+.anno.fix .n { background: var(--ink-700); color: var(--amber); }
+
+/* 栅格工具 */
+.row { display: flex; gap: 12px; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.center { display: flex; align-items: center; justify-content: center; }
+
+footer { border-top: 1px solid var(--border); padding: 28px 0 48px; color: var(--text-2); font-size: 0.78rem; }
+</style>
+</head>
+<body data-page-node-id="C2mrLk5HPYO6EjIiDQORX6">
+
+<div class="container bp-head" data-page-node-id="uqi70pVc8Nki4Zk1QWnmAB">
+  <h1 data-page-node-id="PIlwArULxK2BaCRyXZc8yu">极客栈 · 布局蓝图</h1>
+  <p data-page-node-id="wLbRXqVk07xqC7ppKl6olu">基于 2026-09-11 前端实拍截图的布局修订方案 ｜ 线框稿只定结构与优先级，视觉 token 以 v1.1 设计稿为准 ｜ 琥珀圆点 = 修订点，编号对应下方批注</p>
+</div>
+<nav class="bp-nav" data-page-node-id="AGWZAFxNW6gaQDJoyyAbr0"><div class="container bp-nav-inner" data-page-node-id="T6xTCvZYNcmKwAeEDqe95D">
+  <a href="#home" data-page-node-id="AhezwsK6B8QiRyhUI0BA9b">01 首页</a><a href="#square" data-page-node-id="it2DXDsj49DR3gaKIEwTKD">02 项目广场</a><a href="#forum" data-page-node-id="75NhEGvmPW7nmcmcVjcOJR">03 技术论坛</a><a href="#search" data-page-node-id="OnQmg1OfR2mkUqhaZZxfMy">04 搜索</a><a href="#login" data-page-node-id="H7GVZbKziAZJAW7jozrHBP">05 登录/注册</a><a href="#rules" data-page-node-id="ZxxAW3ZEnthon4pjeiIJJN">06 全局规则</a>
+</div></nav>
+
+<div class="container" data-page-node-id="6j6O4x4cvfHZ3It0tkV98r">
+
+<!-- ================= 01 首页 ================= -->
+<section class="page" id="home" data-page-node-id="Xt5Sz9OeX2FaRlzDvU9vJ7">
+  <div class="page-head" data-page-node-id="SYTJvyCgJO2dW47mlDwDH3"><h2 data-page-node-id="jUdH6qG3Hv1R8iOiW1A7aV">01 · 首页</h2><span class="mono" data-page-node-id="aP0P0KnrWFdRsBKrLygtsv">布局：单栏堆叠 → 双栏（主栏 + 右栏）｜容器 1180px</span></div>
+
+  <div class="canvas" data-page-node-id="AqUpIPJ6De8oF7fYRd33Dq">
+    <div class="canvas-title" data-page-node-id="a8XzubnLBRUTUaINVuIsEW">修订后结构</div>
+    <div class="col" data-page-node-id="O1OOCDTifgZUHgVbcAfUuN">
+      <!-- 压缩 hero -->
+      <div class="row" style="align-items:stretch" data-page-node-id="xLULt5kEftyfaQEpHC6HwM">
+        <div class="wf" style="flex:1;padding:10px 14px" data-page-node-id="06yNx7LWan0yBISDceFBUB"><div class="lbl" data-page-node-id="88mcAK2F0bNltqVRRTxqiK"><b data-page-node-id="ZBLFTeTjPOkuLcLoq9L3GD">Hero</b>·压缩至 ≤120px 高：标题一行 + 副文案一行 + 按钮同排</div></div>
+      </div>
+      <!-- 双栏主体 -->
+      <div class="grid-2" data-page-node-id="VyMAzLohy7YVCsM68p8xdv">
+        <div class="col" data-page-node-id="Ehe7zznug3pZmsxiZfni5k">
+          <div class="wf" style="padding:8px 12px" data-page-node-id="DSPc6JNy5i49MpMzSSo2Nj"><div class="lbl" data-page-node-id="jJJSUBE6d9G8DKEN56Fnn7"><b data-page-node-id="munxnFM32qUR3rFOl2K8q5">Tab 栏</b>：最新 / 热门 / 问答 / 资源分享（下划线式，右端「更多」文字钮）</div></div>
+          <!-- 帖子行 x4 -->
+          <div class="col" data-page-node-id="01eJ6QnB7PdvwGIcYg03X2">
+            <div class="wf" style="padding:10px 12px" data-page-node-id="OpJU27D5S6vReAMY4jMScf"><div class="row" style="align-items:center" data-page-node-id="7yrGY0U5Ciimq5wArpVSln"><span class="wf-line short h-fill" data-page-node-id="ccABJxWDeGh5bzCnICGr0W"></span><span class="lbl" data-page-node-id="pYlsFaXviBdVejYP1zJUVP">置顶徽章</span></div><div class="lbl" data-page-node-id="a9C2EJgHN9PHJAbyRK3buq">帖子行①：标题 + 标签 + 元数据（分隔线行，非卡片）</div></div>
+            <div class="wf" style="padding:10px 12px" data-page-node-id="wl3gKWvzsEHilDKHjxZcH5"><div class="lbl" data-page-node-id="inNtekzhKLewCTciBjw91n">帖子行②</div></div>
+            <div class="wf" style="padding:10px 12px" data-page-node-id="YJ6ri0ohCFLSVJEpwoeCHm"><div class="lbl" data-page-node-id="hkEFmfwnJPnCBxqKhOtcXR">帖子行③</div></div>
+            <div class="wf-dash" style="padding:10px 12px" data-page-node-id="QCWNtQZHOLEtMQvN0Lht6c"><div class="lbl" data-page-node-id="CmDrlMpRf5Sp7GULEhJ929">帖子行④…⑧（首页展示 8 条 + 「进入论坛」文字钮收尾）</div></div>
+          </div>
+        </div>
+        <div class="col" data-page-node-id="oXi8zzfkYj0VUoozZ6Mjhv">
+          <div class="wf" style="padding:8px 12px" data-page-node-id="eC3UF5V1teX18AUPWf3CMN"><div class="lbl" data-page-node-id="uSWGwhDxLgf4k4R5jqO0CK"><b data-page-node-id="qqcqMPLIw8mXGk0Q4229c7">热榜 Top5</b>（1→5 编号，虚线分隔）</div></div>
+          <div class="wf" style="padding:8px 12px" data-page-node-id="HsxiEpE0YdYbWxQFzUyNAf"><div class="lbl" data-page-node-id="st2kMbRkeZJodRCBZbxOtz"><b data-page-node-id="ODpEDJoBa2UfyAv5UA1JkM">最新项目 ×3</b>（迷你卡：缩略条 + 标题 + 标签）</div></div>
+          <div class="wf" style="padding:8px 12px" data-page-node-id="JTNGVBXMB7OM6FTIfgq4fr"><div class="lbl" data-page-node-id="AJUeunrgyDFdrKSXslMrsP"><b data-page-node-id="K25xhWaZJf54y80AzdoCtz">热门话题</b>（描边 chips）</div></div>
+          <div class="wf-dash" style="padding:8px 12px" data-page-node-id="zNVpWRdooR4lJ4fys0lcrB"><div class="lbl" data-page-node-id="QSBTwjl4greckCUpMKPfJh">社区数据（mono 注脚一行）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno-list" data-page-node-id="yeVrKITtroAB3PEB3exhpf">
+    <div class="anno fix" data-page-node-id="kOsogWRYlko7mieQI3lUcM"><span class="n" data-page-node-id="2aDeF05SaJYUuibIovQBWB">1</span><span data-page-node-id="Oevxs6P5hYLOYOmAxDxy69"><b data-page-node-id="BkGdcluRks6vb7E3jR79XX">删独立「热榜」大区块</b>：现截图里热榜 5 行占据 Hero 下方黄金位，但它只是导航性内容。降级为右栏 Top5。</span></div>
+    <div class="anno fix" data-page-node-id="7jkMyfyWqjrPD61HvMZdqb"><span class="n" data-page-node-id="WpuqdnX98DifQgBmo0su76">2</span><span data-page-node-id="yeG45HXM29s6FjYhPoFEfw"><b data-page-node-id="YsPh5IX7PluFLSJoqEFiCg">删独立「最新项目」九宫格区块</b>：项目卡 3 列大图把帖子挤到页面底部（第 4 屏）。首页右栏保留 3 张迷你项目卡做引流，全量浏览交给项目广场页。</span></div>
+    <div class="anno fix" data-page-node-id="AwF1BvRSHEUSqWYslGwYSW"><span class="n" data-page-node-id="Dyz9w0frDbVswIfDKx4Pz3">3</span><span data-page-node-id="8U9Om282K4VKYUUWU9j4JH"><b data-page-node-id="HfIi1QqhjiU9xfLiNbVjVu">帖子流上移为主内容</b>：首页的核心是帖子流（含置顶），放左主栏第一位；「最新帖子」与「热榜」二合一，避免两个相似列表区块重复。</span></div>
+    <div class="anno fix" data-page-node-id="M1Jya37J17BXvWIAvcO7F0"><span class="n" data-page-node-id="0PfPbWXvriIdRstQpDgDFr">4</span><span data-page-node-id="KICHJNAsWHf70RKdPMuYUW"><b data-page-node-id="zYwGdF2sILu2xAQaIHxvG9">Hero 渐变 banner 违反 v1.1 禁渐变</b>：高度压到 ≤120px，去渐变改墨蓝实色，标题/副文案/双按钮同排布局。</span></div>
+    <div class="anno" data-page-node-id="VXh4TmjtZhN8vdocxAAUNc"><span class="n" data-page-node-id="tVJjAAyR3FAZIZ16jpEBrp">5</span><span data-page-node-id="egdXhne1QxKzd9VkKPtjDl"><b data-page-node-id="zeC8KNB9F8jljHVm09Vjq4">列表行去卡片化</b>：帖子行改分隔线连续列表（v1.1 spec 5.2），行 hover 左移 8px。</span></div>
+  </div>
+</section>
+
+<!-- ================= 02 项目广场 ================= -->
+<section class="page" id="square" data-page-node-id="x6g7t2iDHzkc9nuD0ARWuA">
+  <div class="page-head" data-page-node-id="l4lLvN8tE7asNrHBEizFqn"><h2 data-page-node-id="TWGbtPVwbVHsiXvINgIQFw">02 · 项目广场</h2><span class="mono" data-page-node-id="OhnCmxtndxiKOYtcRXWTr7">布局：保持 3 列网格 ｜ 容器 1180px ｜ 修正封面与工具栏</span></div>
+
+  <div class="canvas" data-page-node-id="3uhzWLkfGpT6zwgL2YQ1H2">
+    <div class="canvas-title" data-page-node-id="xnfC9KZ5M5huuaJLjNqnX7">修订后结构</div>
+    <div class="col" data-page-node-id="lmwesO1nH3N5gzlrsbfO1G">
+      <div class="row" style="align-items:center" data-page-node-id="XognCKuE1P8V3qfV356JuW">
+        <div class="wf" style="width:180px" data-page-node-id="9mTHDJG2bmHhIFbiVNA9xK"><div class="lbl" data-page-node-id="ZCR90LWtBiASz0IC4JI2ss"><b data-page-node-id="GxxLXnO7UI4McJvXZzUy0S">页面标题</b></div></div>
+        <div class="h-fill" data-page-node-id="VTiBlo1YNL9r7CHmEaZtli"></div>
+        <div class="wf" style="width:260px" data-page-node-id="ai1a4zihFvXTLo3mJHg0yv"><div class="lbl" data-page-node-id="DD6YO8DEoXGzPnXwU8KQ5j">搜索框（标签/题名）</div></div>
+        <div class="wf" style="width:90px" data-page-node-id="aUtvidNtCaSeqf8apJf98g"><div class="lbl" data-page-node-id="dDF4rmbp1L0Grb8KMb17sr">筛选 ▾</div></div>
+      </div>
+      <div class="row" style="align-items:center" data-page-node-id="MLaWBoZMmXWlydb70U5oEZ">
+        <div class="lbl" style="padding-left:0" data-page-node-id="IWsl1JqT9y6gJsIdQiWCO4">排序：最热 / 最新 / 最多浏览（文字钮 + 选中下划线）</div>
+        <div class="h-fill" data-page-node-id="LNxuAJueFnCTdPBo7YYASR"></div>
+        <div class="lbl" data-page-node-id="kjJD2dajGQYj0FTKNlEEl0">共 N 个项目</div>
+      </div>
+      <div class="grid-3" data-page-node-id="yHs1tfqQdC9vzu4xhLCDyo">
+        <div class="wf col" style="gap:0;overflow:hidden" data-page-node-id="RFP8UHMVC7oE2wFTy1iVVi">
+          <div class="wf-amber" style="height:64px;border-style:solid;border-radius:8px 8px 0 0" data-page-node-id="3szs20lXuafSXFPwon6iGz"></div>
+          <div class="col" style="padding:10px 12px;gap:8px" data-page-node-id="rgyOw99teyO3g5bR8uIoed"><div class="lbl" data-page-node-id="M4IF1hfPDPZq3wKYPXbuiZ">项目名 + 浏览数</div><div class="lbl" data-page-node-id="tizIe8ZEPoPErJaAbkuT82">技术栈标签行（描边 chips）</div><div class="lbl" data-page-node-id="hM4imMZ7p1pX0da0QGtg1y">更新时间（text-3）</div></div>
+        </div>
+        <div class="wf col" style="gap:0;overflow:hidden" data-page-node-id="hsjsiVW53ODps6paIrNs0i"><div class="wf" style="height:64px;border-radius:8px 8px 0 0" data-page-node-id="D82s0Rk3c1sE3VlLUj64kB"></div><div class="col" style="padding:10px 12px;gap:8px" data-page-node-id="ofMNp3D9DcYyMWs1rMn07h"><div class="lbl" data-page-node-id="nBdEPBqr3EObfvxE1D1RfG">卡② 同构</div></div></div>
+        <div class="wf col" style="gap:0;overflow:hidden" data-page-node-id="J2fIgBhHDQEx7rS8zIcF9u"><div class="wf" style="height:64px;border-radius:8px 8px 0 0" data-page-node-id="fb3Fy7LsCH83vYbJMP45sp"></div><div class="col" style="padding:10px 12px;gap:8px" data-page-node-id="ZJtNM53Sj0yU3VSCANu1Sc"><div class="lbl" data-page-node-id="GYK7EJBg54Bf0VrpqeHjf2">卡③ 同构</div></div></div>
+      </div>
+      <div class="center" data-page-node-id="y2106BDgCJrk9BvSQxIOZN"><div class="wf" style="padding:6px 16px" data-page-node-id="EBUKz6RVMA0THmyLhl5uKC"><div class="lbl" data-page-node-id="2o0CUzgirXjpAXxgPcP1KQ">分页 ‹ 1 2 3 ›（居中）</div></div></div>
+    </div>
+  </div>
+
+  <div class="anno-list" data-page-node-id="409kVrrHrCFTeV1hVdXlsc">
+    <div class="anno fix" data-page-node-id="QrUC4WkvCFyvqPb12JBYwF"><span class="n" data-page-node-id="veAjf3BPvAlfLBqe1upNMu">6</span><span data-page-node-id="IpRgJTuv4tA3K6NM3CmOGZ"><b data-page-node-id="aW16gX7BEt6jF1I0GMt0F2">封面改墨蓝色系（P0 色彩红线）</b>：当前绿色封面与琥珀强调色形成双色相竞争，且与语义色「成功」撞车。封面统一为墨蓝表面 + 项目名首字（Space Grotesk 大字），或首字母 mono glyph；第一张卡可点睛用琥珀 dim。</span></div>
+    <div class="anno fix" data-page-node-id="skEoGVmKP6X1eLwPwBKwd5"><span class="n" data-page-node-id="FGU9kVQr57nDJfpbBohlCo">7</span><span data-page-node-id="wjEZB2BHfFL6c46Kya1sO7"><b data-page-node-id="YZaj0rODbw4sM6ZUXu4cra">封面高度 200px→128px</b>：当前封面占卡片 60% 高度，信息区被压扁。封面是占位图（无真实截图），不值得给 60% 面积，让位给标题与标签。</span></div>
+    <div class="anno fix" data-page-node-id="QymTAV9CKHlSOFAJHPQTQl"><span class="n" data-page-node-id="jiBmSVDhkWaYzxGJ6j7KWw">8</span><span data-page-node-id="gOMDGcrwfieUdTwIHsiNZP"><b data-page-node-id="MZSyD9zHx1SfIRsDfoFDl2">工具栏归位</b>：标题与搜索框/筛选同行（当前分两行且搜索框悬空）；排序改文字钮下划线式（当前琥珀胶囊抢视觉）；新增「共 N 个」计数。</span></div>
+    <div class="anno" data-page-node-id="acw8pR2jRa2aRkOFNKxDFJ"><span class="n" data-page-node-id="dEtpp0IgJvzRtfcimnGR6J">9</span><span data-page-node-id="7H7MqH6GsnyI9e7Upr4bM0"><b data-page-node-id="ZYaUnbOMbcAKQqi4Xq6nwb">卡片信息层级固定</b>：项目名(600) &gt; 技术栈标签 &gt; 更新时间(text-3)；浏览数徽章右上角；卡片 hover 仅边框提亮 + translateY(-2px)。</span></div>
+  </div>
+</section>
+
+<!-- ================= 03 技术论坛 ================= -->
+<section class="page" id="forum" data-page-node-id="ppLHP7m237poWgLCX1ZH6Z">
+  <div class="page-head" data-page-node-id="AuxTC6TjqpU7tBcBC6hHBR"><h2 data-page-node-id="cIbk5SbkoSCuRmmYSfiglR">03 · 技术论坛</h2><span class="mono" data-page-node-id="YgJsh2Y7yf2Rf4AbpfvqOD">布局：行卡片 → 分隔线列表 ｜ 容器 900px 单栏 ｜ 工具栏一行化</span></div>
+
+  <div class="canvas" data-page-node-id="Uu2ZXTYJsWee0MO2SFFky0">
+    <div class="canvas-title" data-page-node-id="ljQVTZvLO5trV0mBhwDXJR">修订后结构</div>
+    <div class="col" data-page-node-id="0Ftl0DKnyoHD0XNnlZNyJb">
+      <div class="row" style="align-items:center" data-page-node-id="APumlLKU7fLURe0o01JEjf">
+        <div class="wf" style="width:160px" data-page-node-id="SpTsUCwqJW8ziX327Stha7"><div class="lbl" data-page-node-id="JhQwjxYQErB5r9T3sMIhhj"><b data-page-node-id="JYahLcHdNYjnMBKgHHiHib">页面标题</b></div></div>
+        <div class="h-fill" data-page-node-id="XU6uFmAfevLH1fETJtRkY1"></div>
+        <div class="wf" style="width:90px" data-page-node-id="vHrF4KeNGND4UDy3W6Xa8p"><div class="lbl" data-page-node-id="G6rYq3KGuSGX2cJvh1GcCC">+ 发帖</div></div>
+      </div>
+      <div class="row" style="align-items:center;border-bottom:1px solid var(--border);padding-bottom:10px" data-page-node-id="pFZmiJkGo0HGh1T0naJ1l6">
+        <div class="lbl" style="padding-left:0;color:var(--amber)" data-page-node-id="rr1kYABEaQFqaSKX7HP9nd">全部</div>
+        <div class="lbl" data-page-node-id="hInHxTogAQ6tmkpZ8yhcNm">Java</div><div class="lbl" data-page-node-id="DSeQCw3Q5SfP0jQ1viTe59">AI</div><div class="lbl" data-page-node-id="lzIcCQ2U73OENlxKbBHyjN">问答</div><div class="lbl" data-page-node-id="cG2jVb7iClKGBQS8WGI4ZE">资源分享</div>
+        <div class="h-fill" data-page-node-id="qYo9ghDzmVDsfS0Z3vAQ95"></div>
+        <div class="lbl" data-page-node-id="S9eczLSlwDLPxDMj3JqUML">最新 · 最热（文字钮，选中下划线）</div>
+      </div>
+      <!-- 置顶 -->
+      <div class="wf wf-amber" style="padding:10px 12px" data-page-node-id="kh8xdOFGPoLfgAdMxhRgqc"><div class="lbl" data-page-node-id="0MiVLSRrJOPlcI8YyBmAMh"><b data-page-node-id="CGHtLcFJfJkRvW0QljmFWm">置顶行</b>：置顶徽章 + 标签 + 标题 + 元数据（浅琥珀底，仅此一处用底色）</div></div>
+      <!-- 普通行 -->
+      <div class="col" style="gap:0" data-page-node-id="T8QspBT3ulBUQ6YlVnc7rY">
+        <div style="border-bottom:1px solid var(--border);padding:12px 4px" data-page-node-id="jFBrLynuymxusxd8EuwtlB"><div class="row" style="align-items:center;gap:10px" data-page-node-id="slHU33pZ2qUl1cooGeLsIF"><span class="wf-line short h-fill" data-page-node-id="LGFHWLCouHLno0xNr9V4p0"></span><span class="lbl" data-page-node-id="1bRWLzUUQ4jExdPAMB9G63">Java</span></div><div class="lbl" data-page-node-id="pBCCYy0TDGoRLPJy95jrd0">普通行：标题一行 + 元数据一行（回帖数/浏览/最后回复）</div></div>
+        <div style="border-bottom:1px solid var(--border);padding:12px 4px" data-page-node-id="ezCxyXgrl6ys6z7do0gD9P"><div class="lbl" data-page-node-id="nYyMrEf1AnS2uDIawWrVvb">行②…⑨ 同构，行 hover 标题转琥珀 + 左移 8px</div></div>
+      </div>
+      <div class="center" data-page-node-id="rXvGTCfpDVdb3qFNLgtABS"><div class="wf" style="padding:6px 16px" data-page-node-id="imvPRpzUg1ivwUFARD0JKe"><div class="lbl" data-page-node-id="Adaer7VGuemagNpqb3WvXv">分页（居中）</div></div></div>
+    </div>
+  </div>
+
+  <div class="anno-list" data-page-node-id="d8v3KrK4OZr4YKmhQdDHfr">
+    <div class="anno fix" data-page-node-id="x1rcGrIEHA0QRwRetvHF5w"><span class="n" data-page-node-id="QPy1oYQKvItr9QfB8854ot">10</span><span data-page-node-id="UiLlaLa3vln5SP9kBi0Ur0"><b data-page-node-id="zDFPHhnPcNtPcCosa9fIAh">行卡片改分隔线列表（P0）</b>：当前每行独立圆角卡片 + 12px 间隙，10 行帖子产生 10 个视觉块。改连续分隔线列表后页面长度可省约 1/3，扫读更快。</span></div>
+    <div class="anno fix" data-page-node-id="Xzq710a1KhLN3boasQvrW2"><span class="n" data-page-node-id="fiqkI2Tk5vHUGCoEXuvzex">11</span><span data-page-node-id="sPV9TWgEBEhwr1M1JewZ1i"><b data-page-node-id="HcQVF1RySyPK1YQwtr9ogI">工具栏一行化</b>：分类 Tab（下划线式）与排序（文字钮）同行，当前两组琥珀胶囊上下叠放、抢视觉且占两行。</span></div>
+    <div class="anno fix" data-page-node-id="Jo0TXBy8f7teX9yVDVlqkk"><span class="n" data-page-node-id="RdgqOBAgrMg0iK7GC99kc1">12</span><span data-page-node-id="U50G1u2nszEAYzqMsyXvmv"><b data-page-node-id="YWcqv4OLkVXk1MgHPw4ALP">置顶帖视觉</b>：浅琥珀底（accent 14% alpha）+ 置顶徽章，全页仅此一处用底色强调；不再额外加大字号。</span></div>
+    <div class="anno" data-page-node-id="DWpQe4ghej0xk2jFhGv3DP"><span class="n" data-page-node-id="8SwOcE2Hh2f3SkSK3CBvpm">13</span><span data-page-node-id="32qXHpzG3XUXKDEbRxl7nQ"><b data-page-node-id="KHR7MOFJHCslHS2KktQ0CD">元数据合并一行</b>：回帖/浏览/最后回复用点分隔符并成一行（text-3），当前元数据字号偏大且与标题争夺注意力。</span></div>
+  </div>
+</section>
+
+<!-- ================= 04 搜索 ================= -->
+<section class="page" id="search" data-page-node-id="bdFA1W5KJeObqZeyCehvt3">
+  <div class="page-head" data-page-node-id="qmcBq7vGGUNmAjHRX0I58a"><h2 data-page-node-id="vWvrqrikE3j7VceXARZqJx">04 · 搜索</h2><span class="mono" data-page-node-id="HY5iE9tGmzK4KBzXy0ZRoy">布局：初始态居中 + 结果态双栏 ｜ 容器 760px 居中</span></div>
+
+  <div class="canvas" data-page-node-id="CuajVvuR56nkBJSOKqXrTe">
+    <div class="canvas-title" data-page-node-id="VMs9oAf4FDR04AD9flctDN">状态 A · 初始态（居中，无结果）</div>
+    <div class="col center" style="min-height:280px" data-page-node-id="38rPW4hFH9WnVNebVDM3lw">
+      <div class="wf" style="width:560px;padding:12px 16px" data-page-node-id="NlMFxNhr1grbDr0Q1REXOG"><div class="lbl" data-page-node-id="9DogD64CB1PxjFiE68cFKz"><b data-page-node-id="avg8FccSUEyBT3EpPB6xr9">搜索框</b> 560px 居中（当前 400px 偏左 + 孤立骨架条，删除）</div></div>
+      <div class="lbl" data-page-node-id="7QnC8CRU0pLo4A6xVlMH17">或试试：</div>
+      <div class="row" data-page-node-id="EtHdE34SqB8u0kpP5yCmzL"><div class="wf" style="padding:4px 12px" data-page-node-id="2MRfC5JtyOnd3jIe2C1UDj"><div class="lbl" data-page-node-id="ziJRnTB5pyNjj3TgZjNupY">Flyway</div></div><div class="wf" style="padding:4px 12px" data-page-node-id="ubmb20D2cia1vzJCK6LqEU"><div class="lbl" data-page-node-id="H9pzoh4gqGKDfFahRMXfAn">虚拟线程</div></div><div class="wf" style="padding:4px 12px" data-page-node-id="wrOuHOuoeObgp2G3Z8TrFb"><div class="lbl" data-page-node-id="7xLM9B2IJaTresnRAANGWX">RAG</div></div></div>
+    </div>
+  </div>
+
+  <div class="canvas" data-page-node-id="2Dc12LU8Zv5WBz965bRFyv">
+    <div class="canvas-title" data-page-node-id="OULg4wIcrsgLrMuj0m1LvC">状态 B · 结果态</div>
+    <div class="col" data-page-node-id="QRVIqkBaVUSXVJuq3H89FU">
+      <div class="wf" style="padding:10px 14px" data-page-node-id="HblwRjJ0x1jxRGGEq5hiGl"><div class="lbl" data-page-node-id="niYQ7BjuR6LVfISLgeXt3X"><b data-page-node-id="BOtW8AJHkwwN9WanNV7kAC">搜索框</b> 置顶 sticky（输入回车后收缩至页首）+ 右侧「搜索到 N 条结果」</div></div>
+      <div class="grid-2" style="grid-template-columns:minmax(0,1fr) 240px" data-page-node-id="V4IgVnxRuwj6LvKMD6NiBs">
+        <div class="col" style="gap:0" data-page-node-id="mambKfoh35Xq2VPegqXyJA">
+          <div style="border-bottom:1px solid var(--border);padding:12px 4px" data-page-node-id="QxHfE4PGoDsNzAAHTPnv5H"><div class="lbl" data-page-node-id="PXmU3EEE2ix3Ul0FDoigwA">结果行①：类型徽章 + 标题（关键词高亮琥珀）+ 摘要一行 + 元数据</div></div>
+          <div style="border-bottom:1px solid var(--border);padding:12px 4px" data-page-node-id="VXPxPGMdTVVqdIqGUfXDLm"><div class="lbl" data-page-node-id="3oC9Ne5dcf71ux1OBTin3C">结果行②…（分隔线列表，混排帖子/项目/用户）</div></div>
+        </div>
+        <div class="col" data-page-node-id="lf8Boke6JJSK9OorMirJsw">
+          <div class="wf" style="padding:8px 12px" data-page-node-id="Nxo8Wsu45BvPNtvUr2ERkT"><div class="lbl" data-page-node-id="eLXP2sudnFEMfo85F2ZCm9"><b data-page-node-id="vwvyqEzpH6QEUxAYXO6iYB">相关话题</b></div></div>
+          <div class="wf" style="padding:8px 12px" data-page-node-id="vm2GfiN2MNj6pPqCrd3NLe"><div class="lbl" data-page-node-id="6xHT9VtrYz5dSj82GGrOdo"><b data-page-node-id="JfGMRVx3JvkjKPnwDJhjnd">相关用户</b></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno-list" data-page-node-id="tUEIhBY8DnW0sCbVvlrqRu">
+    <div class="anno fix" data-page-node-id="AVSrqdhtMVW6F0rGcmmEu4"><span class="n" data-page-node-id="OIOtOkvL5BuCMk18xgmJE2">14</span><span data-page-node-id="dnFAqp2SYj1EccIg715BfY"><b data-page-node-id="r3IqnKeKtjnfg8TueAcjMl">初始态整体居中（P0）</b>：当前输入框 400px 偏左 + 下方孤立骨架条 + 空态图标另起居中，三个元素三种对齐。统一为垂直居中构图：搜索框 560px → 热词 chips。</span></div>
+    <div class="anno fix" data-page-node-id="Jz3oIEbQyWa0ACGWITe0yR"><span class="n" data-page-node-id="0ASHwWqwgpABGsVvuHGwHT">15</span><span data-page-node-id="vSRdIplyCYrtJLpbBYrS3o"><b data-page-node-id="S3gKRHCMFL02QkjYHDQOE5">删孤立骨架条</b>：截图里输入框下方那条独立灰色短条无意义，删除。</span></div>
+    <div class="anno" data-page-node-id="OdiygehDpAVu5q1bMINhyf"><span class="n" data-page-node-id="h2J1m6AH2xiDPjzjRg1QcM">16</span><span data-page-node-id="iPDzOMqoxfsJG5tzPlWDAc"><b data-page-node-id="ZBldhxFDRfB1bSHMYhmqNK">结果态双栏</b>：结果列表（左）+ 相关话题/用户（右 240px）；结果行混排帖子/项目/用户，用类型徽章区分，关键词琥珀高亮。</span></div>
+  </div>
+</section>
+
+<!-- ================= 05 登录/注册 ================= -->
+<section class="page" id="login" data-page-node-id="K3PXJlxFCSHexl0lqZv0rY">
+  <div class="page-head" data-page-node-id="snx9RVKZGME9uUJLyG59d2"><h2 data-page-node-id="dib9w85XCLZG4M6KVBJYKe">05 · 登录 / 注册</h2><span class="mono" data-page-node-id="tDIS2CNzk4niM3kAzek8yG">布局：居中卡 400px ｜ 修正 Tab 布局与背景</span></div>
+
+  <div class="canvas" data-page-node-id="KfADsEgi3qImDRHqpd4E3x">
+    <div class="canvas-title" data-page-node-id="7RqFCsBNiFtlOrAbf3y3VW">修订后结构</div>
+    <div class="col center" style="min-height:320px" data-page-node-id="uG73U8zg8vhGwzVUoPPCtV">
+      <div class="wf col" style="width:400px;gap:0" data-page-node-id="ABTBNoDwafTJZlVbUdPt5M">
+        <div class="col" style="padding:20px 24px 0;gap:10px" data-page-node-id="sbWJe2XLDoEPZMHiW6RS59">
+          <div class="row" style="align-items:center;gap:10px" data-page-node-id="E6VE0HyiT0xKab6YErFl8k"><div class="wf" style="width:32px;height:32px" data-page-node-id="VPc1GIvqBnQV9M6DKrp2Nv"><div class="lbl" style="padding:0;justify-content:center" data-page-node-id="HjlzQJFGiF8yIF6E19MK5q">极</div></div><div class="lbl" data-page-node-id="MKmakU7oca6MVh3yFgPDL4"><b data-page-node-id="YEVbbxWdHYe2eBkneXXlpQ">极客栈</b> + slogan 一行</div></div>
+        </div>
+        <div class="row" style="border-bottom:1px solid var(--border);margin-top:14px" data-page-node-id="onzBwQ6PjDBuThBpY2A75c">
+          <div class="lbl h-fill center" style="color:var(--amber)" data-page-node-id="1wCf30B9IGh6vpdVwN38jE">登录（等宽 50%，下边框琥珀 2px）</div>
+          <div class="lbl h-fill center" data-page-node-id="bYL3VHXZfjU9rQQSUiGV32">注册（等宽 50%）</div>
+        </div>
+        <div class="col" style="padding:18px 24px;gap:12px" data-page-node-id="VFCpwXhuQMir0FIWJNQGWV">
+          <div class="wf" style="padding:9px 12px" data-page-node-id="V9d31jonghMAe2PTDSLKXk"><div class="lbl" data-page-node-id="JSTfhIGAZewK8dPpGdoprz">输入：用户名</div></div>
+          <div class="wf" style="padding:9px 12px" data-page-node-id="zDOGoCZwI7pICnsIBsRd7D"><div class="lbl" data-page-node-id="HHcQAZS62mInMnD1I0ujdZ">输入：密码（右端眼睛钮）</div></div>
+          <div class="row" style="justify-content:space-between" data-page-node-id="sB5hwKsVpzfGGEAqDpgtdl"><div class="lbl" data-page-node-id="mO3SPe0eNAUmsuTkpDMVJC">☐ 记住我</div><div class="lbl" style="color:var(--amber)" data-page-node-id="1GQEOYuEaPShNjLBYdKIDq">忘记密码？</div></div>
+          <div class="wf wf-amber" style="padding:9px 12px;border-radius:10px" data-page-node-id="J0tMVvTuyDKdHjsT8cc1gx"><div class="lbl center" data-page-node-id="dvpWhxjyHn7iFzBRIHCJc8"><b data-page-node-id="GZGpQMzMQEKhIACInxORQ8">登 录</b>（全宽主按钮）</div></div>
+          <div class="lbl center" style="font-size:0.7rem" data-page-node-id="YHy7H7lleuEZY1jGIBFaFd">—— 第三方登录（分隔线 + 居中小字）——</div>
+          <div class="wf" style="padding:9px 12px" data-page-node-id="TU1weKaAJkYPz0BThJfUiq"><div class="lbl center" data-page-node-id="OS0X6vFnwdQuDQNYflJ0ie">使用 GitHub 登录（全宽描边）</div></div>
+          <div class="wf" style="padding:9px 12px" data-page-node-id="olxDbChBN5njZOOLEfplf6"><div class="lbl center" data-page-node-id="SapQtsZWyshpzBe2DHGYdg">使用 Gitee 登录（全宽描边）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno-list" data-page-node-id="LzouelsnMKwcEZ7fqHTfUI">
+    <div class="anno fix" data-page-node-id="YdNBCDuecZOTnLAa27IpAC"><span class="n" data-page-node-id="WK2euBp1HaLjKC9TFvNByu">17</span><span data-page-node-id="Jwfa6mK3NZCI2buGKIHPtm"><b data-page-node-id="xXEaUkw9R81DKzR62kjGQ8">Tab 等宽化（P0）</b>：当前「登录」「注册」左右各占一角、中间大空洞。改等宽 50% 双 Tab + 底边线选中态（琥珀 2px），与表单同宽对齐。</span></div>
+    <div class="anno fix" data-page-node-id="VR8QwQc5kBlHjNIKtIWhTC"><span class="n" data-page-node-id="UpOHirU76mtyyMuMcEZblh">18</span><span data-page-node-id="1CmAr0z4voJRl0Q8PJVjTY"><b data-page-node-id="bnS6Lfi6cDvNM6SPLYM7S6">补品牌头部</b>：当前卡片顶部直接是裸文字「极客栈」。加 Logo 方块 + slogan（「代码为灯，技术为栈」），建立品牌记忆。</span></div>
+    <div class="anno fix" data-page-node-id="MN3yFA5dvmmj949VDzdn35"><span class="n" data-page-node-id="2wB25BAHIr5rhZakmEP2x3">19</span><span data-page-node-id="LoKRLrWpGYYwAZBL65O1IN"><b data-page-node-id="EJFJBM2LvuFlgpGKQaLB0J">背景去纯黑</b>：当前背景接近 #000（违反禁纯黑红线）。改墨蓝 `--ink-950`，页面底部加版权行。</span></div>
+    <div class="anno" data-page-node-id="7RNARUi9FEiaEKVlXSZLFz"><span class="n" data-page-node-id="U81q7lXDaBqbjnPBmtqrpH">20</span><span data-page-node-id="jTTO1WymRK88CCNKsWBbYB"><b data-page-node-id="y9FlGWlN4uUqYeZlknrtEF">密码行补「记住我 / 忘记密码」</b>：当前缺失，属登录页标准件；忘记密码用琥珀文字钮。</span></div>
+  </div>
+</section>
+
+<!-- ================= 06 全局规则 ================= -->
+<section class="page" id="rules" data-page-node-id="NigNdFFD512CpHtNxNjPim">
+  <div class="page-head" data-page-node-id="THIoQVDuxJLFOPJfWFTmlm"><h2 data-page-node-id="l4dj9eS912oXSGvFQhZsfn">06 · 全局布局规则</h2><span class="mono" data-page-node-id="nVmEER2daRy4YqiUu1vYxh">适用于所有页面，与 v1.1 设计规范并行生效</span></div>
+  <div class="canvas" data-page-node-id="Bzu8lhpVf4lywiF5ZjtFVx">
+    <div class="anno-list" style="margin-top:0" data-page-node-id="g6eOtaOwDlqCoeM9EHDeeZ">
+      <div class="anno" data-page-node-id="quxMIXGW6cZEWuysYxaT1m"><span class="n" data-page-node-id="ajjXYLF5RtZMttxZRNcgGD">A</span><span data-page-node-id="C1LakojGKcMYOD105pZ7nV"><b data-page-node-id="lf78CDl3WefNXAOqT7Q0J3">容器宽度三档</b>：宽 1180px（首页/项目广场）｜中 900px（论坛列表/帖子详情）｜窄 760px（搜索/表单）。全站禁止无 max-width 的满宽内容。</span></div>
+      <div class="anno" data-page-node-id="NB5z4XhGWaF5TeGsYgK2QF"><span class="n" data-page-node-id="4K1ZuCZ3ZdJhHeDWno5ZR2">B</span><span data-page-node-id="rXGfc9mZTOPUfHoBRSTOCs"><b data-page-node-id="l3xG8U7sPvrrIFWJyr4LXp">卡片 vs 列表判据</b>：有封面图/多字段的实体 → 卡片网格（项目）；纯文本流 → 分隔线列表（帖子/搜索结果）。同一页不得混用两种行样式。</span></div>
+      <div class="anno" data-page-node-id="ZaalamG2d4dYZ60J1Ev9wd"><span class="n" data-page-node-id="3t5ZGueEdw5FjhZwucIv5e">C</span><span data-page-node-id="qC9lKc7jGiaAWHujcBmBe0"><b data-page-node-id="X8upOeU9l3eK8l6VAlDR0D">单强调色</b>：绿色封面全站替换为墨蓝色系；琥珀仅出现在 Logo/主按钮/选中态/置顶底色四处（10% 规则）。</span></div>
+      <div class="anno" data-page-node-id="AGjUXfiWAIDK2R82bziMP5"><span class="n" data-page-node-id="39cZsGzcdR31Xgi4cjzKbg">D</span><span data-page-node-id="TYDlf8qpF4sT7pIWiocv0H"><b data-page-node-id="0GDrELhcYuQKSsHY7LodSr">工具栏公式</b>：页面标题(左) + 主操作(右) 一行；过滤 Tab + 排序一行，均用下划线式选中态，不用胶囊底色。</span></div>
+      <div class="anno" data-page-node-id="chSg9iHnEyKA8dohXu5SIn"><span class="n" data-page-node-id="bRsVHyQOenVJtTskHongRB">E</span><span data-page-node-id="eDtxLCHZ3kQc3VEj0jUGVn"><b data-page-node-id="N5PURgFGn4tHSJTpQHqDVJ">区块间距</b>：页面区块间 64px；列表行间 0（用 1px 分隔线 + 行内 padding 20px）；网格卡片间 24px。</span></div>
+      <div class="anno" data-page-node-id="D0HUBDqxCgCtSz03boACVU"><span class="n" data-page-node-id="gyQt0cAGv1aYZ2trhdpFo1">F</span><span data-page-node-id="GwFFlxokUJWDzFXqFCpQ1H"><b data-page-node-id="ulR4bouqgwdxdA0JYpI5oI">Hero 高度</b>：≤120px（仅首页），登录/注册页不设 Hero。</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+<footer data-page-node-id="FpgbH1VNQOAZkJ1YyxPciS">
+  <div class="container" data-page-node-id="0czESv5tWdJu97jLgtyRfJ">极客栈 GeekStack · 布局蓝图 v1.0 ｜ 2026-09-11 ｜ 配套：geekstack-ui-design.html（视觉）+ geekstack-ui-design-spec.md（规范）</div>
+</footer>
+</body>
+</html>

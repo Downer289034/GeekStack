@@ -182,9 +182,11 @@
 **产出**：`frontend/src/theme/tokens.css` / `tokens.ts` / `stores/theme.ts`
 **备注**：Light 主按钮 `--accent-text` 用 `paper-900`（原型稿白字压 amber-600 实测不足 3:1）；浅色语义色字用 `--*-on` 加深变体
 
-### [ ] M6-2：布局骨架
-**描述**：顶栏（sticky 实色+1px 线）、容器 1180、主栏+右栏 320 grid、Footer
+### [x] M6-2：布局骨架
+**描述**：顶栏（sticky 实色+1px 线，禁 blur）、容器 1180 / 900 / 760 三档、主栏+右栏 320 grid、Footer；首页按蓝图压缩 Hero + 双栏信息流
+**验收标准**：对照 `docs/geekstack-layout-blueprint.html`；三绿 + 三断点截图；push CI 绿灯
 **前置**：M6-1
+**产出**：`docs/assets/m6-2-layout/`
 
 ### [ ] M6-3：核心组件
 **描述**：按钮 3 变体、信息流（头条+列表行+下划线 Tab）、标签/徽章/Code chip

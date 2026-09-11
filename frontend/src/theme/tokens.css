@@ -286,3 +286,29 @@ a:hover .gs-card-elevated {
 .gs-section-title .n-icon {
   color: var(--accent);
 }
+
+/* ---------- M6-2 布局骨架 ---------- */
+.gs-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.gs-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .gs-main-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .gs-main-grid > .gs-sidebar {
+    order: 2;
+  }
+}

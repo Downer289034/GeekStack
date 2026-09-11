@@ -43,13 +43,13 @@ const router = createRouter({
           path: 'forum',
           name: 'forum',
           component: () => import('@/views/forum/ForumListView.vue'),
-          meta: { title: '技术论坛' }
+          meta: { title: '技术论坛', containerWidth: 'md' }
         },
         {
           path: 'forum/new',
           name: 'post-publish',
           component: () => import('@/views/forum/PostPublishView.vue'),
-          meta: { title: '发帖', requiresAuth: true }
+          meta: { title: '发帖', requiresAuth: true, containerWidth: 'md' }
         },
         // OAuth 回调路由：后端存储 code 后 redirect 到此，前端轮询 localStorage 读取并完成登录
         {
@@ -62,7 +62,7 @@ const router = createRouter({
           path: 'forum/posts/:id',
           name: 'post-detail',
           component: () => import('@/views/forum/PostDetailView.vue'),
-          meta: { title: '帖子详情' }
+          meta: { title: '帖子详情', containerWidth: 'md' }
         },
         {
           path: 'users/:username',
@@ -74,7 +74,7 @@ const router = createRouter({
           path: 'search',
           name: 'search',
           component: () => import('@/views/search/SearchView.vue'),
-          meta: { title: '搜索' }
+          meta: { title: '搜索', containerWidth: 'sm' }
         },
         {
           path: 'tags',

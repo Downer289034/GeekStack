@@ -1,27 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import {
-  NButton,
-  NCard,
-  NEmpty,
-  NIcon,
-  NSpace,
-  NSpin,
-  NTag,
-  NText
-} from 'naive-ui'
-import {
-  AddOutline,
-  ChatbubblesOutline,
-  CreateOutline,
-  CubeOutline,
-  FlameOutline,
-  GridOutline
-} from '@vicons/ionicons5'
+import { NButton, NEmpty, NSpin, NTag } from 'naive-ui'
 import type { Category, PostCard } from '@/api/forum'
 import type { ShareCard } from '@/api/share'
 import { loadHomeFeed } from '@/utils/homeFeedCache'
+
+type FeedTab = 'latest' | 'hot' | 'qa' | 'share'
 
 const loading = ref(true)
 const loadError = ref(false)
@@ -29,6 +14,7 @@ const hot = ref<PostCard[]>([])
 const shares = ref<ShareCard[]>([])
 const posts = ref<PostCard[]>([])
 const categories = ref<Category[]>([])
+const feedTab = ref<FeedTab>('latest')
 
 const categoryById = computed(() => {
   const map = new Map<number, Category>()
@@ -47,10 +33,30 @@ function formatTime(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
 }
 
-function coverTone(id: number): string {
-  const tones = [0, 8, 16]
-  return `color-mix(in srgb, var(--color-share) ${18 + tones[id % 3]}%, var(--color-bg-container))`
-}
+/** 主栏帖子流：最新=posts，热门=hot，其余按分类名粗过滤 */
+const feedPosts = computed(() => {
+  if (feedTab.value === 'hot') return hot.value.slice(0, 8)
+  if (feedTab.value === 'latest') return posts.value.slice(0, 8)
+  if (feedTab.value === 'qa') {
+    return posts.value.filter((p) => /问|答/.test(categoryLabel(p))).slice(0, 8)
+  }
+  return posts.value.filter((p) => /分享|资源/.test(categoryLabel(p))).slice(0, 8)
+})
+
+const topicChips = computed(() => {
+  const counts = new Map<string, number>()
+  for (const s of shares.value) {
+    for (const t of s.tags ?? []) {
+      counts.set(t, (counts.get(t) ?? 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([name]) => name)
+})
+
+const miniShares = computed(() => shares.value.slice(0, 3))
 
 async function load() {
   loading.value = true
@@ -74,33 +80,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="home-page" aria-label="首页">
-    <div class="hero">
-      <div class="hero__deco" aria-hidden="true" />
-      <div class="hero__content">
-        <p class="hero__brand">极客栈 GeekStack</p>
-        <h1 class="hero__slogan">代码江湖的落脚点</h1>
-        <p class="hero__sub">极客落脚，技术常新——分享项目、讨论技术，找到同路人</p>
-        <div class="hero__actions">
-          <RouterLink to="/shares/new">
-            <n-button class="hero__btn-primary" type="default" size="medium">
-              <template #icon>
-                <n-icon :component="AddOutline" />
-              </template>
-              发布项目
-            </n-button>
-          </RouterLink>
-          <RouterLink to="/forum">
-            <n-button class="hero__btn-ghost" ghost size="medium">
-              <template #icon>
-                <n-icon :component="ChatbubblesOutline" />
-              </template>
-              逛论坛
-            </n-button>
-          </RouterLink>
+  <div class="home">
+    <!-- ① Hero：≤120px，墨蓝实色，禁渐变 -->
+    <header class="home-hero">
+      <div class="home-hero__row">
+        <div class="home-hero__copy">
+          <h1 class="home-hero__title">
+            代码为灯，技术为栈——欢迎<em>夜宿极客栈</em>
+          </h1>
+          <p class="home-hero__lead">分享项目、讨论技术，找到同路人</p>
+        </div>
+        <div class="home-hero__actions">
+          <RouterLink class="home-hero__btn home-hero__btn--primary" to="/shares/new">发布项目</RouterLink>
+          <RouterLink class="home-hero__btn home-hero__btn--ghost" to="/forum">逛论坛</RouterLink>
         </div>
       </div>
-    </div>
+    </header>
 
     <n-spin :show="loading">
       <div v-if="loadError" class="home-error">
@@ -111,479 +106,510 @@ onMounted(() => {
         </n-empty>
       </div>
 
-      <div v-else class="home-feed">
-        <!-- 热榜 -->
-        <section class="feed-block" aria-labelledby="home-hot-title">
-          <div class="feed-block__head">
-            <h2 id="home-hot-title" class="gs-section-title">
-              <n-icon :component="FlameOutline" :size="22" />
-              热榜
-            </h2>
-            <RouterLink class="feed-more" to="/forum">查看更多</RouterLink>
+      <div v-else class="gs-main-grid home-grid">
+        <!-- ② 主栏：Tab + 帖子流 -->
+        <section class="home-feed" aria-label="客栈动态">
+          <div class="feed-head">
+            <h2 class="feed-head__title">客栈动态</h2>
+            <div class="feed-tabs" role="tablist" aria-label="动态过滤">
+              <button
+                type="button"
+                role="tab"
+                :aria-selected="feedTab === 'latest'"
+                @click="feedTab = 'latest'"
+              >
+                最新
+              </button>
+              <button
+                type="button"
+                role="tab"
+                :aria-selected="feedTab === 'hot'"
+                @click="feedTab = 'hot'"
+              >
+                热门
+              </button>
+              <button
+                type="button"
+                role="tab"
+                :aria-selected="feedTab === 'qa'"
+                @click="feedTab = 'qa'"
+              >
+                问答
+              </button>
+              <button
+                type="button"
+                role="tab"
+                :aria-selected="feedTab === 'share'"
+                @click="feedTab = 'share'"
+              >
+                资源分享
+              </button>
+            </div>
+            <RouterLink class="feed-more" to="/forum">更多</RouterLink>
           </div>
-          <n-empty v-if="!loading && hot.length === 0" description="暂无热帖" size="small">
-            <template #icon>
-              <n-icon :component="FlameOutline" :size="40" />
-            </template>
+
+          <n-empty
+            v-if="!loading && feedPosts.length === 0"
+            description="这个分类暂时还没有新内容，去写第一篇吧。"
+          >
             <template #extra>
               <RouterLink to="/forum/new">
-                <n-button size="small" type="primary">去发帖</n-button>
+                <n-button type="primary">去发帖</n-button>
               </RouterLink>
             </template>
           </n-empty>
-          <div v-else class="hot-list">
-            <n-card
-              v-for="(post, index) in hot"
-              :key="post.id"
-              class="gs-card-elevated hot-row"
-              :bordered="false"
-            >
-              <RouterLink :to="`/forum/posts/${post.id}`" class="row-link">
-                <div class="row-main">
-                  <span v-if="index < 3" class="gs-hot-rank">{{ index + 1 }}</span>
-                  <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
-                  <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
-                  <span class="row-title">{{ post.title }}</span>
+
+          <ul v-else class="feed-list">
+            <li v-for="post in feedPosts" :key="post.id" class="feed-row">
+              <RouterLink :to="`/forum/posts/${post.id}`" class="feed-row__link">
+                <div class="feed-row__main">
+                  <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">
+                    置顶
+                  </n-tag>
+                  <span class="feed-row__cat">{{ categoryLabel(post) }}</span>
+                  <span class="feed-row__title">{{ post.title }}</span>
                 </div>
-                <div class="row-meta">
-                  <n-text depth="3">回帖 {{ post.replyCount }}</n-text>
-                  <n-text depth="3">浏览 {{ post.viewCount }}</n-text>
+                <div class="feed-row__meta font-mono">
+                  <span>回帖 {{ post.replyCount }}</span>
+                  <span>浏览 {{ post.viewCount }}</span>
+                  <span>{{ formatTime(post.createdAt) }}</span>
                 </div>
               </RouterLink>
-            </n-card>
+            </li>
+          </ul>
+
+          <div class="feed-foot">
+            <RouterLink class="feed-more" to="/forum">进入论坛 →</RouterLink>
           </div>
         </section>
 
-        <!-- 最新项目 -->
-        <section class="feed-block" aria-labelledby="home-shares-title">
-          <div class="feed-block__head">
-            <h2 id="home-shares-title" class="gs-section-title">
-              <n-icon :component="GridOutline" :size="22" />
-              最新项目
-            </h2>
-            <RouterLink class="feed-more" to="/shares">查看更多</RouterLink>
-          </div>
-          <n-empty v-if="!loading && shares.length === 0" description="暂无项目分享" size="small">
-            <template #icon>
-              <n-icon :component="CubeOutline" :size="40" />
-            </template>
-            <template #extra>
-              <RouterLink to="/shares/new">
-                <n-button size="small" type="primary">去发布</n-button>
-              </RouterLink>
-            </template>
-          </n-empty>
-          <div v-else class="share-grid">
-            <RouterLink
-              v-for="card in shares"
-              :key="card.id"
-              :to="`/shares/${card.id}`"
-              class="card-link"
-            >
-              <n-card class="gs-card-elevated plaza-card" :bordered="false">
-                <div class="card-cover" :style="{ background: coverTone(card.id) }" aria-hidden="true">
-                  <span class="card-cover__grid" />
-                  <n-tag class="gs-tag-share card-cover__badge" size="small" :bordered="false">项目</n-tag>
-                </div>
-                <div class="card-body">
-                  <div class="card-title-row">
-                    <span class="card-title">{{ card.title }}</span>
-                    <n-tag size="small" :bordered="false">浏览 {{ card.viewCount }}</n-tag>
-                  </div>
-                  <p class="card-summary">{{ card.summary }}</p>
-                  <div class="card-footer">
-                    <n-space size="small">
-                      <n-tag
-                        v-for="t in card.tags ?? []"
-                        :key="t"
-                        class="gs-tag-share"
-                        size="small"
-                        :bordered="false"
-                      >
-                        {{ t }}
-                      </n-tag>
-                    </n-space>
-                    <n-text depth="3" class="card-time">{{ formatTime(card.createdAt) }}</n-text>
-                  </div>
-                </div>
-              </n-card>
-            </RouterLink>
-          </div>
-        </section>
+        <!-- ③ 右栏：热榜 / 最新项目 / 话题 / 数据 -->
+        <aside class="gs-sidebar home-side" aria-label="侧栏">
+          <section class="side-block">
+            <h3 class="side-block__title">热榜 Top5</h3>
+            <ol class="hot-list">
+              <li v-for="(post, i) in hot.slice(0, 5)" :key="post.id">
+                <RouterLink :to="`/forum/posts/${post.id}`" class="hot-item">
+                  <span class="hot-item__rank" :class="{ 'is-top': i < 3 }">{{ i + 1 }}</span>
+                  <span class="hot-item__title">{{ post.title }}</span>
+                </RouterLink>
+              </li>
+            </ol>
+          </section>
 
-        <!-- 最新帖子 -->
-        <section class="feed-block" aria-labelledby="home-posts-title">
-          <div class="feed-block__head">
-            <h2 id="home-posts-title" class="gs-section-title">
-              <n-icon :component="ChatbubblesOutline" :size="22" />
-              最新帖子
-            </h2>
-            <RouterLink class="feed-more" to="/forum">查看更多</RouterLink>
-          </div>
-          <n-empty v-if="!loading && posts.length === 0" description="暂无帖子" size="small">
-            <template #icon>
-              <n-icon :component="CreateOutline" :size="40" />
-            </template>
-            <template #extra>
-              <RouterLink to="/forum/new">
-                <n-button size="small" type="primary">去发帖</n-button>
+          <section class="side-block">
+            <div class="side-block__head">
+              <h3 class="side-block__title">最新项目</h3>
+              <RouterLink class="feed-more" to="/shares">全部</RouterLink>
+            </div>
+            <ul class="mini-shares">
+              <li v-for="card in miniShares" :key="card.id">
+                <RouterLink :to="`/shares/${card.id}`" class="mini-share">
+                  <span class="mini-share__glyph" aria-hidden="true">{{ card.title.slice(0, 1) }}</span>
+                  <span class="mini-share__body">
+                    <span class="mini-share__title">{{ card.title }}</span>
+                    <span class="mini-share__tags">
+                      <span v-for="t in (card.tags ?? []).slice(0, 2)" :key="t">{{ t }}</span>
+                    </span>
+                  </span>
+                </RouterLink>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="topicChips.length" class="side-block">
+            <h3 class="side-block__title">热门话题</h3>
+            <div class="topic-chips">
+              <RouterLink
+                v-for="name in topicChips"
+                :key="name"
+                class="topic-chip"
+                :to="`/tags/${encodeURIComponent(name)}`"
+              >
+                {{ name }}
               </RouterLink>
-            </template>
-          </n-empty>
-          <div v-else class="post-list">
-            <n-card
-              v-for="post in posts"
-              :key="post.id"
-              class="gs-card-elevated post-row"
-              :bordered="false"
-            >
-              <RouterLink :to="`/forum/posts/${post.id}`" class="row-link">
-                <div class="row-main">
-                  <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
-                  <n-tag class="gs-tag-forum" size="small" :bordered="false">{{ categoryLabel(post) }}</n-tag>
-                  <span class="row-title">{{ post.title }}</span>
-                </div>
-                <div class="row-meta">
-                  <n-text depth="3">回帖 {{ post.replyCount }}</n-text>
-                  <n-text depth="3">浏览 {{ post.viewCount }}</n-text>
-                  <n-text depth="3">{{ formatTime(post.createdAt) }}</n-text>
-                </div>
-              </RouterLink>
-            </n-card>
-          </div>
-        </section>
+            </div>
+          </section>
+
+          <p class="side-stats font-mono">
+            热帖 {{ hot.length }} · 项目 {{ shares.length }} · 帖子 {{ posts.length }}
+          </p>
+        </aside>
       </div>
     </n-spin>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-.home-page {
+.home {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
 }
 
-.hero {
-  position: relative;
-  overflow: hidden;
-  min-height: 180px;
-  padding: 28px 32px;
+.home-hero {
+  max-height: 120px;
+  margin: 0 0 32px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
   border-radius: var(--radius);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-pressed) 0%,
-    var(--color-primary) 45%,
-    var(--color-primary-soft) 100%
-  );
-  box-shadow: var(--shadow-sm);
-  color: var(--color-on-primary);
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
-.hero__deco {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 88% 28%,
-      color-mix(in srgb, var(--color-on-primary) 15%, transparent) 0%,
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 72% 78%,
-      color-mix(in srgb, var(--color-on-primary) 10%, transparent) 0%,
-      transparent 36%
-    ),
-    repeating-linear-gradient(
-      -12deg,
-      transparent 0,
-      transparent 14px,
-      color-mix(in srgb, var(--color-on-primary) 6%, transparent) 14px,
-      color-mix(in srgb, var(--color-on-primary) 6%, transparent) 15px
-    );
-  opacity: 0.9;
-}
-
-.hero__content {
-  position: relative;
-  z-index: 1;
-  max-width: 640px;
-}
-
-.hero__brand {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  opacity: 0.92;
-}
-
-.hero__slogan {
-  margin: 0 0 10px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: var(--color-on-primary);
-}
-
-.hero__sub {
-  margin: 0 0 20px;
-  font-size: 14px;
-  line-height: 1.55;
-  opacity: 0.92;
-  max-width: 36em;
-}
-
-.hero__actions {
+.home-hero__row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
   flex-wrap: wrap;
-  gap: 12px;
+  min-height: 72px;
 }
 
-.hero__btn-primary {
-  --n-color: var(--color-on-primary) !important;
-  --n-color-hover: color-mix(in srgb, var(--color-primary) 6%, var(--color-on-primary)) !important;
-  --n-color-pressed: color-mix(in srgb, var(--color-primary) 12%, var(--color-on-primary)) !important;
-  --n-color-focus: var(--color-on-primary) !important;
-  --n-text-color: var(--color-primary) !important;
-  --n-text-color-hover: var(--color-primary) !important;
-  --n-text-color-pressed: var(--color-primary-pressed) !important;
-  --n-border: 1px solid var(--color-on-primary) !important;
-  --n-border-hover: 1px solid var(--color-on-primary) !important;
-  --n-border-pressed: 1px solid var(--color-on-primary) !important;
-  --n-border-focus: 1px solid var(--color-on-primary) !important;
-  font-weight: 600;
+.home-hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
 }
 
-.hero__btn-ghost {
-  --n-text-color: var(--color-on-primary) !important;
-  --n-text-color-hover: var(--color-on-primary) !important;
-  --n-text-color-pressed: var(--color-on-primary) !important;
-  --n-border: 1px solid color-mix(in srgb, var(--color-on-primary) 85%, transparent) !important;
-  --n-border-hover: 1px solid var(--color-on-primary) !important;
-  --n-border-pressed: 1px solid var(--color-on-primary) !important;
-  --n-border-focus: 1px solid var(--color-on-primary) !important;
-  --n-color: transparent !important;
-  --n-color-hover: color-mix(in srgb, var(--color-on-primary) 12%, transparent) !important;
-  --n-color-pressed: color-mix(in srgb, var(--color-on-primary) 18%, transparent) !important;
-  --n-color-focus: transparent !important;
-  font-weight: 500;
+.home-hero__title em {
+  font-style: normal;
+  color: var(--accent);
 }
 
-.home-feed {
+.home-hero__lead {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+.home-hero__actions {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.home-hero__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 0.15s var(--ease-out),
+    border-color 0.15s var(--ease-out),
+    color 0.15s var(--ease-out),
+    transform 0.2s var(--ease-out);
+}
+
+.home-hero__btn--primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.home-hero__btn--primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.home-hero__btn--ghost {
+  background: transparent;
+  color: var(--text-1);
+  border: 1px solid var(--border-strong);
+}
+
+.home-hero__btn--ghost:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.home-grid {
+  padding-bottom: 24px;
 }
 
 .home-error {
   padding: 48px 0;
 }
 
-.feed-block__head {
+.feed-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.feed-head__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.333rem;
+  letter-spacing: -0.01em;
+}
+
+.feed-tabs {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.feed-tabs button {
+  border: none;
+  background: none;
+  color: var(--text-2);
+  padding: 6px 2px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+}
+
+.feed-tabs button:hover {
+  color: var(--text-1);
+}
+
+.feed-tabs button[aria-selected='true'] {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.feed-tabs button[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
 }
 
 .feed-more {
-  font-size: 13px;
-  color: var(--color-primary);
+  font-size: 0.85rem;
+  color: var(--text-2);
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .feed-more:hover {
-  text-decoration: underline;
+  color: var(--accent);
 }
 
-.hot-list,
-.post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.hot-row,
-.post-row {
+.feed-list {
+  list-style: none;
   margin: 0;
-}
-
-.row-link {
-  text-decoration: none;
-  display: block;
-  min-width: 0;
-}
-
-.row-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.row-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--color-text);
-  min-width: 0;
-}
-
-.row-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 6px;
-  font-size: 12px;
-}
-
-.share-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 1200px) {
-  .share-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .share-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero {
-    padding: 24px 20px;
-    min-height: 168px;
-  }
-
-  .hero__slogan {
-    font-size: 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero {
-    padding: 20px 16px;
-    min-height: 160px;
-  }
-
-  .hero__slogan {
-    font-size: 22px;
-  }
-
-  .hero__sub {
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-
-  .hero__actions {
-    width: 100%;
-  }
-
-  .hero__actions :deep(a) {
-    flex: 1 1 auto;
-  }
-
-  .hero__actions :deep(.n-button) {
-    width: 100%;
-  }
-}
-
-.card-link {
-  text-decoration: none;
-  display: block;
-  min-width: 0;
-}
-
-.plaza-card {
-  overflow: hidden;
-  height: 100%;
-}
-
-.plaza-card :deep(.n-card__content) {
   padding: 0;
 }
 
-.card-cover {
-  position: relative;
-  height: 96px;
-  overflow: hidden;
+.feed-row {
+  border-bottom: 1px solid var(--border);
 }
 
-.card-cover__grid {
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      transparent 0,
-      transparent 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 10px,
-      color-mix(in srgb, var(--color-share) 10%, transparent) 11px
-    ),
-    radial-gradient(
-      circle at 86% 20%,
-      color-mix(in srgb, var(--color-share-text) 18%, transparent),
-      transparent 45%
-    );
-  opacity: 0.9;
+.feed-row__link {
+  display: block;
+  padding: 16px 0;
+  text-decoration: none;
+  color: inherit;
+  transition: padding-left 0.2s var(--ease-out);
 }
 
-.card-cover__badge {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 1;
+.feed-row__link:hover {
+  padding-left: 8px;
 }
 
-.card-body {
-  padding: 12px 14px 14px;
+.feed-row__link:hover .feed-row__title {
+  color: var(--accent);
 }
 
-.card-title-row {
+.feed-row__main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.card-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.card-summary {
-  margin: 8px 0 10px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 36px;
-}
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.card-time {
-  font-size: 12px;
+.feed-row__cat {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 8px;
+}
+
+.feed-row__title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-1);
+  transition: color 0.15s var(--ease-out);
+}
+
+.feed-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.feed-foot {
+  margin-top: 16px;
+}
+
+.side-block {
+  margin-bottom: 28px;
+}
+
+.side-block__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.side-block__title {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.hot-list,
+.mini-shares {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hot-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+  text-decoration: none;
+  color: var(--text-1);
+}
+
+.hot-item:hover .hot-item__title {
+  color: var(--accent);
+}
+
+.hot-item__rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  min-width: 1.2em;
+}
+
+.hot-item__rank.is-top {
+  color: var(--text-3);
+}
+
+.hot-item__title {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  transition: color 0.15s var(--ease-out);
+}
+
+.mini-share {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+
+.mini-share__glyph {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.mini-share__title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 220px;
+}
+
+.mini-share__tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.mini-share__tags span {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+
+.topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topic-chip {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  text-decoration: none;
+}
+
+.topic-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.side-stats {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+@media (max-width: 560px) {
+  .home-hero {
+    max-height: none;
+    padding: 16px;
+  }
+
+  .home-hero__title {
+    font-size: 1.1rem;
+  }
+
+  .feed-tabs {
+    width: 100%;
+    gap: 12px;
+    overflow-x: auto;
+  }
 }
 </style>
