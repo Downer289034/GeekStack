@@ -1,0 +1,26 @@
+[
+  {
+    "sel": ".gs-theme-toggle",
+    "w": 44,
+    "h": 44,
+    "ok": true
+  },
+  {
+    "sel": ".gs-btn--primary",
+    "w": 78,
+    "h": 44,
+    "ok": true
+  },
+  {
+    "sel": ".gs-text-btn",
+    "w": 51,
+    "h": 44,
+    "ok": true
+  },
+  {
+    "sel": "a.gs-logo",
+    "w": 114,
+    "h": 44,
+    "ok": true
+  }
+]

@@ -54,6 +54,7 @@ const isLink = computed(() => Boolean(props.to) && !props.disabled)
   gap: 6px;
   border-radius: 10px;
   padding: 9px 18px;
+  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 600;
   font-family: inherit;

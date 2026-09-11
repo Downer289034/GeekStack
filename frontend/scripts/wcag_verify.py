@@ -1,4 +1,4 @@
-"""M6 夜栈灯码 + 存量对比度验收（≥4.5:1）
+"""M6 夜栈灯码对比度验收（正文 ≥4.5:1 / UI 组件 ≥3:1）
 
 用法（在 frontend 目录）：
   python scripts/wcag_verify.py
@@ -78,44 +78,71 @@ def check(name: str, r: float, threshold: float = 4.5) -> None:
     global all_ok
     ok = r >= threshold
     all_ok &= ok
-    print(f"  {name:<44} {r:.2f}:1  {mark(ok)}")
+    print(f"  {name:<52} {r:.2f}:1  {mark(ok)}  (≥{threshold})")
 
 
-print("== M6-1 夜栈灯码 · Dark ==")
+print("== M6 夜栈灯码 · Dark（正文 ≥4.5）==")
 check("Dark text-1 / bg", ratio_oklch((93, 0.008, 262), (13, 0.015, 262)))
 check("Dark text-2 / bg", ratio_oklch((72, 0.01, 262), (13, 0.015, 262)))
+check("Dark text-3 / bg (meta/placeholder)", ratio_oklch((58, 0.012, 262), (13, 0.015, 262)))
+check("Dark text-3 / surface-1", ratio_oklch((58, 0.012, 262), (16, 0.018, 262)))
 check("Dark accent-text / accent", ratio_oklch((13, 0.015, 262), (76, 0.15, 75)))
 check("Dark text-1 / surface-1", ratio_oklch((93, 0.008, 262), (16, 0.018, 262)))
 
-print("\n== M6-1 夜栈灯码 · Light ==")
+print("\n== M6 夜栈灯码 · Light（正文 ≥4.5 / UI ≥3）==")
 check("Light text-1 / bg", ratio_oklch((22, 0.018, 75), (97.5, 0.008, 80)))
 check("Light text-2 / bg", ratio_oklch((38, 0.015, 75), (97.5, 0.008, 80)))
-# Light Primary：深色字压 amber-600（白字实测不足）
+check("Light text-3 / bg", ratio_oklch((55, 0.015, 75), (97.5, 0.008, 80)))
 check(
-    "Light accent-text(paper-900) / accent",
-    ratio_oklch((22, 0.018, 75), (68, 0.15, 70)),
+    "Light accent-text(paper-900) / accent(L64)",
+    ratio_oklch((22, 0.018, 75), (64, 0.15, 70)),
+)
+check(
+    "Light accent / bg (UI)",
+    ratio_oklch((64, 0.15, 70), (97.5, 0.008, 80)),
+    threshold=3.0,
 )
 check("Light text-1 / #fff", ratio_hex(oklch_to_hex(22, 0.018, 75), "#ffffff"))
 
-print("\n== 语义色徽章口径（字 / 基色12%叠底）==")
+print("\n== 语义色徽章（字 / 基色 15% 叠底，对齐 GsBadge）==")
 dark_bg = oklch_to_hex(13, 0.015, 262)
 light_bg = oklch_to_hex(97.5, 0.008, 80)
 success = oklch_to_hex(70, 0.14, 150)
 error = oklch_to_hex(62, 0.19, 25)
+error_on_dark = oklch_to_hex(65, 0.19, 25)
+warning = oklch_to_hex(78, 0.14, 85)
+info = oklch_to_hex(70, 0.11, 230)
 success_on_light = oklch_to_hex(42, 0.12, 150)
 error_on_light = oklch_to_hex(48, 0.16, 25)
-check("success 字 / dark 着色底", ratio_hex(success, composite(success, dark_bg, 0.12)))
-check("error 字 / dark 着色底", ratio_hex(error, composite(error, dark_bg, 0.12)))
+warning_on_light = oklch_to_hex(48, 0.12, 75)
+info_on_light = oklch_to_hex(45, 0.1, 230)
+check("Dark success / 15% 底", ratio_hex(success, composite(success, dark_bg, 0.15)))
+check("Dark warning / 15% 底", ratio_hex(warning, composite(warning, dark_bg, 0.15)))
+check("Dark error-on / 15% 底", ratio_hex(error_on_dark, composite(error, dark_bg, 0.15)))
+check("Dark info / 15% 底", ratio_hex(info, composite(info, dark_bg, 0.15)))
 check(
-    "success-on / light 着色底",
-    ratio_hex(success_on_light, composite(success, light_bg, 0.12)),
+    "Light success-on / 15% 底",
+    ratio_hex(success_on_light, composite(success, light_bg, 0.15)),
 )
 check(
-    "error-on / light 着色底",
-    ratio_hex(error_on_light, composite(error, light_bg, 0.12)),
+    "Light warning-on / 15% 底",
+    ratio_hex(warning_on_light, composite(warning, light_bg, 0.15)),
 )
-check("success-on / light #fff", ratio_hex(success_on_light, "#ffffff"))
-check("error-on / light #fff", ratio_hex(error_on_light, "#ffffff"))
+check(
+    "Light error-on / 15% 底",
+    ratio_hex(error_on_light, composite(error, light_bg, 0.15)),
+)
+check(
+    "Light info-on / 15% 底",
+    ratio_hex(info_on_light, composite(info, light_bg, 0.15)),
+)
+
+print("\n== Dark accent 作为 UI（焦点环/下划线 ≥3）==")
+check(
+    "Dark accent / bg (UI)",
+    ratio_oklch((76, 0.15, 75), (13, 0.015, 262)),
+    threshold=3.0,
+)
 
 print("\n== 存量语义文字变体（兼容）==")
 check("success #217f17 / 白", ratio_hex("#217f17", "#ffffff"))
@@ -126,4 +153,4 @@ if not all_ok:
     print("\n结论: 存在不达标项")
     sys.exit(1)
 
-print("\n结论: 全部抽检 ≥4.5:1，验收通过")
+print("\n结论: 全部抽检通过（正文≥4.5 / UI≥3）")

@@ -1,0 +1,31 @@
+{
+  "tablists": [
+    {
+      "label": "示例过滤",
+      "tabs": [
+        {
+          "text": "最新",
+          "selected": "true"
+        },
+        {
+          "text": "热门",
+          "selected": "false"
+        },
+        {
+          "text": "AI",
+          "selected": "false"
+        },
+        {
+          "text": "架构",
+          "selected": "false"
+        }
+      ]
+    }
+  ],
+  "iconButtonsWithoutLabel": [
+    {
+      "className": "gs-theme-toggle",
+      "aria": "切换到浅色主题"
+    }
+  ]
+}

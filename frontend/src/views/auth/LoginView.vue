@@ -96,7 +96,7 @@ const rules: FormRules = {
         </div>
       </div>
 
-      <div class="login-tabs" role="tablist">
+      <div class="login-tabs" role="tablist" aria-label="登录或注册">
         <button
           type="button"
           role="tab"

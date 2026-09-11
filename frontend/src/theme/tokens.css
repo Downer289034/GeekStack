@@ -60,7 +60,8 @@
   --border-strong: oklch(38% 0.02 262);
   --text-1: var(--ink-100);
   --text-2: var(--ink-300);
-  --text-3: var(--ink-500);
+  /* L58：meta/占位符需 ≥4.5:1（ink-500≈3.65 不达标） */
+  --text-3: oklch(58% 0.012 262);
   --accent: var(--amber-500);
   --accent-hover: var(--amber-300);
   --accent-text: var(--ink-950);
@@ -71,10 +72,10 @@
   --shadow-sm: none;
   --shadow-md: 0 4px 12px oklch(13% 0.015 262 / 0.35);
   --shadow-lg: 0 8px 24px oklch(13% 0.015 262 / 0.45);
-  /* 语义色「字」：暗色可用基色本身 */
+  /* 语义色「字」：暗色可用基色本身；error 略提亮以满足徽章 15% 底 ≥4.5 */
   --success-on: var(--success);
   --warning-on: var(--warning);
-  --error-on: var(--error);
+  --error-on: oklch(65% 0.19 25);
   --info-on: var(--info);
 }
 
@@ -90,8 +91,9 @@
   --text-1: var(--paper-900);
   --text-2: var(--paper-700);
   --text-3: oklch(55% 0.015 75);
-  --accent: var(--amber-600);
-  --accent-hover: oklch(60% 0.16 68);
+  /* L64：相对纸底 ≥3:1（UI），paper-900 压填色仍 ≥4.5（主按钮字） */
+  --accent: oklch(64% 0.15 70);
+  --accent-hover: oklch(56% 0.16 68);
   /* 原型稿为 #fff，实测压 amber-600 仅 ~3:1；改深色字以满足 §8 ≥4.5:1（与 Dark 主按钮同策略） */
   --accent-text: var(--paper-900);
   --nav-bg: oklch(97.5% 0.008 80 / 0.85);

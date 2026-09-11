@@ -38,6 +38,7 @@ defineEmits<{
   font-weight: 500;
   letter-spacing: 0.02em;
   padding: 3px 10px;
+  min-height: 28px;
   border-radius: 6px;
   color: var(--text-2);
   border: 1px solid var(--border);
@@ -51,6 +52,8 @@ defineEmits<{
 
 button.gs-tag {
   cursor: pointer;
+  min-height: 44px;
+  padding: 8px 12px;
 }
 
 button.gs-tag:hover,

@@ -215,6 +215,7 @@ function logout() {
   font-size: 1.125rem;
   letter-spacing: 0.01em;
   flex-shrink: 0;
+  min-height: 44px;
 }
 
 .gs-logo__mark {
@@ -252,6 +253,9 @@ function logout() {
 
 .gs-nav__link {
   padding: 8px 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 8px;
   font-size: 0.9rem;
   color: var(--text-2);
@@ -339,8 +343,8 @@ function logout() {
 }
 
 .gs-theme-toggle {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-1);
@@ -367,8 +371,8 @@ function logout() {
 }
 
 .gs-avatar {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--surface-3);
   border: 2px solid var(--border-strong);
@@ -388,7 +392,12 @@ function logout() {
   font-size: 0.85rem;
   cursor: pointer;
   text-decoration: none;
-  padding: 6px 4px;
+  padding: 10px 12px;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: inherit;
 }
 

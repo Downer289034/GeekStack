@@ -19,6 +19,8 @@ const hex = {
   amber300: '#f2cb83',
   amber500: '#e8a127',
   amber600: '#d28500',
+  /** Light semantic accent L64（≥3:1 UI + paper-900 压填色 ≥4.5） */
+  accentLight: '#c57800',
   paper50: '#faf6f1',
   paper100: '#f2eee7',
   paper200: '#e2ddd5',
@@ -28,8 +30,11 @@ const hex = {
   success: '#54b66e',
   warning: '#e0af3b',
   error: '#e24947',
+  /** Dark badge error-on L65 */
+  errorOnDark: '#ed5350',
   info: '#49abd6',
-  accentHoverLight: '#bc6900',
+  accentHoverLight: '#af5c00',
+  text3Dark: '#767a82',
   text3Light: '#777068',
   successOnLight: '#005e26',
   warningOnLight: '#845100',
@@ -43,7 +48,7 @@ const fontBody =
 /** 按主题构建 Naive overrides（映射 semantic → hex） */
 export function buildNaiveOverrides(theme: GsTheme): GlobalThemeOverrides {
   const dark = theme === 'dark'
-  const accent = dark ? hex.amber500 : hex.amber600
+  const accent = dark ? hex.amber500 : hex.accentLight
   const accentHover = dark ? hex.amber300 : hex.accentHoverLight
   const accentText = dark ? hex.ink950 : hex.paper900
   const bg = dark ? hex.ink950 : hex.paper50
@@ -51,7 +56,7 @@ export function buildNaiveOverrides(theme: GsTheme): GlobalThemeOverrides {
   const border = dark ? hex.ink700 : hex.paper200
   const text1 = dark ? hex.ink100 : hex.paper900
   const text2 = dark ? hex.ink300 : hex.paper700
-  const text3 = dark ? hex.ink500 : hex.text3Light
+  const text3 = dark ? hex.text3Dark : hex.text3Light
 
   return {
     common: {
@@ -90,7 +95,7 @@ export function buildNaiveOverrides(theme: GsTheme): GlobalThemeOverrides {
     Tag: {
       textColorSuccess: dark ? hex.success : hex.successOnLight,
       textColorWarning: dark ? hex.warning : hex.warningOnLight,
-      textColorError: dark ? hex.error : hex.errorOnLight,
+      textColorError: dark ? hex.errorOnDark : hex.errorOnLight,
       textColorInfo: dark ? hex.info : hex.infoOnLight
     }
   }
