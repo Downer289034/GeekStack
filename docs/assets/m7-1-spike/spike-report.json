@@ -1,0 +1,106 @@
+{
+  "cases": [
+    {
+      "mode": "dark",
+      "override": false,
+      "rootBg": "rgb(0, 0, 0)",
+      "rootIsLight": false,
+      "cmBg": "rgb(0, 0, 0)",
+      "cmIsLight": false,
+      "mdBk": "#000",
+      "surface1": "oklch(16% 0.018 262)",
+      "tokenBound": false,
+      "vars": {
+        "--md-bk-color": "#000",
+        "--md-color": "#999",
+        "--md-border-color": "#2d2d2d",
+        "--md-border-active-color": "#777",
+        "--surface-1": "oklch(16% 0.018 262)",
+        "--text-1": "oklch(93% 0.008 262)",
+        "--accent": "oklch(76% 0.15 75)"
+      },
+      "themeClass": "md-editor md-editor-dark"
+    },
+    {
+      "mode": "dark",
+      "override": true,
+      "rootBg": "oklch(0.16 0.018 262)",
+      "rootIsLight": false,
+      "cmBg": "oklch(0.16 0.018 262)",
+      "cmIsLight": false,
+      "mdBk": "oklch(16% 0.018 262)",
+      "surface1": "oklch(16% 0.018 262)",
+      "tokenBound": true,
+      "vars": {
+        "--md-bk-color": "oklch(16% 0.018 262)",
+        "--md-color": "oklch(93% 0.008 262)",
+        "--md-border-color": "oklch(28% 0.02 262 / 0.9)",
+        "--md-border-active-color": "oklch(76% 0.15 75)",
+        "--surface-1": "oklch(16% 0.018 262)",
+        "--text-1": "oklch(93% 0.008 262)",
+        "--accent": "oklch(76% 0.15 75)"
+      },
+      "themeClass": "md-editor md-editor-dark"
+    },
+    {
+      "mode": "light",
+      "override": false,
+      "rootBg": "rgb(255, 255, 255)",
+      "rootIsLight": true,
+      "cmBg": "rgb(255, 255, 255)",
+      "cmIsLight": true,
+      "mdBk": "#fff",
+      "surface1": "#ffffff",
+      "tokenBound": false,
+      "vars": {
+        "--md-bk-color": "#fff",
+        "--md-color": "#3f4a54",
+        "--md-border-color": "#e6e6e6",
+        "--md-border-active-color": "#999",
+        "--surface-1": "#ffffff",
+        "--text-1": "oklch(22% 0.018 75)",
+        "--accent": "oklch(64% 0.15 70)"
+      },
+      "themeClass": "md-editor"
+    },
+    {
+      "mode": "light",
+      "override": true,
+      "rootBg": "rgb(255, 255, 255)",
+      "rootIsLight": true,
+      "cmBg": "rgb(255, 255, 255)",
+      "cmIsLight": true,
+      "mdBk": "#ffffff",
+      "surface1": "#ffffff",
+      "tokenBound": true,
+      "vars": {
+        "--md-bk-color": "#ffffff",
+        "--md-color": "oklch(22% 0.018 75)",
+        "--md-border-color": "oklch(90% 0.012 80)",
+        "--md-border-active-color": "oklch(64% 0.15 70)",
+        "--surface-1": "#ffffff",
+        "--text-1": "oklch(22% 0.018 75)",
+        "--accent": "oklch(64% 0.15 70)"
+      },
+      "themeClass": "md-editor"
+    }
+  ],
+  "publishPageDarkSim": {
+    "rootBg": "rgb(255, 255, 255)",
+    "rootIsLight": true,
+    "note": "模拟发帖页：data-theme=dark 但 MdEditor 默认 light（未绑 theme 丙）"
+  },
+  "conclusion": {
+    "canPassTokensViaCssVars": true,
+    "darkLibraryThemeExists": true,
+    "darkOverrideMatchesSurface1": true,
+    "residualRisks": [
+      "preview 主题（@vavt/markdown-theme）仍是独立皮肤，需另做 previewTheme 或 :deep 覆盖",
+      "codeTheme 走 highlight.js CDN 成对 light/dark，需随 data-theme 切换（spike 已绑 atom/github）",
+      "少数硬编码色（如 table-shape #222/#555）需补 :deep 覆盖",
+      "CodeMirror 语法高亮色来自扩展主题，不完全吃 --md-*"
+    ],
+    "recommendation": "KEEP_AND_OVERRIDE",
+    "decision": "能透传：保留 md-editor-v3，用 theme 丙绑定 data-theme + CSS 覆盖 14 个 --md-* ← semantic Token；不做换库。"
+  }
+}

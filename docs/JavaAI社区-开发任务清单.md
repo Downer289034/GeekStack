@@ -208,10 +208,22 @@
 **产出**：`GsSkeleton`；`directives/reveal.ts`；`docs/assets/m6-5-motion/`；`docs/geekstack-introduction.md` 入库
 
 ### [x] M6-6：红线巡检
-**描述**：规范第 8 节 6 条逐项验收 + 对比度抽检 + 键盘 Tab 巡检
-**验收标准**：`docs/M6-6-红线巡检报告.md` 逐条结论；不达标项已修；三绿 + CI
+**描述**：规范第 8 节 6 条逐项验收 + 对比度抽检 + 键盘 Tab 巡检；含编辑器页补巡
+**验收标准**：`docs/M6-6-红线巡检报告.md` 逐条结论；不达标项已修（编辑器 P0 白底挂 M7-1）；三绿 + CI
 **前置**：全部
-**产出**：`docs/M6-6-红线巡检报告.md`；`docs/assets/m6-6-a11y/`
+**产出**：`docs/M6-6-红线巡检报告.md`；`docs/assets/m6-6-a11y/`；附录 A 编辑器页
+
+# M7 发帖编辑器（2026-09-11 立项）
+
+> 规范：`docs/geekstack-editor-design-spec.md` v1.0  
+> 顺序：M7-1 spike 结论先报 → 批准后再覆盖业务页；不换库除非 spike 失败
+
+### [x] M7-1：md-editor-v3 主题透传 Spike（先结论，后工程）
+**描述**：半天内验证 `--md-*` 能否绑夜栈灯码 semantic Token；决定覆盖还是换库
+**验收标准**：结论文档；日/夜 × 覆盖关/开 截图；**未改业务发布页**
+**前置**：M6-6
+**产出**：`docs/M7-1-md-editor-主题透传-spike.md`；`docs/assets/m7-1-spike/`；`/dev/md-editor-spike`
+**结论**：**能透传 → 保留库 + CSS 覆盖**（待拍板后落地封装 `<GsMdEditor />`）
 
 ### [ ] T-BE-2：环境验收（新后端入职必过）
 **描述**：本地跑通全量测试与构建——`mvn.cmd -B verify`（90 个测试全绿）+ 前端三绿各跑一次；通读《交接指引-新后端.md》与检查点 B/C/D 三份报告；产出疑问清单（文档覆盖不到的盲区）

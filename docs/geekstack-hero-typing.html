@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极客栈 Hero 大字 · 打字动效参考实现</title>
+<style>
+/* ================================================================
+   极客栈 Hero 大字 + 打字动效 · 自包含参考实现 v1.0
+   交给前端：hero-typing 相关的 CSS/JS 可整段拷入 Vue3 组件
+   （Vue 中建议封装为 <HeroTyping /> 组件，segments 作为 props）
+   视觉 token 以 geekstack-ui-design.html v1.1 为准
+   ================================================================ */
+:root {
+  --bg: oklch(13% 0.015 262);
+  --ink-100: oklch(93% 0.008 262);
+  --ink-500: oklch(52% 0.015 262);
+  --amber: oklch(76% 0.15 75);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink-100);
+  font-family: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Hero 大字区 ---------- */
+.hero {
+  max-width: 1180px; margin: 0 auto;
+  padding: clamp(56px, 10vh, 120px) 24px 64px;
+}
+.hero-kicker {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.78rem; color: var(--ink-500); margin-bottom: 18px;
+}
+.hero h1 {
+  /* 大字：流体字号，小屏 2.2rem → 大屏 3.6rem */
+  font-size: clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+  max-width: 18em;
+  /* 预留两行高度：打字过程中布局不跳动（关键） */
+  min-height: 2.36em;
+}
+.hero h1 em { font-style: normal; color: var(--amber); }
+
+/* ---------- 光标 ---------- */
+.caret {
+  display: inline-block; width: 3px; height: 0.85em;
+  background: var(--amber); margin-left: 5px;
+  vertical-align: -0.06em; border-radius: 1px;
+  animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+
+.hero p.lead {
+  margin-top: 20px; max-width: 44ch;
+  color: oklch(72% 0.01 262); font-size: 1.05rem; line-height: 1.7;
+}
+
+.replay {
+  margin-top: 28px; background: none; cursor: pointer;
+  border: 1px solid oklch(38% 0.02 262); color: var(--ink-100);
+  border-radius: 10px; padding: 8px 18px; font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+}
+.replay:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ---------- 可访问性：偏好减弱动效时直接呈现全文 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .caret { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <p class="hero-kicker">Java × AI 开发者社区</p>
+  <!-- aria-label 提供完整文本供读屏；打字区 aria-hidden 避免读出残缺句 -->
+  <h1 id="heroTitle" aria-label="代码为灯，技术为栈——欢迎夜宿极客栈。"><span id="typeZone" aria-hidden="true"></span><span class="caret" id="typeCaret" aria-hidden="true"></span></h1>
+  <p class="lead">这里是 Java 与 AI 开发者的落脚点：沉淀实战文章、切磋架构取舍、追踪大模型落地的一手经验。</p>
+  <button class="replay" id="replayBtn" type="button">重播打字效果</button>
+</section>
+
+<script>
+/* ================================================================
+   Hero 打字动效 · 可拷贝实现
+   ------------------------------------------------------------
+   行为：逐字打出「代码为灯，/技术为栈——欢迎/夜宿极客栈(琥珀)/。」
+   - START_DELAY 400ms 启动，CHAR_MS 120ms/字（中文手感 110~130 最佳）
+   - 分段/换行处停顿 220ms，模拟换气，避免匀速机械感
+   - 打完后光标闪烁 2.4s 再隐藏
+   - prefers-reduced-motion: 直接渲染全文，不播动画（无障碍要求）
+   ================================================================ */
+(function () {
+  var zone  = document.getElementById('typeZone');
+  var caret = document.getElementById('typeCaret');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* em: true 的段用琥珀色渲染（对应设计稿的「夜宿极客栈」点睛词） */
+  var segments = [
+    { text: '代码为灯，',   br: true },
+    { text: '技术为栈——欢迎' },
+    { text: '夜宿极客栈',   em: true },
+    { text: '。' }
+  ];
+  var START_DELAY = 400, CHAR_MS = 120, timer = null;
+
+  function makeNode(seg) {
+    var el = document.createElement(seg.em ? 'em' : 'span');
+    el.textContent = seg.text;
+    return el;
+  }
+
+  /* 一次性渲染全文（重播复位 & 减弱动效时使用） */
+  function renderFinal(hideCaret) {
+    stop();
+    zone.innerHTML = '';
+    segments.forEach(function (s) {
+      zone.appendChild(makeNode(s));
+      if (s.br) zone.appendChild(document.createElement('br'));
+    });
+    caret.style.display = hideCaret ? 'none' : '';
+  }
+
+  function stop() { if (timer) { clearTimeout(timer); timer = null; } }
+
+  function type() {
+    stop();
+    zone.innerHTML = '';
+    caret.style.display = '';
+    var si = 0, ci = 0, cur = null;
+
+    function tick() {
+      if (si >= segments.length) {
+        /* 打完：光标再闪 2.4s 后隐藏 */
+        timer = setTimeout(function () { caret.style.display = 'none'; }, 2400);
+        return;
+      }
+      var s = segments[si];
+      if (ci === 0) { cur = document.createElement(s.em ? 'em' : 'span'); zone.appendChild(cur); }
+      cur.textContent = s.text.slice(0, ++ci);
+      if (ci >= s.text.length) {
+        if (s.br) zone.appendChild(document.createElement('br'));
+        si++; ci = 0;
+        timer = setTimeout(tick, s.br ? 220 : 60); /* 换行/分段停顿 */
+        return;
+      }
+      timer = setTimeout(tick, CHAR_MS);
+    }
+    timer = setTimeout(tick, START_DELAY);
+  }
+
+  document.getElementById('replayBtn').addEventListener('click', function () {
+    if (reduced) { renderFinal(true); return; }
+    type();
+  });
+
+  if (reduced) { renderFinal(true); } else { type(); }
+})();
+</script>
+</body>
+</html>

@@ -125,6 +125,22 @@
 | Error | `--error` 图标 + 具体原因 + 重试按钮，禁止只报「出错了」 |
 | Focus | `outline: 2px solid var(--accent); outline-offset: 2px`，全站统一 |
 
+### 5.5 Hero 大字 + 打字动效（v1.1 新增，首页专用）
+
+**大字规格**：`clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem)`，Space Grotesk 700，行高 1.18，字距 -0.015em，`min-height: 2.36em` 预留两行（打字过程中布局不得跳动）。
+
+**打字动效参数**（参考实现：`docs/geekstack-hero-typing.html` / `<HeroTyping />`）：
+| 参数 | 值 | 说明 |
+|---|---|---|
+| START_DELAY | 400ms | 页面加载后启动延迟 |
+| CHAR_MS | 165ms/字 | 中文「敲代码」手感区间 150~180ms |
+| 分段停顿 | 220ms（换行）/ 60ms（分段） | 模拟换气，避免匀速机械感 |
+| 光标 | 3px × 0.85em 琥珀竖条，`steps(1)` 1s 闪烁 | 打完保留全文，光标持续闪，不清空重打 |
+| 重播 | Hero 角落「重播动画」 | 手动再打一遍；`prefers-reduced-motion` 用户的唯一播放入口 |
+| 文案分段 | `代码为灯，`↵`技术为栈——欢迎`+em(夜宿极客栈)+`。` | em 段渲染为琥珀色 |
+
+**无障碍红线**：`h1` 必须带 `aria-label` 完整文本；打字区容器 `aria-hidden="true"`（避免读屏读出残缺句）；`prefers-reduced-motion: reduce` 时**首屏直接渲染全文、隐藏光标、不自动播**。角落「重播动画」可手动触发一次打字（尊重偏好：默认仍静，效果一键可达）。评审演示可用 `?motion=force`。
+
 ## 6. 动效规范
 
 - **缓动**：一律指数族 `cubic-bezier(0.25,1,0.5,1)` / `cubic-bezier(0.16,1,0.3,1)`；**禁止** bounce/elastic 回弹

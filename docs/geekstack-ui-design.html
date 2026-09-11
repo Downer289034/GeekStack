@@ -190,8 +190,16 @@ button { font-family: inherit; cursor: pointer; }
   font-size: clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem);
   line-height: 1.18; letter-spacing: -0.015em;
   max-width: 18em; font-weight: 700;
+  min-height: 2.36em; /* 预留两行，防打字过程中布局跳动 */
 }
 .hero h1 em { font-style: normal; color: var(--accent); }
+.caret {
+  display: inline-block; width: 3px; height: 0.85em;
+  background: var(--accent); margin-left: 5px; vertical-align: -0.06em;
+  border-radius: 1px; animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+[data-theme="light"] .caret { background: var(--accent); }
 .hero p.lead { margin-top: 20px; max-width: 44ch; color: var(--text-2); font-size: 1.05rem; }
 .hero-facts {
   margin-top: 32px; font-family: var(--font-mono); font-size: 0.78rem;
@@ -355,6 +363,7 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
+  .caret { display: none !important; }
   html { scroll-behavior: auto; }
 }
 </style>
@@ -393,7 +402,7 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
 <header class="hero" data-page-node-id="EwI52Oq18SaJrDAF7QtfVH">
   <div class="container" data-page-node-id="Jf2lE9H1hZyTpsWPYJtN5F">
     <p class="hero-kicker" data-page-node-id="VL1rnRPAI1kd2zKpzXFtqf">Java × AI 开发者社区</p>
-    <h1 data-page-node-id="r7ZXa6KWELybMVuxv5uH1K">代码为灯，<br data-page-node-id="CYbH7X3G1QNjBzpdGsEvTe">技术为栈——欢迎<em data-page-node-id="b3gubGNfH1vcspsDo4lCS1">夜宿极客栈</em>。</h1>
+    <h1 id="heroTitle" aria-label="代码为灯，技术为栈——欢迎夜宿极客栈。"><span id="typeZone" aria-hidden="true"></span><span class="caret" id="typeCaret" aria-hidden="true"></span></h1>
     <p class="lead" data-page-node-id="NFPtzMZioxXBlRUBWkgC52">这里是 Java 与 AI 开发者的落脚点：沉淀实战文章、切磋架构取舍、追踪大模型落地的一手经验。</p>
     <p class="hero-facts" data-page-node-id="7LG4KkOjIBR0z2kAZrsL6d">12,847 位开发者 / 3,291 篇原创 / 问答采纳率 98.2% / 平均响应 24h</p>
   </div>
@@ -563,6 +572,54 @@ footer { border-top: 1px solid var(--border); padding: 36px 0; }
 </footer>
 
 <script>
+// ---- Hero 打字动效 ----
+// 参数：START_DELAY 启动延迟 / CHAR_MS 每字时长（中文约 110-130ms 手感最佳）
+(function () {
+  const zone = document.getElementById('typeZone');
+  const caret = document.getElementById('typeCaret');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const segments = [
+    { text: '代码为灯，', br: true },
+    { text: '技术为栈——欢迎' },
+    { text: '夜宿极客栈', em: true },
+    { text: '。' }
+  ];
+  const START_DELAY = 400, CHAR_MS = 120;
+
+  function renderFinal() {
+    zone.innerHTML = '';
+    segments.forEach(s => {
+      const node = s.em ? document.createElement('em') : document.createElement('span');
+      node.textContent = s.text;
+      zone.appendChild(node);
+      if (s.br) zone.appendChild(document.createElement('br'));
+    });
+    caret.style.display = 'none';
+  }
+
+  if (reduced) { renderFinal(); return; }
+
+  let si = 0, ci = 0;
+  let cur = null;
+  function tick() {
+    if (si >= segments.length) { setTimeout(() => caret.style.display = 'none', 2400); return; }
+    const s = segments[si];
+    if (ci === 0) {
+      cur = s.em ? document.createElement('em') : document.createElement('span');
+      zone.appendChild(cur);
+    }
+    cur.textContent = s.text.slice(0, ++ci);
+    if (ci >= s.text.length) {
+      if (s.br) zone.appendChild(document.createElement('br'));
+      si++; ci = 0;
+      setTimeout(tick, s.br ? 220 : 60); /* 换行/分段处稍作停顿 */
+      return;
+    }
+    setTimeout(tick, CHAR_MS);
+  }
+  setTimeout(tick, START_DELAY);
+})();
+
 // ---- 主题切换 ----
 const root = document.documentElement;
 const toggle = document.getElementById('themeToggle');
