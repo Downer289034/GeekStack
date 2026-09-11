@@ -3,15 +3,12 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   NAvatar,
-  NButton,
-  NCard,
   NEmpty,
   NIcon,
   NInput,
   NPageHeader,
   NPopconfirm,
   NSpace,
-  NTag,
   NText,
   useMessage
 } from 'naive-ui'
@@ -25,6 +22,9 @@ import {
   type CommentNode,
   type PostDetail
 } from '@/api/forum'
+import GsBadge from '@/components/gs/GsBadge.vue'
+import GsButton from '@/components/gs/GsButton.vue'
+import GsTag from '@/components/gs/GsTag.vue'
 import { renderMarkdown } from '@/utils/markdown'
 import { useAuthStore } from '@/stores/auth'
 
@@ -127,7 +127,7 @@ onMounted(() => {
         <n-icon :component="AlertCircleOutline" :size="48" />
       </template>
       <template #extra>
-        <RouterLink to="/forum"><n-button type="primary">返回论坛</n-button></RouterLink>
+        <GsButton variant="primary" to="/forum">返回论坛</GsButton>
       </template>
     </n-empty>
   </div>
@@ -135,34 +135,31 @@ onMounted(() => {
   <div v-else class="post-detail">
     <n-page-header :title="post?.title ?? '加载中…'" @back="router.back()" />
 
-    <n-card v-if="post" class="gs-card-detail post-card" :bordered="false">
-      <template #header-extra>
+    <article v-if="post" class="post-card">
+      <div class="post-card__toolbar">
+        <n-space align="center" :wrap="true" class="post-meta">
+          <GsBadge v-if="post.isPinned === 1" tone="pinned">置顶</GsBadge>
+          <GsTag>浏览 {{ post.viewCount }}</GsTag>
+          <GsTag>回帖 {{ post.replyCount }}</GsTag>
+          <span class="post-time font-mono">{{ formatTime(post.createdAt) }}</span>
+        </n-space>
         <n-popconfirm v-if="isOwner" @positive-click="onDeletePost">
           <template #trigger>
-            <n-button size="small" type="error">删除</n-button>
+            <GsButton variant="text">删除</GsButton>
           </template>
           删除后所有人不可见，确定吗？
         </n-popconfirm>
-      </template>
-
-      <n-space class="post-meta">
-        <n-tag v-if="post.isPinned === 1" size="small" type="warning" :bordered="false">置顶</n-tag>
-        <n-tag size="small" :bordered="false">浏览 {{ post.viewCount }}</n-tag>
-        <n-tag size="small" :bordered="false">回帖 {{ post.replyCount }}</n-tag>
-        <n-text depth="3" class="post-time">{{ formatTime(post.createdAt) }}</n-text>
-      </n-space>
+      </div>
 
       <!-- eslint-disable-next-line vue/no-v-html -- 经 utils/markdown.ts DOMPurify 消毒（全站唯一出口） -->
       <div class="post-content" v-html="renderedContent"></div>
-    </n-card>
+    </article>
 
-    <n-card class="gs-card-detail reply-card" :bordered="false">
-      <template #header>
-        <span class="gs-section-title reply-title">
-          <n-icon :component="ChatbubbleOutline" :size="18" />
-          回帖（{{ post?.replyCount ?? 0 }}）
-        </span>
-      </template>
+    <section class="reply-card">
+      <h3 class="reply-title font-display">
+        <n-icon :component="ChatbubbleOutline" :size="18" />
+        回帖（{{ post?.replyCount ?? 0 }}）
+      </h3>
 
       <n-empty v-if="comments.length === 0" description="还没有回帖，来抢沙发" size="small">
         <template #icon>
@@ -175,16 +172,16 @@ onMounted(() => {
           <n-avatar round :size="32" class="comment-avatar">{{ comment.userId }}</n-avatar>
           <div class="comment-body">
             <div class="comment-head">
-              <n-text depth="3">用户 #{{ comment.userId }}</n-text>
-              <n-text depth="3" class="comment-time">{{ formatTime(comment.createdAt) }}</n-text>
+              <span class="comment-user">用户 #{{ comment.userId }}</span>
+              <span class="comment-time font-mono">{{ formatTime(comment.createdAt) }}</span>
             </div>
             <!-- eslint-disable-next-line vue/no-v-html -- 经 utils/markdown.ts DOMPurify 消毒 -->
             <div class="comment-content" v-html="renderMarkdown(comment.contentMd)"></div>
             <div class="comment-actions">
-              <n-button text size="tiny" @click="startNestedReply(comment)">回复</n-button>
+              <GsButton variant="text" @click="startNestedReply(comment)">回复</GsButton>
               <n-popconfirm v-if="canModerate(comment)" @positive-click="onDeleteComment(comment)">
                 <template #trigger>
-                  <n-button text size="tiny" type="error">删除</n-button>
+                  <GsButton variant="text">删除</GsButton>
                 </template>
                 删除这条回帖？
               </n-popconfirm>
@@ -197,15 +194,15 @@ onMounted(() => {
             <n-avatar round :size="28" class="comment-avatar">{{ child.userId }}</n-avatar>
             <div class="comment-body">
               <div class="comment-head">
-                <n-text depth="3">用户 #{{ child.userId }}</n-text>
-                <n-text depth="3" class="comment-time">{{ formatTime(child.createdAt) }}</n-text>
+                <span class="comment-user">用户 #{{ child.userId }}</span>
+                <span class="comment-time font-mono">{{ formatTime(child.createdAt) }}</span>
               </div>
               <!-- eslint-disable-next-line vue/no-v-html -- 经 utils/markdown.ts DOMPurify 消毒 -->
               <div class="comment-content" v-html="renderMarkdown(child.contentMd)"></div>
               <div class="comment-actions">
                 <n-popconfirm v-if="canModerate(child)" @positive-click="onDeleteComment(child)">
                   <template #trigger>
-                    <n-button text size="tiny" type="error">删除</n-button>
+                    <GsButton variant="text">删除</GsButton>
                   </template>
                   删除这条回帖？
                 </n-popconfirm>
@@ -218,7 +215,7 @@ onMounted(() => {
       <div v-if="auth.isLoggedIn" class="reply-editor">
         <n-text v-if="nestedReplyTo" depth="3" class="nested-hint">
           回复 用户 #{{ nestedReplyTo.userId }} 的回帖
-          <n-button text size="tiny" @click="cancelNestedReply">取消</n-button>
+          <GsButton variant="text" @click="cancelNestedReply">取消</GsButton>
         </n-text>
         <n-input
           v-model:value="replyText"
@@ -226,46 +223,70 @@ onMounted(() => {
           placeholder="友善回帖，支持 Markdown"
           :autosize="{ minRows: 3, maxRows: 8 }"
         />
-        <n-button type="primary" :loading="submitting" :disabled="!replyText.trim()" @click="submitReply">
+        <GsButton
+          variant="primary"
+          :disabled="submitting || !replyText.trim()"
+          @click="submitReply"
+        >
           回帖
-        </n-button>
+        </GsButton>
       </div>
-      <n-text v-else depth="3">
+      <p v-else class="login-hint">
         <RouterLink to="/login">登录</RouterLink> 后参与回帖
-      </n-text>
-    </n-card>
+      </p>
+    </section>
   </div>
 </template>
 
 <style scoped>
 .post-card {
   margin-top: 16px;
+  padding: 20px 0 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-card__toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .post-meta {
-  margin-bottom: 12px;
+  min-width: 0;
 }
 
-.post-time {
-  font-size: 12px;
+.post-time,
+.comment-time {
+  font-size: 0.75rem;
+  color: var(--text-3);
 }
 
 .post-content {
   line-height: 1.75;
   word-break: break-word;
+  color: var(--text-1);
+  max-width: 62ch;
 }
 
 .reply-card {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .reply-title {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-1);
 }
 
 .comment-block {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .comment {
@@ -274,8 +295,8 @@ onMounted(() => {
 }
 
 .comment-avatar {
-  background: var(--color-primary);
-  color: var(--color-bg-container);
+  background: var(--accent);
+  color: var(--accent-text);
   font-size: 12px;
   flex-shrink: 0;
 }
@@ -292,29 +313,30 @@ onMounted(() => {
   font-size: 12px;
 }
 
-.comment-time {
-  font-size: 12px;
+.comment-user {
+  color: var(--text-2);
 }
 
 .comment-content {
   margin-top: 4px;
   line-height: 1.6;
   word-break: break-word;
+  color: var(--text-1);
 }
 
 .comment-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-top: 4px;
+  align-items: center;
 }
 
 .nested-list {
   margin: 10px 0 0 42px;
   padding-left: 12px;
-  border-left: 2px solid var(--color-border);
+  border-left: 2px solid var(--border);
 }
 
-/* 小屏收紧嵌套缩进，给正文留宽度 */
 @media (max-width: 480px) {
   .nested-list {
     margin-left: 20px;
@@ -331,10 +353,24 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  align-items: flex-start;
 }
 
 .nested-hint {
   font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-hint {
+  margin: 8px 0 0;
+  color: var(--text-3);
+  font-size: 0.875rem;
+}
+
+.login-hint a {
+  color: var(--accent);
 }
 
 .post-state {
