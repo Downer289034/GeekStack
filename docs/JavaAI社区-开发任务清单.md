@@ -167,6 +167,41 @@
 **前置**：G1 + G2 接口就绪
 **产出**：`docs/assets/tfe3-search/` 截图；M5 收官
 
+---
+
+# M6 夜栈灯码视觉换代（2026-09-11 立项）
+
+> 设计概念：夜栈灯码 v1.1 —— 深墨蓝 × 琥珀灯笼  
+> 规范：[geekstack-ui-design-spec.md](./geekstack-ui-design-spec.md)｜原型验收基准：`docs/geekstack-ui-design.html`  
+> 旧台账：**T-DESIGN-4（暗色主题）关闭**（由本里程碑完整覆盖）；**T-DESIGN-5.3 三分区色体系废弃**（架构经验保留，实现被替代）  
+> 顺序：M6-1 → 2 → 3 → 4 串行，每步截图对照原型；M6-5/6 收口状态与红线
+
+### [x] M6-1：Token 地基
+**描述**：primitive + semantic 双层 CSS Variables、`data-theme` 切换、Naive UI `darkTheme` + `themeOverrides` 映射、Space Grotesk / JetBrains Mono（`display=swap`）；旧 `--color-*` 兼容别名
+**验收标准**：暗/浅切换语义层换绑；Naive 主色琥珀；三绿 + WCAG 抽检；`docs/assets/m6-1-tokens/` 日夜截图
+**产出**：`frontend/src/theme/tokens.css` / `tokens.ts` / `stores/theme.ts`
+**备注**：Light 主按钮 `--accent-text` 用 `paper-900`（原型稿白字压 amber-600 实测不足 3:1）；浅色语义色字用 `--*-on` 加深变体
+
+### [ ] M6-2：布局骨架
+**描述**：顶栏（sticky 实色+1px 线）、容器 1180、主栏+右栏 320 grid、Footer
+**前置**：M6-1
+
+### [ ] M6-3：核心组件
+**描述**：按钮 3 变体、信息流（头条+列表行+下划线 Tab）、标签/徽章/Code chip
+**前置**：M6-1
+
+### [ ] M6-4：页面迁移
+**描述**：首页 → 论坛 → 广场 → 详情 → 发布 → 主页 → 搜索/标签/404（逐页）
+**前置**：M6-2 / M6-3
+
+### [ ] M6-5：状态与动效
+**描述**：骨架屏、reveal 入场、焦点环、prefers-reduced-motion
+**前置**：M6-3
+
+### [ ] M6-6：红线巡检
+**描述**：规范第 8 节 6 条逐项验收 + 对比度抽检 + 键盘 Tab 巡检
+**前置**：全部
+
 ### [ ] T-BE-2：环境验收（新后端入职必过）
 **描述**：本地跑通全量测试与构建——`mvn.cmd -B verify`（90 个测试全绿）+ 前端三绿各跑一次；通读《交接指引-新后端.md》与检查点 B/C/D 三份报告；产出疑问清单（文档覆盖不到的盲区）
 **验收标准**：90/90 测试绿 + 三绿截图 + 疑问清单文档（docs/T-BE-2-疑问清单.md，允许为空但必须显式产出）

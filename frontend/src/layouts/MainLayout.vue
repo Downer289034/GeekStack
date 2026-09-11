@@ -18,12 +18,18 @@ import {
   HomeOutline,
   LogInOutline,
   LogOutOutline,
-  SearchOutline
+  MoonOutline,
+  SearchOutline,
+  SunnyOutline
 } from '@vicons/ionicons5'
+import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 const route = useRoute()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
+const { theme } = storeToRefs(themeStore)
 
 onMounted(() => {
   void auth.fetchCurrentUser()
@@ -81,6 +87,18 @@ function logout() {
           <span>{{ item.label }}</span>
         </RouterLink>
         <span class="spacer" />
+        <n-button
+          quaternary
+          circle
+          class="theme-toggle"
+          :title="theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'"
+          :aria-label="theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'"
+          @click="themeStore.toggleTheme()"
+        >
+          <template #icon>
+            <n-icon :component="theme === 'dark' ? SunnyOutline : MoonOutline" />
+          </template>
+        </n-button>
         <template v-if="auth.isLoggedIn">
           <RouterLink to="/shares/new">
             <n-button size="small" type="primary">

@@ -1,5 +1,9 @@
 # T-DESIGN-5 视觉改造执行规范（无设计师版）
 
+> **【已废弃 · M6】** 2026-09-11 起视觉规范切换为《[geekstack-ui-design-spec.md](./geekstack-ui-design-spec.md)》（夜栈灯码 v1.1）。  
+> 本文件仅作 M5 历史档案；**三分区色（forum/share/notice）体系标记废弃**（架构经验保留，实现被替代）。  
+> **T-DESIGN-4（暗色主题）已关闭**——能力由 M6-1 `data-theme` + Naive `darkTheme` 完整覆盖。
+
 > 背景：UI 设计师调离，本规范由 PM 出，**代替设计稿**。前端照规范实施，实施后截图交 PM 评审。
 > 原则：只扩 `tokens.ts` / `tokens.css` + 页面样式层；组件结构改动仍需报批；WCAG AA 标准不降。
 

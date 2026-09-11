@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-page-node-id="cvuGRWqwHuO88Y4OFHlxQU">
+<head data-page-node-id="C0M02ID8ZzPYCaXqUMHCkb">
+<meta charset="UTF-8" data-page-node-id="dwk8JTtTDpHr1rM83zkWuw">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="OBkHNjBDgWjMxd6mu4cUyn">
+<title>极客栈 GeekStack · 全新界面设计方案 v1.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" data-page-node-id="CcFz5XpBmaHV8aRCxdqE4d">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin data-page-node-id="vAmsOWrUpdX66lFhASNu8N">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" data-page-node-id="MKKnemopPtyTMuClTMFk6F">
+<style>
+/* ================================================================
+   极客栈 GeekStack · 设计系统 v1.1（去 AI 味修正版）
+   概念：夜栈灯码 —— 深墨蓝 × 琥珀灯笼
+   v1.1 变更：删光斑/发光/渐变封面/玻璃拟态；琥珀收缩至 4 处；
+             统计条改 mono 注脚；标签徽章去胶囊；Tab 改下划线式
+   ================================================================ */
+
+/* ---------- Primitive Tokens ---------- */
+:root {
+  --font-display: 'Space Grotesk', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* 墨蓝中性阶（带暖偏染，非纯灰） */
+  --ink-950: oklch(13% 0.015 262);
+  --ink-900: oklch(16% 0.018 262);
+  --ink-800: oklch(21% 0.02 262);
+  --ink-700: oklch(28% 0.02 262);
+  --ink-500: oklch(52% 0.015 262);
+  --ink-300: oklch(72% 0.01 262);
+  --ink-100: oklch(93% 0.008 262);
+
+  /* 琥珀灯笼（单一强调色） */
+  --amber-500: oklch(76% 0.15 75);
+  --amber-600: oklch(68% 0.15 70);
+  --amber-300: oklch(86% 0.1 82);
+
+  /* 暖纸中性阶（浅色主题用） */
+  --paper-50:  oklch(97.5% 0.008 80);
+  --paper-100: oklch(95% 0.01 80);
+  --paper-200: oklch(90% 0.012 80);
+  --paper-300: oklch(82% 0.012 80);
+  --paper-700: oklch(38% 0.015 75);
+  --paper-900: oklch(22% 0.018 75);
+
+  /* 语义色 */
+  --success: oklch(70% 0.14 150);
+  --warning: oklch(78% 0.14 85);
+  --error:   oklch(62% 0.19 25);
+  --info:    oklch(70% 0.11 230);
+}
+
+/* ---------- Semantic Tokens (Dark · 默认) ---------- */
+:root, [data-theme="dark"] {
+  color-scheme: dark;
+  --bg: var(--ink-950);
+  --surface-1: var(--ink-900);
+  --surface-2: var(--ink-800);
+  --surface-3: var(--ink-700);
+  --border: oklch(28% 0.02 262 / 0.9);
+  --border-strong: oklch(38% 0.02 262);
+  --text-1: var(--ink-100);
+  --text-2: var(--ink-300);
+  --text-3: var(--ink-500);
+  --accent: var(--amber-500);
+  --accent-hover: var(--amber-300);
+  --accent-text: var(--ink-950);
+  --overlay: oklch(13% 0.015 262 / 0.75);
+  --body-weight: 380;
+  --card-shadow: none;
+}
+
+/* ---------- Semantic Tokens (Light · 晨栈) ---------- */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: var(--paper-50);
+  --surface-1: #ffffff;
+  --surface-2: var(--paper-100);
+  --surface-3: var(--paper-200);
+  --border: var(--paper-200);
+  --border-strong: var(--paper-300);
+  --text-1: var(--paper-900);
+  --text-2: var(--paper-700);
+  --text-3: oklch(55% 0.015 75);
+  --accent: var(--amber-600);
+  --accent-hover: oklch(60% 0.16 68);
+  --accent-text: #ffffff;
+  --overlay: oklch(22% 0.018 75 / 0.5);
+  --body-weight: 400;
+  --card-shadow: 0 1px 3px oklch(22% 0.02 75 / 0.07);
+}
+
+/* ---------- Base ---------- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-weight: var(--body-weight);
+  font-size: 1rem;
+  line-height: 1.7;
+  background: var(--bg);
+  color: var(--text-1);
+  transition: background 0.3s cubic-bezier(0.25,1,0.5,1), color 0.3s cubic-bezier(0.25,1,0.5,1);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: var(--accent-text); }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+/* ---------- 字阶（5 级，比例 1.333） ---------- */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.333rem; }
+.text-xl { font-size: clamp(1.9rem, 3.2vw + 0.5rem, 2.9rem); }
+
+/* ================================================================
+   顶栏（实色 + 1px 边线，禁用玻璃拟态）
+   ================================================================ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner { display: flex; align-items: center; gap: 28px; height: 64px; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 1.125rem; letter-spacing: 0.01em; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent);
+  display: grid; place-items: center;
+  color: var(--accent-text);
+  font-size: 15px; font-weight: 700;
+}
+.logo small { font-weight: 400; font-size: 0.68rem; color: var(--text-3); display: block; line-height: 1.1; letter-spacing: 0.14em; text-transform: uppercase; }
+.nav-links { display: flex; gap: 4px; flex: 1; }
+.nav-links a {
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 0.9rem; color: var(--text-2);
+  transition: color 0.15s cubic-bezier(0.25,1,0.5,1), background 0.15s cubic-bezier(0.25,1,0.5,1);
+}
+.nav-links a:hover { color: var(--text-1); background: var(--surface-2); }
+.nav-links a.active { color: var(--text-1); font-weight: 600; position: relative; }
+.nav-links a.active::after {
+  content: ''; position: absolute; left: 14px; right: 14px; bottom: 2px;
+  height: 2px; border-radius: 1px; background: var(--accent);
+}
+.search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 7px 12px; width: 220px;
+  transition: border-color 0.15s cubic-bezier(0.25,1,0.5,1), width 0.25s cubic-bezier(0.25,1,0.5,1);
+}
+.search:focus-within { border-color: var(--accent); width: 280px; }
+.search svg { flex-shrink: 0; color: var(--text-3); }
+.search input { border: none; background: none; outline: none; color: var(--text-1); width: 100%; font-size: 0.875rem; font-family: inherit; }
+.search input::placeholder { color: var(--text-3); }
+.search kbd {
+  font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-3);
+  border: 1px solid var(--border-strong); border-radius: 4px; padding: 1px 5px;
+}
+.theme-toggle {
+  width: 38px; height: 38px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-2); display: grid; place-items: center;
+  transition: color 0.15s, border-color 0.15s;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.btn-publish {
+  background: var(--accent); color: var(--accent-text);
+  border: none; border-radius: 10px; padding: 9px 18px;
+  font-weight: 600; font-size: 0.9rem;
+  transition: background 0.15s, transform 0.2s cubic-bezier(0.25,1,0.5,1);
+}
+.btn-publish:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-3); border: 2px solid var(--border-strong); display: grid; place-items: center; font-size: 0.8rem; font-weight: 600; color: var(--text-1); }
+
+/* ================================================================
+   Hero · 编辑部式排版（无光斑、无统计模板）
+   ================================================================ */
+.hero { padding: 72px 0 56px; border-bottom: 1px solid var(--border); }
+.hero-kicker {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--text-3); margin-bottom: 18px;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem);
+  line-height: 1.18; letter-spacing: -0.015em;
+  max-width: 18em; font-weight: 700;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p.lead { margin-top: 20px; max-width: 44ch; color: var(--text-2); font-size: 1.05rem; }
+.hero-facts {
+  margin-top: 32px; font-family: var(--font-mono); font-size: 0.78rem;
+  color: var(--text-3); font-variant-numeric: tabular-nums;
+}
+
+/* ================================================================
+   主体布局：信息流 + 右栏
+   ================================================================ */
+.main-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; padding: 48px 0 72px; }
+
+/* 信息流 */
+.feed-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+.feed-head h2 { font-family: var(--font-display); font-size: 1.333rem; letter-spacing: -0.01em; }
+.tabs { display: flex; gap: 20px; }
+.tabs button {
+  border: none; background: none; color: var(--text-2);
+  padding: 6px 2px; font-size: 0.85rem; position: relative;
+  transition: color 0.15s cubic-bezier(0.25,1,0.5,1);
+}
+.tabs button:hover { color: var(--text-1); }
+.tabs button[aria-selected="true"] { color: var(--text-1); font-weight: 600; }
+.tabs button[aria-selected="true"]::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 2px; border-radius: 1px; background: var(--accent);
+}
+
+/* 头条（纯排版，无封面、无渐变） */
+.featured {
+  padding: 24px 0; border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.featured .tag-row { margin-bottom: 12px; }
+.featured h3 {
+  font-size: 1.55rem; line-height: 1.4; letter-spacing: -0.01em; font-weight: 600;
+  transition: color 0.15s;
+}
+.featured:hover h3 { color: var(--accent); }
+.featured p.excerpt { margin-top: 10px; color: var(--text-2); font-size: 0.925rem; max-width: 62ch; }
+.article-byline { margin-top: 14px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text-3); }
+.article-byline .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-3); }
+.article-byline b { color: var(--text-2); font-weight: 500; }
+.byline-avatar { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); display: grid; place-items: center; font-size: 0.6rem; color: var(--text-2); }
+
+/* 普通文章行（列表式） */
+.article-row {
+  display: flex; gap: 18px; padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: padding-left 0.2s cubic-bezier(0.25,1,0.5,1);
+}
+.article-row:hover { padding-left: 8px; }
+.article-row h3 { font-size: 1.05rem; font-weight: 600; line-height: 1.5; transition: color 0.15s; }
+.article-row:hover h3 { color: var(--accent); }
+.article-row .excerpt-sm { margin-top: 6px; color: var(--text-2); font-size: 0.875rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.row-rank {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+  color: var(--text-3); min-width: 28px; padding-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.feed-empty { padding: 48px 0; text-align: center; color: var(--text-3); font-size: 0.9rem; display: none; }
+
+/* ---------- 标签（中性描边，hover 才点亮） ---------- */
+.tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag {
+  font-size: 0.72rem; font-weight: 500; letter-spacing: 0.02em;
+  padding: 3px 10px; border-radius: 6px;
+  color: var(--text-2); border: 1px solid var(--border);
+  transition: color 0.15s, border-color 0.15s;
+}
+button.tag:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ---------- 右栏 ---------- */
+.rail { display: flex; flex-direction: column; gap: 32px; }
+.rail-section h3 {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.rail-section h3::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.hot-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px dashed var(--border); cursor: pointer; }
+.hot-item:last-child { border-bottom: none; }
+.hot-item .rank {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+  color: var(--text-3); min-width: 20px; font-variant-numeric: tabular-nums;
+}
+.hot-item p { font-size: 0.875rem; line-height: 1.5; transition: color 0.15s; }
+.hot-item:hover p { color: var(--accent); }
+.hot-item span { font-size: 0.72rem; color: var(--text-3); }
+
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.member-list { display: flex; flex-direction: column; gap: 12px; }
+.member { display: flex; align-items: center; gap: 12px; }
+.member .byline-avatar { width: 32px; height: 32px; font-size: 0.7rem; }
+.member b { font-size: 0.85rem; font-weight: 600; display: block; }
+.member span { font-size: 0.72rem; color: var(--text-3); }
+.member .follow { margin-left: auto; }
+
+/* ================================================================
+   组件规范区（设计系统展示）
+   ================================================================ */
+.ds { border-top: 1px solid var(--border); background: var(--surface-1); padding: 64px 0 80px; }
+.ds-head { margin-bottom: 40px; }
+.ds-head h2 { font-family: var(--font-display); font-size: 1.6rem; letter-spacing: -0.01em; }
+.ds-head p { color: var(--text-2); margin-top: 6px; font-size: 0.925rem; }
+.ds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; }
+.ds-block h4 {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 16px;
+}
+.swatches { display: flex; flex-direction: column; gap: 8px; }
+.swatch { display: flex; align-items: center; gap: 12px; font-size: 0.78rem; }
+.swatch .chip { width: 44px; height: 28px; border-radius: 6px; border: 1px solid var(--border-strong); }
+.swatch code { font-family: var(--font-mono); color: var(--text-3); font-size: 0.68rem; margin-left: auto; }
+.type-demo div { margin-bottom: 10px; }
+.type-demo .t1 { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; }
+.type-demo .t2 { font-size: 1.333rem; font-weight: 600; }
+.type-demo .t3 { font-size: 1rem; }
+.type-demo .t4 { font-size: 0.875rem; color: var(--text-2); }
+.type-demo .t5 { font-size: 0.75rem; color: var(--text-3); font-family: var(--font-mono); }
+.comp-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { border: none; border-radius: 10px; padding: 9px 18px; font-size: 0.875rem; font-weight: 600; transition: all 0.15s cubic-bezier(0.25,1,0.5,1); }
+.btn-primary { background: var(--accent); color: var(--accent-text); }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn-ghost { background: none; color: var(--text-1); border: 1px solid var(--border-strong); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-text { background: none; color: var(--text-2); padding: 9px 6px; }
+.btn-text:hover { color: var(--accent); }
+.badge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+.badge-success { background: oklch(70% 0.14 150 / 0.15); color: var(--success); }
+.badge-warning { background: oklch(78% 0.14 85 / 0.15); color: var(--warning); }
+.badge-error   { background: oklch(62% 0.19 25 / 0.15); color: var(--error); }
+.badge-info    { background: oklch(70% 0.11 230 / 0.15); color: var(--info); }
+.code-chip {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px; color: var(--text-2);
+}
+
+/* ---------- Footer ---------- */
+footer { border-top: 1px solid var(--border); padding: 36px 0; }
+.footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+.footer-inner p { font-size: 0.8rem; color: var(--text-3); }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { font-size: 0.8rem; color: var(--text-3); transition: color 0.15s; }
+.footer-links a:hover { color: var(--accent); }
+
+/* ---------- 入场动效（轻量：10px，仅 transform/opacity） ---------- */
+.reveal { opacity: 0; transform: translateY(10px); transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 960px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .rail { order: 2; }
+  .nav-links { display: none; }
+  .search { display: none; }
+}
+@media (max-width: 560px) {
+  .hero { padding: 48px 0 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body data-page-node-id="VJ5vjOE9sWybZasX4FOjCe">
+
+<!-- ============ 顶栏 ============ -->
+<nav class="nav" data-page-node-id="Tv9Fn1bSDrlCSYArtCX8Ci">
+  <div class="container nav-inner" data-page-node-id="SsXgAy2p7B3CeYEfVXyKYt">
+    <a class="logo" href="#" data-page-node-id="pb8I8qoyNOGazfmEi1LvCE">
+      <span class="logo-mark" data-page-node-id="f69q8hylMuD4U3aADQscda">极</span>
+      <span data-page-node-id="GYOjDajpF2uIRF5vaazYA5">极客栈<small data-page-node-id="AYcE7W5lZpaTu8C8HNMhcm">GeekStack</small></span>
+    </a>
+    <div class="nav-links" data-page-node-id="phuRELxDZqYTvhxoMkd6Zx">
+      <a href="#" class="active" data-page-node-id="rR7FQqRTynSA6pDDsUWjdm">首页</a>
+      <a href="#" data-page-node-id="4UcuAs1bPkIQE070lswLnD">文章</a>
+      <a href="#" data-page-node-id="iNZEOy5RJwwbeKMqgA4UpZ">问答</a>
+      <a href="#" data-page-node-id="EADH3ZvDolyrs51r1XaRdN">专栏</a>
+      <a href="#" data-page-node-id="CvHWHeWIAniL110AI09Emb">AI 实验室</a>
+    </div>
+    <label class="search" data-page-node-id="YjCp9Jo82VlUFYvIroLjA0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="EnrzL38dtM9Hw9Ijj9dYVO"><circle cx="11" cy="11" r="7" data-page-node-id="UyJpLx2mrF7geccSIeguvl"/><path d="m20 20-3.5-3.5" data-page-node-id="eNrkXLgURHTjeP0556MMdY"/></svg>
+      <input type="search" placeholder="搜索文章、话题、开发者" aria-label="搜索" data-page-node-id="huDf4bE9DlLsdVyXFz4fgg">
+      <kbd data-page-node-id="abq3DdDGewKYUktxF8vJyH">Ctrl K</kbd>
+    </label>
+    <button class="theme-toggle" id="themeToggle" aria-label="切换日间/夜间主题" data-page-node-id="FxrMFJVyFBXBCf4WS2wTqP">
+      <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" data-page-node-id="shBifXzrOnPktqsE3ufDpD"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" data-page-node-id="xLbKeLzzqZcwHycSRTwKo2"/></svg>
+      <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none" data-page-node-id="rjUDGkpep6BMRyDNfbFlMw"><circle cx="12" cy="12" r="4" data-page-node-id="09foh1ZsQ9LJQvOpCERZ1Q"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" data-page-node-id="sWoPKkPxSNTGO6eAy0Rg7a"/></svg>
+    </button>
+    <button class="btn-publish" data-page-node-id="HKj4tE9bu4kQoXOcJUdCpE">写文章</button>
+    <span class="avatar" data-page-node-id="FrvCRu5U9EKKEPlT1UzYOC">栈</span>
+  </div>
+</nav>
+
+<!-- ============ Hero ============ -->
+<header class="hero" data-page-node-id="EwI52Oq18SaJrDAF7QtfVH">
+  <div class="container" data-page-node-id="Jf2lE9H1hZyTpsWPYJtN5F">
+    <p class="hero-kicker" data-page-node-id="VL1rnRPAI1kd2zKpzXFtqf">Java × AI 开发者社区</p>
+    <h1 data-page-node-id="r7ZXa6KWELybMVuxv5uH1K">代码为灯，<br data-page-node-id="CYbH7X3G1QNjBzpdGsEvTe">技术为栈——欢迎<em data-page-node-id="b3gubGNfH1vcspsDo4lCS1">夜宿极客栈</em>。</h1>
+    <p class="lead" data-page-node-id="NFPtzMZioxXBlRUBWkgC52">这里是 Java 与 AI 开发者的落脚点：沉淀实战文章、切磋架构取舍、追踪大模型落地的一手经验。</p>
+    <p class="hero-facts" data-page-node-id="7LG4KkOjIBR0z2kAZrsL6d">12,847 位开发者 / 3,291 篇原创 / 问答采纳率 98.2% / 平均响应 24h</p>
+  </div>
+</header>
+
+<!-- ============ 主体 ============ -->
+<main class="container main-grid" data-page-node-id="H4CwvCnIlS8IA257DxITT2">
+  <!-- 信息流 -->
+  <section aria-label="文章信息流" data-page-node-id="A6DRkMxAsDIqHNti3QoDOj">
+    <div class="feed-head" data-page-node-id="lBPnL6rSLBJ7byFrEjDrM7">
+      <h2 data-page-node-id="4CyDEoyQVEQLxRin9ioBXJ">客栈动态</h2>
+      <div class="tabs" role="tablist" id="feedTabs" data-page-node-id="oPh6hfXZXl9VhyzPmDUpdx">
+        <button role="tab" aria-selected="true" data-filter="all" data-page-node-id="vK2sM1AFAQGuENAECuh0LH">最新</button>
+        <button role="tab" aria-selected="false" data-filter="hot" data-page-node-id="SDF3xzORiOk8wFEfTbkpG6">热门</button>
+        <button role="tab" aria-selected="false" data-filter="ai" data-page-node-id="wYkwjWru6GFsSqipnxUAhE">AI</button>
+        <button role="tab" aria-selected="false" data-filter="arch" data-page-node-id="XjtmxLUFOwc4PHs0xphnBk">架构</button>
+      </div>
+    </div>
+
+    <!-- 头条（纯排版） -->
+    <article class="featured reveal" data-cat="hot ai" data-page-node-id="15wDAJ6eRJtZTgincmrdux">
+      <div class="tag-row" data-page-node-id="O7KVBzdfx6j62UneiIxkGV">
+        <span class="tag" data-page-node-id="FEhzhQVCdqUk5syMDCnEiy">AI 落地</span><span class="tag" data-page-node-id="LdHfO7uHoM98KYKQlVEEzN">深度</span>
+      </div>
+      <h3 data-page-node-id="DHAAfR1yiZl125KFuUfXTr">把 LangGraph 塞进 Spring Boot：一次内容审核 Agent 的编排实战</h3>
+      <p class="excerpt" data-page-node-id="Cx9kTkdtJQa8CPExffbnnH">当 checkpointer 遇上 PG、当 Celery Beat 遇上 RAG 召回——本文复盘一条内容审核流水线从原型到生产的完整链路，包含协议冻结与约束 parity 校验的踩坑记录。</p>
+      <div class="article-byline" data-page-node-id="5FgwoavK69sllXpCHVEbVH">
+        <span class="byline-avatar" data-page-node-id="3jQq9xAFwtydMEhmXJxVYw">栈</span><b data-page-node-id="zBwTOgEdLILYoyc1vBxGIY">阿栈</b><span class="dot" data-page-node-id="L2yS8EQUMnxuWNVmXGuvPY"></span><span data-page-node-id="SCWxszmkV8VvZPjsnl1Q7X">2 小时前</span><span class="dot" data-page-node-id="HjdLXwjo0uck1Kgd0JKyRa"></span><span data-page-node-id="AEiGRZnSssu8u4TqpNe8Dd">1.2k 阅读 · 86 赞</span>
+      </div>
+    </article>
+
+    <!-- 列表行 -->
+    <div id="articleList" data-page-node-id="fFAfVxDzG477bbF8rIKAs3">
+      <article class="article-row reveal" data-cat="hot arch" data-page-node-id="MBYjt0yVoWvJf1KbfvLyu2">
+        <span class="row-rank" data-page-node-id="doHEsBNXNLbrgqmo9iXS3G">02</span>
+        <div data-page-node-id="hoUDrXdfcvGAicfP9ZWH8u">
+          <h3 data-page-node-id="Z2MK6haBJAFwZyZ6CMKrYr">MyBatis-Plus 慢在哪儿：一次分页查询从 4s 到 120ms 的排查手记</h3>
+          <p class="excerpt-sm" data-page-node-id="OIJE0ZpCIYS2XeRx43uGu8">从执行计划到索引覆盖，顺手聊一下批量写入的 JDBC rewriteBatchedStatements 陷阱。</p>
+          <div class="article-byline" data-page-node-id="X1GzJpeGmECieTDMtqcGeP"><b data-page-node-id="TeW5i2j8J0MgvKPW6RmFCA">灯芯</b><span class="dot" data-page-node-id="9Em8oazGhcXzlOIi3NQvw2"></span><span data-page-node-id="jaiOpu6nitowmoUHdKlbYP">4 小时前</span><span class="dot" data-page-node-id="pxAimBjtvwB8cz8muMSz0B"></span><span data-page-node-id="qNmXRdTMqoliEE8yA51mUK">864 阅读</span></div>
+        </div>
+      </article>
+      <article class="article-row reveal" data-cat="ai" data-page-node-id="l708Nk3h1ieZfsJXtd8sQz">
+        <span class="row-rank" data-page-node-id="yydmUZdEFEiHNzTDkNkttI">03</span>
+        <div data-page-node-id="0nKyh0YPvXC73Wkj6lgsDa">
+          <h3 data-page-node-id="1HzBaA1zZRVYiZfXQvugyo">RAG 召回率上不去？先检查你的 Milvus 分区策略</h3>
+          <p class="excerpt-sm" data-page-node-id="WaTx3DFMa6ZkSrfhqjCgdu">Partition Key、标量过滤与 hybrid search 的取舍，附一组可复现的评测脚本。</p>
+          <div class="article-byline" data-page-node-id="cLX8OjHl70QOwfns0MAB2J"><b data-page-node-id="bN5qDRfeM7DVKqnjkH2ilh">掌柜</b><span class="dot" data-page-node-id="cdHm7eMsJNE0Far6KEbEIr"></span><span data-page-node-id="GE8jlZKqium5AhSfKR8EHH">7 小时前</span><span class="dot" data-page-node-id="ksE47WtuVUICEaGrU7Obm2"></span><span data-page-node-id="VmZFL6Gx93W3E6KWBlwjGC">573 阅读</span></div>
+        </div>
+      </article>
+      <article class="article-row reveal" data-cat="arch" data-page-node-id="wd8BusPF60dd3QyyyPVJND">
+        <span class="row-rank" data-page-node-id="wvaBLYDF3vDebwEFalxme0">04</span>
+        <div data-page-node-id="VByXGCsr0pqcR2BHkT3vm3">
+          <h3 data-page-node-id="RupUtC6ne86Eg0ALz0dY3i">Flyway 纪律：已执行文件为什么永远不能回改</h3>
+          <p class="excerpt-sm" data-page-node-id="qxO2NSv92rkV2BOw6uRG2D">一次生产事故复盘：checksum 不匹配导致部署中断 40 分钟，以及我们最终固化的迁移规约。</p>
+          <div class="article-byline" data-page-node-id="WEhh6vPkqT0e8EofpMOKJG"><b data-page-node-id="O8hd6yLL9rkBGUwn3SYCv9">夜行侠</b><span class="dot" data-page-node-id="7VEEHkskBCzRnMzSqtlMP7"></span><span data-page-node-id="s12TerKiYDYFpNuFDoACwV">昨天</span><span class="dot" data-page-node-id="GIsOXdQAxXI5I6A0sf6SAY"></span><span data-page-node-id="HvhRLeUWjs3wdeNLsNdIwx">1.9k 阅读 · 142 赞</span></div>
+        </div>
+      </article>
+      <article class="article-row reveal" data-cat="hot ai" data-page-node-id="VSdBdCvrq1xDrvoCCYM3Gh">
+        <span class="row-rank" data-page-node-id="QQpdeeQ9Adr7UgBIfhmeO8">05</span>
+        <div data-page-node-id="dDOKpvTKzW6w38dlVElUPD">
+          <h3 data-page-node-id="1GOgQRFXZ1pv5sfpKy23tK">给 Agent 立规矩：ModerationResult 协议的五表八枚举设计</h3>
+          <p class="excerpt-sm" data-page-node-id="wlPfw4QqyiFlcqJmXTDpCc">协议先行还是实现先行？我们选择先冻结 v1.0，再用 PG CHECK 约束做 parity 校验。</p>
+          <div class="article-byline" data-page-node-id="T7uA3JJO0ogjaO3XuBUV78"><b data-page-node-id="odzU6zif9YOTd4PHCn8JaM">灯芯</b><span class="dot" data-page-node-id="GkFtxC2lHNkzA4MZpVx3J0"></span><span data-page-node-id="9Crt21EPBkGVmjnXSpFoQa">昨天</span><span class="dot" data-page-node-id="dMCVaBGnzBjRY0iETpXxm5"></span><span data-page-node-id="sxqoDvHZ6H7Hfj7BdLUAG9">698 阅读</span></div>
+        </div>
+      </article>
+      <article class="article-row reveal" data-cat="arch" data-page-node-id="cHRZgbD0AHQkxUCpzi4jCl">
+        <span class="row-rank" data-page-node-id="0MKsItI61Jv9kuELyH0v7V">06</span>
+        <div data-page-node-id="hc7SEOlIOQMGZ8YB53CyDu">
+          <h3 data-page-node-id="rzgTxDtFCFKIG0yf7gzWYV">Vue3 + Naive UI 的暗色主题，别只改一个 CSS 变量</h3>
+          <p class="excerpt-sm" data-page-node-id="t3XP17jMgGT9po7lz4f8Sf">语义 Token 两层架构实践：primitive 不动，dark mode 只重定义 semantic 层。</p>
+          <div class="article-byline" data-page-node-id="kvAAAC2WYCxWBn0fO7svC7"><b data-page-node-id="GczOdWukJFCHOGsN32oYyo">小二</b><span class="dot" data-page-node-id="tE8J0HGC2z8BfP1WzzoE21"></span><span data-page-node-id="giJgnrY6XXEhMjy159sqIT">前天</span><span class="dot" data-page-node-id="8LTOPigrDvVtGWHWJ8WG0i"></span><span data-page-node-id="ib6c8yfxnUGFs368BvWCjN">421 阅读</span></div>
+        </div>
+      </article>
+      <p class="feed-empty" id="feedEmpty" data-page-node-id="y9OfeYLBc6iocZrvCAenUQ">这个分类暂时还没有新内容，去写第一篇吧。</p>
+    </div>
+  </section>
+
+  <!-- 右栏 -->
+  <aside class="rail" aria-label="侧栏" data-page-node-id="7j6SnZDQHvFe46qfeEM6r2">
+    <section class="rail-section reveal" data-page-node-id="iyNHHGUOfCHFFfAct0IOBs">
+      <h3 data-page-node-id="vaB5uHoFs9QZRkEeGKzOk2">客栈热榜</h3>
+      <div class="hot-item" data-page-node-id="YwU3zxM6Kp7eu2O2qrd0tf"><span class="rank" data-page-node-id="mX3pZDDeCyrE0D6rEhvqWE">1</span><div data-page-node-id="dN1CY5GbVqt1wTs2E5vwRG"><p data-page-node-id="JTh0MYvOSE7hVRvXmAcXRq">JDK 21 虚拟线程在网关层的压测报告：吞吐翻倍，但有个隐藏代价</p><span data-page-node-id="kYDFSa0pGyOPTUfHrVjAl6">3.4k 热度</span></div></div>
+      <div class="hot-item" data-page-node-id="lmJaC7N529EHBzcTNyfT8B"><span class="rank" data-page-node-id="nB4blZqfvXGS2Rdxgyk6eg">2</span><div data-page-node-id="hiKM3FBWglyjjQDYScrJpq"><p data-page-node-id="GBac8M2wiHlmY6OVFCzTyX">从单体到模块化：Spring Boot 3 分包策略的五种流派对比</p><span data-page-node-id="iiUgTR6ZE7uXL1vttvLLQv">2.8k 热度</span></div></div>
+      <div class="hot-item" data-page-node-id="XlL5IJd367zsaV21IBWVTQ"><span class="rank" data-page-node-id="WPdSUDWoQTdQcRuU0IsyDm">3</span><div data-page-node-id="uh4xSwr2OPBAdsE61C6BCL"><p data-page-node-id="LjqXtR1QLSu3ZL7QkE7Gzj">大模型推理成本砍半：量化 + KV Cache 复用的组合拳</p><span data-page-node-id="o5d1jG1q5Ksorp0Q6Jtjo5">2.1k 热度</span></div></div>
+      <div class="hot-item" data-page-node-id="6LjdXn5ml4QuKW8ddT31P3"><span class="rank" data-page-node-id="LQAHlKS9xtcZOztmti4iuR">4</span><div data-page-node-id="jbSIV2JcANIICtFQmbDpXI"><p data-page-node-id="0vwZxX9cifcytL6OE1GuM9">Redis 7 Function 能否取代 Lua 脚本？一次迁移实录</p><span data-page-node-id="87CBbDHZG3s3bli5KQ7wnC">1.7k 热度</span></div></div>
+    </section>
+
+    <section class="rail-section reveal" data-page-node-id="IBBgeQzM9EaDOLG26E8rKY">
+      <h3 data-page-node-id="GuurT22DB2s3BFidvL7ohA">热门话题</h3>
+      <div class="tag-cloud" data-page-node-id="64DSAsyMahpWAkhsAlQaMr">
+        <button class="tag" data-page-node-id="PDjYnttDmBcU95sDW2fnyu">Spring Boot</button><button class="tag" data-page-node-id="rS81N3HVAiCxCJ9C4WT1um">LangGraph</button>
+        <button class="tag" data-page-node-id="ZIDtrG3ctLJX2UmdzMUt2l">Milvus</button><button class="tag" data-page-node-id="gsFg2QFCpHAtC9BNYpdjyO">Vue3</button>
+        <button class="tag" data-page-node-id="1BDR2VC0JZOW8I7hsE0Aul">MyBatis-Plus</button><button class="tag" data-page-node-id="UW0LVSDmOAGwrXPsVNV1kO">JDK17</button>
+        <button class="tag" data-page-node-id="wL9oH9lX6ATC7gGGwGxmZl">Celery</button><button class="tag" data-page-node-id="E8bSF7KA9V8IhbZDAa66i2">Prompt</button>
+      </div>
+    </section>
+
+    <section class="rail-section reveal" data-page-node-id="vgE7LGVIAJU0EJ9TfGAsvc">
+      <h3 data-page-node-id="xbwWK8r3DGfBVMovn8mN2t">活跃掌柜</h3>
+      <div class="member-list" data-page-node-id="dmXlZOh3ieSP3b3a770yoU">
+        <div class="member" data-page-node-id="D7StuFZGo9HQ8FpGETv2GS"><span class="byline-avatar" data-page-node-id="whN9EeGsjSPfXUed8tLyw0">灯</span><div data-page-node-id="0mbtCGCeA6GyIxspKMX55S"><b data-page-node-id="x2MzTesIXZOkZQfF4fDpHD">灯芯</b><span data-page-node-id="lbIjPZumoOSFHhGS0qMSqp">AI 落地 · 32 篇</span></div><button class="btn btn-text" style="padding:4px 6px" data-page-node-id="ko8LGqd89YEQxzstcHTII3">已关注</button></div>
+        <div class="member" data-page-node-id="tUDqMaeY8PwmneprOvaCaI"><span class="byline-avatar" data-page-node-id="sD2fgZIiaTH4kpc0YUoMZS">柜</span><div data-page-node-id="Ec389Hjc8nL0yjAavsZvim"><b data-page-node-id="DtKCH7Q1X8yqqnufStiwq5">掌柜</b><span data-page-node-id="YKYLozyGYAyuw5kYquloaZ">检索增强 · 21 篇</span></div><button class="btn btn-text" style="padding:4px 6px" data-page-node-id="Gzey8dm4KaiTeWwauFBeTG">关注</button></div>
+        <div class="member" data-page-node-id="J1OVGOSQg2jchgoE9Dok3L"><span class="byline-avatar" data-page-node-id="hsTtN3ukP7jZaAEu03DstD">夜</span><div data-page-node-id="RuP8eVgwrKJIwOU81XtARf"><b data-page-node-id="pAoXqykzmnErCO2OTUF2lL">夜行侠</b><span data-page-node-id="EBwfdmDUlcaPVJiEtGpGT4">架构治理 · 18 篇</span></div><button class="btn btn-text" style="padding:4px 6px" data-page-node-id="a7hcq57kjjQLIXTLCvxAou">关注</button></div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<!-- ============ 设计系统规范 ============ -->
+<section class="ds" aria-label="设计系统规范" data-page-node-id="aQoGWa1PEnJjCAEBC7HAGF">
+  <div class="container" data-page-node-id="O6DXEyCga8daOqv5yfxFiE">
+    <div class="ds-head" data-page-node-id="tFbRlwrmbH6sVORJHHOwlj">
+      <h2 data-page-node-id="UbU0UrAMZ0BRP1VojCJwDF">设计系统 · 夜栈灯码 v1.1</h2>
+      <p data-page-node-id="hFo68O3sljvdUjeVtuFnNS">OKLCH 色彩空间 · 两层 Token 架构 · 单一琥珀强调色（仅 Logo / 标题点睛 / 主按钮 / 交互反馈四处） · 右上角切换主题查看双模式</p>
+    </div>
+    <div class="ds-grid" data-page-node-id="FeYWM2t76Yj3aAcFZuCGmz">
+      <div class="ds-block" data-page-node-id="iP5lwiHguMQvDVPBRgTF8w">
+        <h4 data-page-node-id="iVzUIrPWP7eHaVtnrDvvZF">色彩 / Color</h4>
+        <div class="swatches" data-page-node-id="OxXLG3hPqv5bRBoeKoOaGs">
+          <div class="swatch" data-page-node-id="7UYmKpcAdPCGtPZKg5BF1F"><span class="chip" style="background:oklch(16% 0.018 262)" data-page-node-id="OIX0GPKLFkwS16JvlI3tGR"></span>墨蓝底 · Surface<code data-page-node-id="HJ8Y9PwRpjFoFGzYmWSZf9">16% 0.018 262</code></div>
+          <div class="swatch" data-page-node-id="cojBebp7Ohx4UpFND2Qjp6"><span class="chip" style="background:oklch(21% 0.02 262)" data-page-node-id="dNTjBZWSxdZQ5TRUpiGmlB"></span>浮层 · Surface-2<code data-page-node-id="PPctDzoUHm0HzfC5Hik0oL">21% 0.02 262</code></div>
+          <div class="swatch" data-page-node-id="ZGVI0GoblJid2FcZ46VvZ4"><span class="chip" style="background:oklch(76% 0.15 75)" data-page-node-id="zzwJPnsyY3oSdKQKjHlcgz"></span>灯笼琥珀 · Accent<code data-page-node-id="GPi3TMRB1ko8NoCiADQ2BT">76% 0.15 75</code></div>
+          <div class="swatch" data-page-node-id="RQWcxEsXT57KzMSmI4sPZd"><span class="chip" style="background:oklch(93% 0.008 262)" data-page-node-id="rZBIpgX2gMWuTSCYxNKrbW"></span>正文 · Text-1<code data-page-node-id="TzVB3kXiuuQ4DOAOnkjGXf">93% 0.008 262</code></div>
+          <div class="swatch" data-page-node-id="sVkIbgrCtfmds3EG29yKY7"><span class="chip" style="background:oklch(97.5% 0.008 80)" data-page-node-id="lDyXYrPQ2ULyxTtskh5QcY"></span>晨纸 · Light BG<code data-page-node-id="V1hxgHubyuFaAtMxAjRiAF">97.5% 0.008 80</code></div>
+        </div>
+      </div>
+      <div class="ds-block" data-page-node-id="rBqXp7yUW7ozYFRlhXiC3i">
+        <h4 data-page-node-id="S2noZ3oq0evXZOnBcNUpnP">字阶 / Type（1.333 比例）</h4>
+        <div class="type-demo" data-page-node-id="MAe6wxxIfafmeY9P2ZEsnB">
+          <div class="t1" data-page-node-id="zHTZNwQ9o2GsAQMviouNKT"> xl · 34/52 · 展示标题</div>
+          <div class="t2" data-page-node-id="5xzAhI93F1N62tFrsfSrGU">lg · 24/36 · 区块标题</div>
+          <div class="t3" data-page-node-id="BpjKcwVPXa8UgHs3TqcL4K">base · 16/28 · 正文</div>
+          <div class="t4" data-page-node-id="HFzHlvsBwFHNglsWIbXtvH">sm · 14/22 · 辅助信息</div>
+          <div class="t5" data-page-node-id="2AqEwgq2ykgHgHmzyJp4wv">xs · 12/18 · 元数据 mono</div>
+        </div>
+      </div>
+      <div class="ds-block" data-page-node-id="d2CxDjwMmPW6GJ7BZFJb0y">
+        <h4 data-page-node-id="wpH2UFfc9jSJtt0xYsCSPy">组件 / Components</h4>
+        <div class="comp-row" style="margin-bottom:14px" data-page-node-id="SDxvA8mtHvjlxi1hDXPe4v">
+          <button class="btn btn-primary" data-page-node-id="M4UMWE2KLguL34fyH5qADB">主操作</button>
+          <button class="btn btn-ghost" data-page-node-id="3nORknzFoHaYlGamfPnSOg">次要</button>
+          <button class="btn btn-text" data-page-node-id="qventO2yEP71UMTRyGcfD1">文字按钮</button>
+        </div>
+        <div class="comp-row" style="margin-bottom:14px" data-page-node-id="sAvG2s0IEfhW0FdJCuUIX4">
+          <span class="badge badge-success" data-page-node-id="y60Azwhoxzy1zwxAC3HDsy">已采纳</span>
+          <span class="badge badge-warning" data-page-node-id="UV36GmIEwsj37yvnvW5pef">审核中</span>
+          <span class="badge badge-error" data-page-node-id="mEwpVoHfUPhD6sdRsy0juF">已驳回</span>
+          <span class="badge badge-info" data-page-node-id="84MwL8ibUGjuHJFiMajngh">置顶</span>
+        </div>
+        <div class="comp-row" data-page-node-id="dqW2yic7GK8vd6DNo35X7l">
+          <span class="code-chip" data-page-node-id="8whRS3GuGayk5UDqPR3ynD">spring-boot-starter</span>
+          <span class="code-chip" data-page-node-id="aFU58WSwDtXpfa9uPXMt70">langgraph4j</span>
+          <span class="tag" data-page-node-id="hKjZblCqJbvkAjhX8T9IWT">AI 落地</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer data-page-node-id="vZSwGtUwLNljAwRqJ16wHK">
+  <div class="container footer-inner" data-page-node-id="3eCXWYuZeEJTMngbn4CYto">
+    <p data-page-node-id="M13jmRBPzzN4HWStdmEsrZ">© 2026 极客栈 GeekStack · 代码为灯，技术为栈</p>
+    <div class="footer-links" data-page-node-id="KOWC5MDEyQG7P29EvjclGv">
+      <a href="#" data-page-node-id="W3kJFmVuTCLOyuwBrdNmWn">关于</a><a href="#" data-page-node-id="KmWNJZPR1SYbJBnuZ64mwM">社区公约</a><a href="#" data-page-node-id="c89b9e6dkSovotcTkUJZW6">API</a><a href="#" data-page-node-id="BXkL9LgjUNCrBpwOympdMp">RSS</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ---- 主题切换 ----
+const root = document.documentElement;
+const toggle = document.getElementById('themeToggle');
+const iconMoon = document.getElementById('iconMoon');
+const iconSun = document.getElementById('iconSun');
+toggle.addEventListener('click', () => {
+  const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  root.dataset.theme = next;
+  iconMoon.style.display = next === 'dark' ? '' : 'none';
+  iconSun.style.display = next === 'light' ? '' : 'none';
+});
+
+// ---- 信息流 Tab 过滤 ----
+const tabs = document.querySelectorAll('#feedTabs [role="tab"]');
+const rows = document.querySelectorAll('#articleList [data-cat]');
+const empty = document.getElementById('feedEmpty');
+const featured = document.querySelector('.featured');
+tabs.forEach(tab => tab.addEventListener('click', () => {
+  tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+  tab.setAttribute('aria-selected', 'true');
+  const f = tab.dataset.filter;
+  let visible = 0;
+  rows.forEach(r => {
+    const show = f === 'all' || r.dataset.cat.split(' ').includes(f);
+    r.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  featured.style.display = (f === 'all' || f === 'hot') ? '' : 'none';
+  empty.style.display = visible === 0 ? 'block' : 'none';
+}));
+
+// ---- 滚动入场 ----
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

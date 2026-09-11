@@ -1,47 +1,146 @@
-/* 鸿蒙设计风 CSS 变量（与 tokens.ts 同源，供组件样式消费；换肤同源调整） */
-/*
- * 响应式断点口径（T-DESIGN-3，PM 定稿）：手机竖屏 375 / 平板 768 / 桌面 1200+
- * CSS 媒体查询不支持变量插值，各页面统一按字面值使用：
- *   @media (max-width: 1200px)  -> 3 列网格降 2 列（1200↔768 过渡带）
- *   @media (max-width: 768px)   -> 单列 / 纵向排布
- *   @media (max-width: 480px)   -> 小屏收纳（导航换行等）
+/**
+ * 极客栈 GeekStack · 夜栈灯码 v1.1
+ * 架构：primitive 固定；dark/light 只重定义 semantic。
+ * 旧 --color-* 为 M6 迁移兼容别名，M6-4 起逐步删除业务引用。
  */
+
+/* ---------- Primitive ---------- */
 :root {
-  --color-primary: #0a59f7;
-  --color-primary-hover: #1467e8;
-  --color-primary-pressed: #0540b4;
-  /* Hero 渐变浅端：规范 #3178ff 白字仅 3.99:1，校正为 #2666f0（4.95:1） */
-  --color-primary-soft: #2666f0;
-  /* 品牌色上的前景白（P2-17），与容器白语义分离 */
-  --color-on-primary: #ffffff;
-  --color-bg-layout: #f1f3f5;
-  --color-bg-container: #ffffff;
-  --color-border: #dfe3e8;
-  /* 语义色：基色作底/图标，文字一律用 -text 变体（标签着色底上 ≥4.5:1） */
-  --color-success: #34c724;
-  --color-warning: #ff9500;
-  --color-error: #d73035;
-  --color-success-text: #217f17;
-  --color-warning-text: #a15e00;
-  --color-error-text: #c72d31;
-  /* 内容分区色（T-DESIGN-5）：基色 + 文字变体；着色底实测 forum 5.85 / share 5.31 / notice 5.11 */
-  --color-forum: #7a5af8;
-  --color-share: #0e9384;
-  --color-notice: #e06616;
-  --color-forum-text: #5b3fd1;
-  --color-share-text: #0a6e63;
-  --color-notice-text: #a54a0f;
-  --color-text: #182431;
-  --color-text-secondary: #5e6772;
-  /* 卡片层次（T-DESIGN-5）：列表默认 sm，hover 升 md；详情主卡 md 见 5.4 */
-  --shadow-sm: 0 1px 2px rgba(24, 36, 49, 0.06);
-  --shadow-md: 0 4px 12px rgba(24, 36, 49, 0.08);
-  --shadow-lg: 0 8px 24px rgba(24, 36, 49, 0.12);
-  --radius: 12px;
-  --radius-small: 8px;
-  --font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* 墨蓝中性阶（暖偏染，非纯灰） */
+  --ink-950: oklch(13% 0.015 262);
+  --ink-900: oklch(16% 0.018 262);
+  --ink-800: oklch(21% 0.02 262);
+  --ink-700: oklch(28% 0.02 262);
+  --ink-500: oklch(52% 0.015 262);
+  --ink-300: oklch(72% 0.01 262);
+  --ink-100: oklch(93% 0.008 262);
+
+  /* 琥珀灯笼（唯一强调色） */
+  --amber-300: oklch(86% 0.1 82);
+  --amber-500: oklch(76% 0.15 75);
+  --amber-600: oklch(68% 0.15 70);
+
+  /* 暖纸中性阶（浅色主题） */
+  --paper-50: oklch(97.5% 0.008 80);
+  --paper-100: oklch(95% 0.01 80);
+  --paper-200: oklch(90% 0.012 80);
+  --paper-300: oklch(82% 0.012 80);
+  --paper-700: oklch(38% 0.015 75);
+  --paper-900: oklch(22% 0.018 75);
+
+  /* 语义色（primitive） */
+  --success: oklch(70% 0.14 150);
+  --warning: oklch(78% 0.14 85);
+  --error: oklch(62% 0.19 25);
+  --info: oklch(70% 0.11 230);
+
+  /* 几何 / 节奏 */
+  --radius: 10px;
+  --radius-small: 6px;
+  --radius-logo: 8px;
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --container-max: 1180px;
 }
 
+/* ---------- Semantic · Dark（默认） ---------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: var(--ink-950);
+  --surface-1: var(--ink-900);
+  --surface-2: var(--ink-800);
+  --surface-3: var(--ink-700);
+  --border: oklch(28% 0.02 262 / 0.9);
+  --border-strong: oklch(38% 0.02 262);
+  --text-1: var(--ink-100);
+  --text-2: var(--ink-300);
+  --text-3: var(--ink-500);
+  --accent: var(--amber-500);
+  --accent-hover: var(--amber-300);
+  --accent-text: var(--ink-950);
+  --nav-bg: oklch(16% 0.018 262 / 0.82);
+  --overlay: oklch(13% 0.015 262 / 0.75);
+  --body-weight: 380;
+  --card-shadow: none;
+  --shadow-sm: none;
+  --shadow-md: 0 4px 12px oklch(13% 0.015 262 / 0.35);
+  --shadow-lg: 0 8px 24px oklch(13% 0.015 262 / 0.45);
+  /* 语义色「字」：暗色可用基色本身 */
+  --success-on: var(--success);
+  --warning-on: var(--warning);
+  --error-on: var(--error);
+  --info-on: var(--info);
+}
+
+/* ---------- Semantic · Light（晨纸） ---------- */
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: var(--paper-50);
+  --surface-1: #ffffff;
+  --surface-2: var(--paper-100);
+  --surface-3: var(--paper-200);
+  --border: var(--paper-200);
+  --border-strong: var(--paper-300);
+  --text-1: var(--paper-900);
+  --text-2: var(--paper-700);
+  --text-3: oklch(55% 0.015 75);
+  --accent: var(--amber-600);
+  --accent-hover: oklch(60% 0.16 68);
+  /* 原型稿为 #fff，实测压 amber-600 仅 ~3:1；改深色字以满足 §8 ≥4.5:1（与 Dark 主按钮同策略） */
+  --accent-text: var(--paper-900);
+  --nav-bg: oklch(97.5% 0.008 80 / 0.85);
+  --overlay: oklch(22% 0.018 75 / 0.5);
+  --body-weight: 400;
+  --card-shadow: 0 1px 3px oklch(22% 0.02 75 / 0.07);
+  --shadow-sm: 0 1px 2px oklch(22% 0.02 75 / 0.06);
+  --shadow-md: 0 4px 12px oklch(22% 0.02 75 / 0.08);
+  --shadow-lg: 0 8px 24px oklch(22% 0.02 75 / 0.12);
+  /* 语义色「字」：浅色加深，保证着色底/白底 ≥4.5:1 */
+  --success-on: oklch(42% 0.12 150);
+  --warning-on: oklch(48% 0.12 75);
+  --error-on: oklch(48% 0.16 25);
+  --info-on: oklch(45% 0.1 230);
+}
+
+/* ---------- M5 兼容别名（业务页未迁完前） ---------- */
+:root,
+[data-theme='dark'],
+[data-theme='light'] {
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-pressed: var(--amber-600);
+  --color-primary-soft: var(--amber-300);
+  --color-on-primary: var(--accent-text);
+  --color-bg-layout: var(--bg);
+  --color-bg-container: var(--surface-1);
+  --color-border: var(--border);
+  --color-text: var(--text-1);
+  --color-text-secondary: var(--text-2);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-success-text: var(--success-on);
+  --color-warning-text: var(--warning-on);
+  --color-error-text: var(--error-on);
+  /*
+   * DEPRECATED M6：T-DESIGN-5.3 三分区色体系已废弃。
+   * 别名暂映射中性/语义色，避免未迁页面崩色；M6-4 删除业务引用后移除。
+   */
+  --color-forum: var(--info);
+  --color-share: var(--success);
+  --color-notice: var(--warning);
+  --color-forum-text: var(--info);
+  --color-share-text: var(--success);
+  --color-notice-text: var(--warning);
+  --font-family: var(--font-body);
+}
+
+/* ---------- Base ---------- */
 * {
   box-sizing: border-box;
 }
@@ -54,25 +153,81 @@ body,
   min-height: 100vh;
 }
 
-/* 抽屉宽度不得超出视口（纯 CSS 护栏，max-width 优先于组件内联 width，无需动组件 prop） */
+body {
+  font-family: var(--font-body);
+  font-weight: var(--body-weight);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-1);
+  background-color: var(--bg);
+  transition:
+    background-color 0.3s var(--ease-out),
+    color 0.3s var(--ease-out);
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .n-drawer {
   max-width: 92vw;
 }
 
-body {
-  font-family: var(--font-family);
-  color: var(--color-text);
-  background-color: var(--color-bg-layout);
+/* ---------- 字阶（1.333，全站不得私自新增） ---------- */
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.text-lg {
+  font-size: 1.333rem;
+  line-height: 1.4;
+}
+
+.text-xl {
+  font-size: clamp(2.2rem, 4.5vw + 0.6rem, 3.6rem);
+  line-height: 1.18;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
 }
 
 /*
- * T-DESIGN-5.3 列表卡片层次 + 语义标签工具类
- * 着色底口径与 naive-ui Tag 一致：基色 12% 叠容器白
+ * T-DESIGN-5.3 列表卡片层次 + 语义标签工具类（兼容期）
+ * 着色底口径：基色 12% 叠 surface-1
  */
 .gs-card-elevated {
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--surface-1);
+  transition:
+    transform 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
 }
 
 .gs-card-elevated:hover,
@@ -96,7 +251,6 @@ a:hover .gs-card-elevated {
   --n-text-color: var(--color-share-text) !important;
 }
 
-/* 热榜前三：error 底 + 容器白字（对比度随 F3c 白字/error 4.81:1） */
 .gs-hot-rank {
   display: inline-flex;
   align-items: center;
@@ -113,10 +267,10 @@ a:hover .gs-card-elevated {
   flex-shrink: 0;
 }
 
-/* T-DESIGN-5.4：详情主卡固定 md 阴影（无 hover 上浮） */
 .gs-card-detail {
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow-md);
+  background: var(--surface-1);
 }
 
 .gs-section-title {
@@ -124,10 +278,11 @@ a:hover .gs-card-elevated {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 20px;
-  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.333rem;
+  color: var(--text-1);
 }
 
 .gs-section-title .n-icon {
-  color: var(--color-primary);
+  color: var(--accent);
 }
