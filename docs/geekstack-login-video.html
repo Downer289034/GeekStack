@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-page-node-id="5JwJreCRxcOOw30QVEqYCh">
+<head data-page-node-id="HovcoPX8S5hRnVkgIEH41Y">
+<meta charset="UTF-8" data-page-node-id="8UdjH4ekTgXt3xZnpt28B8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="i2RWDeju2HUHmtAIA9rpZb">
+<title>极客栈 · 登录页（视频背景版）设计稿</title>
+<style>
+/* ============ 夜栈灯码 v1.1 tokens（沿用主规范 2.1/2.2） ============ */
+:root {
+  --ink-950: oklch(16% 0.018 262);
+  --ink-900: oklch(20% 0.02 262);
+  --ink-800: oklch(25% 0.022 262);
+  --paper-50: oklch(97% 0.008 85);
+  --amber-450: oklch(78% 0.14 75);
+  --amber-500: oklch(72% 0.15 72);
+  --amber-600: oklch(64% 0.14 68);
+  --text-1: oklch(93% 0.012 85);
+  --text-2: oklch(76% 0.014 85);
+  --text-3: oklch(58% 0.014 262);
+  --border: oklch(30% 0.02 262);
+  --surface-1: oklch(20% 0.02 262);
+  --surface-2: oklch(24% 0.022 262);
+  --font-display: "Space Grotesk", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--ink-950); color: var(--text-1); font-family: var(--font-display); }
+
+/* ============ 视频背景层 ============ */
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--ink-950); }
+.bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 不加压暗层：视频本身是暗调雨夜场景，可读性由卡片实色自担 */
+/* 降级态（视频关闭/加载失败/reduced-motion）：纯墨蓝 + 微弱网格 */
+.bg.no-video video { display: none; }
+.bg.no-video::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 47px, oklch(25% 0.022 262 / 0.25) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, oklch(25% 0.022 262 / 0.25) 47px 48px),
+    var(--ink-950);
+}
+
+/* ============ 登录视口：卡片靠右，左侧留给视频 ============ */
+.stage { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: flex-end; padding: 48px 8vw 48px 20px; }
+
+.card {
+  width: 100%; max-width: 400px;
+  background: oklch(20% 0.02 262 / 0.94); /* 实色近不透明，禁 backdrop-blur（v1.1 红线） */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 36px 32px 28px;
+}
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.brand-logo {
+  width: 40px; height: 40px; border-radius: 9px; flex: none;
+  background: var(--amber-500); color: var(--ink-950);
+  display: grid; place-items: center; font-weight: 700; font-size: 20px;
+}
+.brand h1 { font-size: 18px; letter-spacing: 0.01em; }
+.brand p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* Tab：等宽 50% 双分（布局蓝图修订项），下划线选中 */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.tabs button {
+  flex: 1; padding: 10px 0; font-size: 14px; font-family: inherit;
+  background: none; border: none; color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s ease-out, border-color .15s ease-out;
+}
+.tabs button[aria-selected="true"] { color: var(--text-1); font-weight: 600; border-bottom-color: var(--amber-500); }
+.tabs button:hover { color: var(--text-2); }
+
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 7px; }
+.field label em { font-style: normal; color: var(--amber-450); margin-left: 2px; }
+.field input {
+  width: 100%; height: 42px; padding: 0 13px;
+  background: var(--ink-900); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-1); font-size: 14px; font-family: inherit;
+  transition: border-color .15s ease-out, box-shadow .15s ease-out;
+}
+.field input::placeholder { color: var(--text-3); }
+.field input:hover { border-color: oklch(38% 0.02 262); }
+.field input:focus { outline: none; border-color: var(--amber-500); box-shadow: 0 0 0 3px oklch(72% 0.15 72 / 0.14); }
+
+.row-meta { display: flex; justify-content: space-between; align-items: center; margin: 2px 0 20px; font-size: 13px; }
+.remember { display: inline-flex; align-items: center; gap: 7px; color: var(--text-3); cursor: pointer; user-select: none; }
+.remember input { accent-color: var(--amber-500); width: 15px; height: 15px; cursor: pointer; }
+.forgot { color: var(--amber-450); text-decoration: none; }
+.forgot:hover { color: var(--amber-500); text-decoration: underline; }
+
+.btn-login {
+  width: 100%; height: 44px; border: none; border-radius: 6px; cursor: pointer;
+  background: var(--amber-500); color: var(--ink-950);
+  font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.06em;
+  transition: background .15s ease-out;
+}
+.btn-login:hover { background: var(--amber-600); }
+.btn-login:focus-visible { outline: 2px solid var(--amber-450); outline-offset: 2px; }
+
+.divider { display: flex; align-items: center; gap: 14px; margin: 22px 0 16px; color: var(--text-3); font-size: 12px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+.btn-oauth {
+  width: 100%; height: 40px; margin-bottom: 10px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-2); font-family: inherit; font-size: 13px;
+  transition: border-color .15s ease-out, color .15s ease-out;
+}
+.btn-oauth:hover { border-color: oklch(40% 0.02 262); color: var(--text-1); }
+
+.back { display: block; text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-3); text-decoration: none; }
+.back:hover { color: var(--text-2); }
+
+.copyright { position: fixed; left: 0; right: 0; bottom: 14px; z-index: 1; text-align: center; font-size: 12px; color: oklch(58% 0.014 262 / 0.8); }
+
+/* ============ 演示控制（仅供设计评审，非页面内容） ============ */
+.demo-panel {
+  position: fixed; left: 16px; bottom: 16px; z-index: 10;
+  display: flex; gap: 8px; padding: 8px;
+  background: oklch(20% 0.02 262 / 0.95); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px;
+}
+.demo-panel button {
+  padding: 6px 12px; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 12px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+}
+.demo-panel button:hover { color: var(--text-1); border-color: oklch(40% 0.02 262); }
+.demo-panel span { align-self: center; color: var(--text-3); padding: 0 4px; font-family: var(--font-mono); }
+
+/* ============ 下方：实现规格说明 ============ */
+.spec { position: relative; z-index: 1; background: var(--ink-950); border-top: 1px solid var(--border); padding: 56px 24px 80px; }
+.spec-inner { max-width: 860px; margin: 0 auto; }
+.spec h2 { font-size: 20px; margin-bottom: 6px; }
+.spec .sub { font-size: 13px; color: var(--text-3); margin-bottom: 32px; font-family: var(--font-mono); }
+.spec h3 { font-size: 15px; margin: 28px 0 12px; color: var(--text-1); }
+.spec table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.spec th, .spec td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec th { color: var(--text-3); font-weight: 600; font-size: 12px; }
+.spec td { color: var(--text-2); line-height: 1.6; }
+.spec td:first-child { color: var(--text-1); white-space: nowrap; }
+.spec code { font-family: var(--font-mono); font-size: 12px; color: var(--amber-450); }
+.spec ul { margin: 8px 0 0 18px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
+
+@media (max-width: 900px) {
+  /* 窄屏：视频不再是主视觉，卡片回中 */
+  .stage { justify-content: center; padding: 48px 20px; }
+}
+@media (max-width: 560px) {
+  .card { padding: 28px 22px 22px; }
+  .copyright { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body data-page-node-id="Gka5puaAAGuSxAYnGrqU4m">
+
+<!-- 视频背景：video 原样全屏（无压暗层）→ 内容(z1) -->
+<div class="bg" id="bg" data-page-node-id="F6RMKMS0CqAkGc96ZDC2QO">
+  <video id="bgvideo" src="assets/login-bg.mp4" autoplay muted loop playsinline
+         preload="metadata" disablepictureinpicture aria-hidden="true" tabindex="-1" data-page-node-id="Kw8Qd2ht565Qpc8QQpBpIS"></video>
+</div>
+
+<main class="stage" data-page-node-id="NeVfjsaDYfQxF1SwYc6nh9">
+  <div class="card" data-page-node-id="ccYiwoeBHDwEIAuZRKILFg">
+    <div class="brand" data-page-node-id="8p8aky6XPeGXgBvZDAwuci">
+      <div class="brand-logo" data-page-node-id="Uu6QJapzcOGJYnFljZInI0">极</div>
+      <div data-page-node-id="lPbA7Xo7V4oo8dS2Sr8S6C">
+        <h1 data-page-node-id="BX6v4PbEaAGzCYCqmt7sEk">极客栈</h1>
+        <p data-page-node-id="DGpHrFubm5HduwvYjrql4T">代码为灯，技术为栈</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="登录或注册" data-page-node-id="FLgzzIEsgSX3h54d79cQuT">
+      <button role="tab" aria-selected="true" data-page-node-id="MDKxyfAOR5cY3yd3lqS92G">登录</button>
+      <button role="tab" aria-selected="false" data-page-node-id="0b0MFYNJeOc33K5XSwDzOZ">注册</button>
+    </div>
+
+    <form autocomplete="on" data-page-node-id="ABV8Wl3uCxavRgEatFruQ1">
+      <div class="field" data-page-node-id="VU746geDh9CqM4buGa87fy">
+        <label for="u" data-page-node-id="XbAfzjDQ8tYRR6U7retgV4">用户名<em data-page-node-id="cRWcdqGjGDeSy71dWmBACY">*</em></label>
+        <input id="u" type="text" placeholder="用户名" autocomplete="username" data-page-node-id="BBVuVu1zNVJmAin4XjxQvX">
+      </div>
+      <div class="field" data-page-node-id="43dopuZEXtjfxS65mhrpF1">
+        <label for="p" data-page-node-id="BgD1zS1I8pFXI6qbW91Msj">密码<em data-page-node-id="o5fjOxUEpH6qqNgU56KdJo">*</em></label>
+        <input id="p" type="password" placeholder="密码" autocomplete="current-password" data-page-node-id="Ergi28W7xSm6HljFIk3wst">
+      </div>
+      <div class="row-meta" data-page-node-id="0bppgtbROa5I8tjHLPlnGg">
+        <label class="remember" data-page-node-id="NvHr9XSHUK13090eam1Ju0"><input type="checkbox" data-page-node-id="Ls3jApMbINoCuH68UDcXNN">记住我</label>
+        <a class="forgot" href="#" data-page-node-id="7tNftkSO6VqlGFBpCijtFB">忘记密码?</a>
+      </div>
+      <button type="submit" class="btn-login" data-page-node-id="SiZ0cApAJUlZPNSsq7YmVw">登 录</button>
+    </form>
+
+    <div class="divider" data-page-node-id="LLxkoqprBvuaKBIkRuP8O7">第三方登录</div>
+    <button type="button" class="btn-oauth" data-page-node-id="q9EJZDNHyPpKOWOxdbWbWB">使用 GitHub 登录</button>
+    <button type="button" class="btn-oauth" data-page-node-id="qPGZrHk4ZnjzE5QQwrzHJy">使用 Gitee 登录</button>
+
+    <a class="back" href="#" data-page-node-id="LntDc2R39k62cAHJDhLCWA">← 返回首页</a>
+  </div>
+</main>
+
+<p class="copyright" data-page-node-id="iDk3vmttDPNtoCq8AdMnBC">© 2026 极客栈 GeekStack</p>
+
+<!-- 演示控制：评审用，验证两种状态 -->
+<div class="demo-panel" role="group" aria-label="设计评审控制" data-page-node-id="d2pQ6gqGphG0m7S9vVTlPf">
+  <button id="toggleVideo" data-page-node-id="LU3kv1qHcRSa4G9fhRB0Rb">视频 开/关</button>
+  <span id="stateLabel" data-page-node-id="ydIalhITWe0efg46y1HITa">video: on</span>
+</div>
+
+<!-- ============ 实现规格 ============ -->
+<section class="spec" data-page-node-id="nAxV9GV8MWzDSTGvfDSlvX">
+  <div class="spec-inner" data-page-node-id="vOHVXmHGytzrcyI8ofHxqg">
+    <h2 data-page-node-id="JtNyiL3TZpx59BaNteAMDX">登录页 · 视频背景实现规格</h2>
+    <p class="sub" data-page-node-id="h5gbgH3GvqtgjmNl8xnQp1">geekstack-login-video.html ｜ v1.0 ｜ 2026-09-11 ｜ 上游：geekstack-ui-design-spec.md v1.1</p>
+
+    <h3 data-page-node-id="McKiEcDdf0peOgSR5SaYMF">1. 视频层</h3>
+    <table data-page-node-id="sqPAhA4mwBeAjISohR741e">
+      <tr data-page-node-id="s7tqVJGmBOzCqbM12b98er"><th data-page-node-id="UqSmjSB3HSoRy3XOd9xohI">项</th><th data-page-node-id="sQzyVRJauhh4nqLPqi88tv">要求</th></tr>
+      <tr data-page-node-id="Q4pEQa8HjXFwVBlcyz3EKm"><td data-page-node-id="Q5OzdD9sw6G1aSoGhldxzn">素材</td><td data-page-node-id="4cv10VCUAnBtLAEQ9ZorZJ"><code data-page-node-id="E1retln16rmZKTr9eqEMMz">src/assets/login-bg.mp4</code>（1280×720 · 4.35s · 2.7MB · 含音轨）——入库时建议压制 <code data-page-node-id="fTY6WXQBQrOrXfGEwfvHcq">crf 28</code> 再缩体积，并去掉音轨（背景永远静音，音轨纯占体积）</td></tr>
+      <tr data-page-node-id="6DiTarqC4DyKMSxDBFWfSd"><td data-page-node-id="rM4p4w8BFAINc26FDEZnxr">属性（必写全）</td><td data-page-node-id="IzoWIMUrlaxr4pMRBVaADk"><code data-page-node-id="hlqXWUDvqDZSGdwIEiC7sC">autoplay muted loop playsinline disablepictureinpicture</code>——缺 <code data-page-node-id="34cN9cACkMFqXZoSBuuSUv">muted playsinline</code> 会被浏览器拒绝自动播放</td></tr>
+      <tr data-page-node-id="3DWpyE4CSsGOIFz06FcYbH"><td data-page-node-id="7K1ARgOAH6PLP2I7VudFpc">铺排</td><td data-page-node-id="C8otFpXURz8m1iVWo2bQcl"><code data-page-node-id="JDkXNXzQkC8oAhMZAWL28c">object-fit: cover</code> 全屏铺排；<code data-page-node-id="fajU2iZ9t3ADIfACF0VcSG">aria-hidden="true" tabindex="-1"</code>（纯装饰，对辅助技术隐身）</td></tr>
+      <tr data-page-node-id="JDBgJHOaYJsdtXzIUoIQjd"><td data-page-node-id="tnFEHm1vs0vvGoCMoM2RvO">加载策略</td><td data-page-node-id="DtkrGncQa4h8wlOy1cqF4t">视频仅在登录/注册路由加载（组件挂载时才插 &lt;video&gt;，路由离开即销毁）；<code data-page-node-id="QeoKB1ACh83lC18G3FMFDv">preload="metadata"</code>，不要 auto</td></tr>
+    </table>
+
+    <h3 data-page-node-id="JzJsY6bmV06NSj66ozDFem">2. 布局与可读性（不压暗视频）</h3>
+    <ul data-page-node-id="FgV689bd4uXM1dDPJpQvuv">
+      <li data-page-node-id="ysCq8GEhHXBzs8nBfeEl7r"><strong data-page-node-id="AgCODlKYIYCO4N4KDQh4AS">卡片靠右</strong>：<code data-page-node-id="LsqqyubORbUhsauyp5D7SM">.stage</code> 用 <code>justify-content: flex-end</code> + 右侧 <code>8vw</code> 内边距，左侧完整露出视频主视觉；窄屏 ≤900px 卡片回中</li>
+      <li data-page-node-id="Kk2FaNVKVXpxQSEBiswFsC"><strong data-page-node-id="ScrimFreeNote">不加压暗 scrim</strong>（产品决策）：视频为暗调雨夜场景，可读性完全由卡片 94% 实色承担；文字只出现在卡片内，视频区不承载文字</li>
+      <li data-page-node-id="ScrimFallbackNote">日后若换高亮度视频素材：优先换暗调素材，其次才恢复轻量 scrim——禁止靠拉黑视频换对比度</li>
+    </ul>
+
+    <h3 data-page-node-id="CfSDZzvDFWPBTHDHcW6QdO">3. 红线（沿用 v1.1，视频背景下重申）</h3>
+    <ul data-page-node-id="Jq9fKAgCG0gKF8ebgr6DAk">
+      <li data-page-node-id="wu6oX3Yy2EyHtqn7Giazxf"><strong data-page-node-id="oofbXJpiqBUWF7R6q0K5rR">禁 backdrop-blur</strong>：卡片用 94% 不透明实色（<code data-page-node-id="cHNrQsDBRLxxHa2OuNHS5B">oklch(20% 0.02 262 / 0.94)</code>），不用毛玻璃——blur 叠视频是 GPU 大户且违反主规范</li>
+      <li data-page-node-id="YzWrB0OlGUb8Pz0ioyACqv"><strong data-page-node-id="4KcSqPtQzryL83F0jAwUh1">琥珀纪律</strong>：本页仅 3 处——Logo、Tab 下划线选中态、登录主按钮 + 输入框焦点环；OAuth 按钮、文案全部中性</li>
+      <li data-page-node-id="KmgwPAkG8uiSC2lFa94C5c">登录/注册页<strong data-page-node-id="5JftM3nZGH1m6GwUpNZigV">锁定夜色</strong>：视频背景成立的前提是暗环境，日/夜主题切换器不进此页</li>
+    </ul>
+
+    <h3 data-page-node-id="ZrUoEzIhD6HmPcoGEfkSZg">4. 降级矩阵（必须实现）</h3>
+    <table data-page-node-id="iTzP1qK3cnKw8NWovdQY3j">
+      <tr data-page-node-id="5g38y8kRrU8kBDW8U6EHQr"><th data-page-node-id="ioZ7Q5TMR6f0H1jxC8o0Zp">场景</th><th data-page-node-id="eNHChtyLO0CmYAk0w3gHGb">行为</th></tr>
+      <tr data-page-node-id="v7Co8xbuULSkq7fJFn9IjH"><td data-page-node-id="Lo1MfBW0hvfZzicZF98MUz"><code data-page-node-id="aFUEs2yu0TF3yz2Kc3VG2h">prefers-reduced-motion</code></td><td data-page-node-id="MRZjObesnArFk1rL0TpeWg">不插 video，直接降级态（墨蓝 + 微网格），无任何动画</td></tr>
+      <tr data-page-node-id="pvngsnTfrqtjgEbJiumTbG"><td data-page-node-id="0OpzgA8ovgCQ5FaodKBhwu">视频加载失败 / &lt;3G / save-data</td><td data-page-node-id="W8T4n7e76mgzmWbQvNsFCq">同上降级态；&lt;video&gt; 的 error 事件与 <code data-page-node-id="uftDTY0k90GEAB0sXkm1JN">navigator.connection.saveData</code> 都要接</td></tr>
+      <tr data-page-node-id="X5lB36YxwI5CfHD78Baw8n"><td data-page-node-id="hUiH4ESFyHLKEcuLN2FvUi">移动端 ≤768px</td><td data-page-node-id="MUuTQLzdEJNlFl6kViadRh">建议直接用降级态（省流量省电）；若产品坚持要视频，最多播 1 轮后停在末帧（<code data-page-node-id="PM94GDy1x0xh4EmbJtS2VW">loop</code> 移除 + <code data-page-node-id="FDqLJpE8qzy6abzVWonNPR">ended</code> 暂停）</td></tr>
+      <tr data-page-node-id="2lO7U6dqCJqZmod4gpZHi5"><td data-page-node-id="ZlR92SD8lILOUWQSp7NeNN">降级态样式</td><td data-page-node-id="N3rIHuO3GwXSXcDjz20dbt">ink-950 底 + 48px 微网格线（25% alpha），无 scrim——截图里原版「纯黑一整块」就是没有这层网格质感才显得平</td></tr>
+    </table>
+
+    <h3 data-page-node-id="TVG14BPHvOMZwQiNwLRFeM">5. 可访问性</h3>
+    <ul data-page-node-id="e172WrRkz7urxprYQw1nMh">
+      <li data-page-node-id="VItujOoFqox8bpIOSFuO2X">视频对辅助技术完全隐身：<code data-page-node-id="XyNfPUVIzOnfltDFpmNjzH">aria-hidden + tabindex="-1"</code>，不进 Tab 序</li>
+      <li data-page-node-id="06MDFimj8aFYaCkpquzivX">输入框焦点环：琥珀 1px 边 + 3px 14% alpha 光环（全站统一口径）</li>
+      <li data-page-node-id="z9MoFCXFU4cUDHZ5E3oQgp">Tab 等宽 50%、role=tablist/aria-selected、44px 触控目标——与主规范 §8 一致</li>
+    </ul>
+
+    <h3 data-page-node-id="AcKqMBYGNugh0tGySd1cCI">6. 验收清单</h3>
+    <ul data-page-node-id="jcTWM09EPAQEkh25STEGHJ">
+      <li data-page-node-id="vbEdARB6A4KPOQnJXrRpWi">[ ] 视频自动播放且无声（系统音量开大验证）</li>
+      <li data-page-node-id="U1twqtOI52Addsiw4WJYIl">[ ] 视频原样播放无压暗；卡片内文字在任何视频帧下对比度 ≥4.5:1（由卡片实色保证）</li>
+      <li data-page-node-id="1GJ1db4iDIxAdyxsCca3OG">[ ] 关掉视频（降级态）页面依然完整可用、好看</li>
+      <li data-page-node-id="sjPtUFfXpZaA4xRKjNmOur">[ ] prefers-reduced-motion 下无视频无动画</li>
+      <li data-page-node-id="b4JZx3IbMr7PSROAU5XBKO">[ ] 仅登录路由加载视频，离开后网络面板无持续请求</li>
+      <li data-page-node-id="VrQipdA8MLxT24pY4kSHyb">[ ] DevTools Performance：视频播放不掉帧、不阻塞输入交互</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+// 演示控制：切换视频/降级两种状态供评审对比
+const bg = document.getElementById('bg');
+const v = document.getElementById('bgvideo');
+const label = document.getElementById('stateLabel');
+document.getElementById('toggleVideo').addEventListener('click', () => {
+  const off = bg.classList.toggle('no-video');
+  if (off) v.pause(); else { v.muted = true; v.play().catch(() => bg.classList.add('no-video')); }
+  label.textContent = 'video: ' + (off ? 'off（降级态）' : 'on');
+});
+// 自动播放被拒 → 自动降级
+v.addEventListener('error', () => bg.classList.add('no-video'));
+v.play().catch(() => bg.classList.add('no-video'));
+</script>
+</body>
+</html>
