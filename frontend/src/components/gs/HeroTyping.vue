@@ -21,7 +21,9 @@ const props = withDefaults(
     charMs?: number
     brPauseMs?: number
     segPauseMs?: number
-    replayLabel?: string
+    caretHoldMs?: number
+    /** 打完并收起光标后，间隔多久再重播 */
+    loopGapMs?: number
   }>(),
   {
     ariaLabel: undefined,
@@ -29,7 +31,8 @@ const props = withDefaults(
     charMs: 165,
     brPauseMs: 220,
     segPauseMs: 60,
-    replayLabel: '重播动画'
+    caretHoldMs: 2400,
+    loopGapMs: 3000
   }
 )
 
@@ -86,8 +89,14 @@ function type() {
   const tick = () => {
     if (id !== runId) return
     if (si >= props.segments.length) {
-      /* 打完保留全文，光标继续闪，不再清空重打 */
+      /* 打完：光标停留片刻后熄灭，loopGapMs 后自动重播（老板口径：每 3 秒自动循环） */
       playing.value = true
+      schedule(() => {
+        caretVisible.value = false
+        schedule(() => {
+          type()
+        }, props.loopGapMs, id)
+      }, props.caretHoldMs, id)
       return
     }
 
@@ -126,10 +135,6 @@ function shouldForceMotion(): boolean {
   }
 }
 
-function replay() {
-  type()
-}
-
 function applyMotionPreference() {
   const force = shouldForceMotion()
   reduced.value = Boolean(media?.matches) && !force
@@ -140,7 +145,7 @@ function applyMotionPreference() {
   }
 }
 
-defineExpose({ replay })
+defineExpose({ replay: type })
 
 onMounted(async () => {
   await nextTick()
@@ -171,14 +176,6 @@ onUnmounted(() => {
         />
       </span>
     </h1>
-    <button
-      type="button"
-      class="hero-typing__replay"
-      :aria-label="replayLabel"
-      @click="replay"
-    >
-      {{ replayLabel }}
-    </button>
   </div>
 </template>
 
@@ -222,42 +219,10 @@ onUnmounted(() => {
   }
 }
 
-.hero-typing__replay {
-  align-self: flex-end;
-  margin-top: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-3);
-  border-radius: var(--radius-small);
-  padding: 4px 10px;
-  min-height: 44px;
-  font-size: 0.72rem;
-  font-family: inherit;
-  cursor: pointer;
-  opacity: 0.72;
-  transition:
-    color 0.15s var(--ease-out),
-    border-color 0.15s var(--ease-out),
-    opacity 0.15s var(--ease-out);
-}
-
-.hero-typing__replay:hover,
-.hero-typing__replay:focus-visible {
-  color: var(--accent);
-  border-color: var(--accent);
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hero-typing-wrap:not(.is-playing) .hero-typing__caret {
     display: none !important;
     animation: none !important;
-  }
-
-  /* 用户主动点「重播」时允许光标闪（入口，不是无视偏好） */
-  .hero-typing-wrap.is-playing .hero-typing__caret {
-    display: inline-block !important;
-    animation: hero-caret-blink 1s steps(1) infinite !important;
   }
 }
 </style>

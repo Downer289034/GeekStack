@@ -171,8 +171,9 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-text);
+  /* 低强度选区：保留辨识度，不整块刷色（2026-09-11 老板反馈） */
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--text-1);
 }
 
 :focus-visible {
