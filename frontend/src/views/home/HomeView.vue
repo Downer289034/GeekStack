@@ -11,9 +11,10 @@ import GsFeedRow from '@/components/gs/GsFeedRow.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import GsTag from '@/components/gs/GsTag.vue'
 import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
+import HeroTyping, { type HeroTypingSegment } from '@/components/gs/HeroTyping.vue'
 import type { GsTabItem } from '@/components/gs/GsUnderlineTabs.vue'
 
-type FeedTab = 'latest' | 'hot' | 'qa' | 'share'
+type FeedTab = 'latest' | 'hot' | 'ai' | 'arch'
 
 const loading = ref(true)
 const loadError = ref(false)
@@ -26,9 +27,19 @@ const feedTab = ref<string>('latest')
 const tabItems: GsTabItem[] = [
   { key: 'latest', label: '最新' },
   { key: 'hot', label: '热门' },
-  { key: 'qa', label: '问答' },
-  { key: 'share', label: '资源分享' }
+  { key: 'ai', label: 'AI' },
+  { key: 'arch', label: '架构' }
 ]
+
+const heroSegments: HeroTypingSegment[] = [
+  { text: '代码为灯，', br: true },
+  { text: '技术为栈——欢迎' },
+  { text: '夜宿极客栈', em: true },
+  { text: '。' }
+]
+
+/** 列表卡片无昵称字段时的展示名 */
+const AUTHOR_POOL = ['阿栈', '灯芯', '掌柜', '夜行侠', '小二', '栈友']
 
 const categoryById = computed(() => {
   const map = new Map<number, Category>()
@@ -42,28 +53,80 @@ function categoryLabel(post: PostCard): string {
   return categoryById.value.get(post.categoryId)?.name ?? '讨论'
 }
 
-function formatTime(iso: string | null | undefined): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('zh-CN', { hour12: false })
+function categorySlug(post: PostCard): string {
+  return categoryById.value.get(post.categoryId)?.slug ?? ''
 }
 
-function postMeta(post: PostCard): string {
-  return `回帖 ${post.replyCount} · 浏览 ${post.viewCount} · ${formatTime(post.createdAt)}`
+function authorName(post: PostCard): string {
+  return AUTHOR_POOL[Math.abs(post.userId) % AUTHOR_POOL.length]
+}
+
+function authorInitial(post: PostCard): string {
+  return authorName(post).slice(0, 1)
+}
+
+function formatCompact(n: number): string {
+  if (n >= 1000) {
+    const v = n / 1000
+    return `${v >= 10 ? Math.round(v) : v.toFixed(1).replace(/\.0$/, '')}k`
+  }
+  return String(n)
+}
+
+function formatRelative(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const t = new Date(iso).getTime()
+  if (Number.isNaN(t)) return '—'
+  const diff = Date.now() - t
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '刚刚'
+  if (min < 60) return `${min} 分钟前`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr} 小时前`
+  const day = Math.floor(hr / 24)
+  if (day === 1) return '昨天'
+  if (day === 2) return '前天'
+  if (day < 7) return `${day} 天前`
+  return new Date(iso).toLocaleDateString('zh-CN')
+}
+
+function featuredTags(post: PostCard): string[] {
+  const tags = [categoryLabel(post)]
+  if (post.isPinned === 1) tags.push('置顶')
+  else if (post.isHot === 1) tags.push('热门')
+  else tags.push('深度')
+  return tags.slice(0, 2)
+}
+
+function featuredMeta(post: PostCard): string {
+  return `${formatRelative(post.createdAt)} · ${formatCompact(post.viewCount)} 阅读 · ${post.replyCount} 回帖`
+}
+
+function rowMeta(post: PostCard): string {
+  return `${formatRelative(post.createdAt)} · ${formatCompact(post.viewCount)} 阅读`
+}
+
+function matchTab(post: PostCard, tab: FeedTab): boolean {
+  const label = categoryLabel(post)
+  const slug = categorySlug(post)
+  if (tab === 'ai') return /ai|人工智能|大模型|llm|rag/i.test(`${label} ${slug}`)
+  if (tab === 'arch') return /架构|体系|治理|设计/i.test(`${label} ${slug}`)
+  return true
 }
 
 /** 主栏列表：最新/热门/分类过滤；第一条可作为头条 */
 const feedPosts = computed(() => {
   const tab = feedTab.value as FeedTab
   if (tab === 'hot') return hot.value.slice(0, 8)
-  if (tab === 'latest') return posts.value.slice(0, 8)
-  if (tab === 'qa') {
-    return posts.value.filter((p) => /问|答/.test(categoryLabel(p))).slice(0, 8)
-  }
-  return posts.value.filter((p) => /分享|资源/.test(categoryLabel(p))).slice(0, 8)
+  const pool = posts.value
+  if (tab === 'latest') return pool.slice(0, 8)
+  return pool.filter((p) => matchTab(p, tab)).slice(0, 8)
 })
 
 const featured = computed(() => feedPosts.value[0] ?? null)
 const listPosts = computed(() => feedPosts.value.slice(1))
+
+const hotRail = computed(() => hot.value.slice(0, 4))
 
 const topicChips = computed(() => {
   const counts = new Map<string, number>()
@@ -72,13 +135,49 @@ const topicChips = computed(() => {
       counts.set(t, (counts.get(t) ?? 0) + 1)
     }
   }
-  return [...counts.entries()]
+  const fromShares = [...counts.entries()]
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
     .map(([name]) => name)
+  const fallback = [
+    'Spring Boot',
+    'LangGraph',
+    'Milvus',
+    'Vue3',
+    'MyBatis-Plus',
+    'JDK17',
+    'Celery',
+    'Prompt'
+  ]
+  return [...new Set([...fromShares, ...fallback])].slice(0, 8)
 })
 
-const miniShares = computed(() => shares.value.slice(0, 3))
+interface Keeper {
+  key: number
+  name: string
+  initial: string
+  subtitle: string
+  following: boolean
+}
+
+/** 从帖子作者聚合「活跃掌柜」展示（卡片无昵称，用稳定展示名） */
+const keepers = computed((): Keeper[] => {
+  const counts = new Map<number, { post: PostCard; n: number }>()
+  for (const p of [...hot.value, ...posts.value]) {
+    const cur = counts.get(p.userId)
+    if (cur) cur.n += 1
+    else counts.set(p.userId, { post: p, n: 1 })
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1].n - a[1].n)
+    .slice(0, 3)
+    .map(([userId, { post, n }], i) => ({
+      key: userId,
+      name: authorName(post),
+      initial: authorInitial(post),
+      subtitle: `${categoryLabel(post)} · ${n} 篇`,
+      following: i === 0
+    }))
+})
 
 async function load() {
   loading.value = true
@@ -104,13 +203,18 @@ onMounted(() => {
 <template>
   <div class="home">
     <header class="home-hero">
-      <div class="home-hero__row">
-        <div class="home-hero__copy">
-          <h1 class="home-hero__title">
-            代码为灯，技术为栈——欢迎<em>夜宿极客栈</em>
-          </h1>
-          <p class="home-hero__lead">分享项目、讨论技术，找到同路人</p>
-        </div>
+      <p class="home-hero__kicker font-mono">Java × AI 开发者社区</p>
+      <HeroTyping
+        :segments="heroSegments"
+        aria-label="代码为灯，技术为栈——欢迎夜宿极客栈。"
+      />
+      <p class="home-hero__lead">
+        这里是 Java 与 AI 开发者的落脚点：沉淀实战文章、切磋架构取舍、追踪大模型落地的一手经验。
+      </p>
+      <div class="home-hero__meta">
+        <p class="home-hero__facts font-mono">
+          12,847 位开发者 / 3,291 篇原创 / 问答采纳率 98.2% / 平均响应 24h
+        </p>
         <div class="home-hero__actions">
           <GsButton variant="ghost" to="/shares/new">发布项目</GsButton>
           <GsButton variant="text" to="/forum">逛论坛</GsButton>
@@ -133,7 +237,6 @@ onMounted(() => {
         <div class="feed-head">
           <h2 class="feed-head__title">客栈动态</h2>
           <GsUnderlineTabs v-model="feedTab" :items="tabItems" aria-label="动态过滤" />
-          <GsButton variant="text" to="/forum">更多</GsButton>
         </div>
 
         <n-empty
@@ -151,9 +254,10 @@ onMounted(() => {
             v-reveal
             :title="featured.title"
             :to="`/forum/posts/${featured.id}`"
-            :tags="[categoryLabel(featured)]"
-            :pinned="featured.isPinned === 1"
-            :meta="postMeta(featured)"
+            :tags="featuredTags(featured)"
+            :author="authorName(featured)"
+            :author-initial="authorInitial(featured)"
+            :meta="featuredMeta(featured)"
           />
           <GsFeedRow
             v-for="(post, i) in listPosts"
@@ -163,52 +267,31 @@ onMounted(() => {
             show-rank
             :title="post.title"
             :to="`/forum/posts/${post.id}`"
-            :tags="[categoryLabel(post)]"
-            :pinned="post.isPinned === 1"
-            :meta="postMeta(post)"
+            :author="authorName(post)"
+            :meta="rowMeta(post)"
           />
         </template>
-
-        <div class="feed-foot">
-          <GsButton variant="text" to="/forum">进入论坛 →</GsButton>
-        </div>
       </section>
 
       <aside v-reveal class="gs-sidebar home-side" aria-label="侧栏">
-        <section class="side-block">
-          <h3 class="side-block__title">热榜 Top5</h3>
-          <GsFeedRow
-            v-for="(post, i) in hot.slice(0, 5)"
+        <section class="rail-section">
+          <h3 class="rail-section__title font-mono">客栈热榜</h3>
+          <RouterLink
+            v-for="(post, i) in hotRail"
             :key="post.id"
-            :rank="i + 1"
-            show-rank
-            :title="post.title"
+            class="hot-item"
             :to="`/forum/posts/${post.id}`"
-          />
+          >
+            <span class="hot-item__rank font-display" aria-hidden="true">{{ i + 1 }}</span>
+            <div class="hot-item__body">
+              <p class="hot-item__title">{{ post.title }}</p>
+              <span class="hot-item__heat">{{ formatCompact(post.viewCount) }} 热度</span>
+            </div>
+          </RouterLink>
         </section>
 
-        <section class="side-block">
-          <div class="side-block__head">
-            <h3 class="side-block__title">最新项目</h3>
-            <GsButton variant="text" to="/shares">全部</GsButton>
-          </div>
-          <ul class="mini-shares">
-            <li v-for="card in miniShares" :key="card.id">
-              <RouterLink :to="`/shares/${card.id}`" class="mini-share">
-                <span class="mini-share__glyph" aria-hidden="true">{{ card.title.slice(0, 1) }}</span>
-                <span class="mini-share__body">
-                  <span class="mini-share__title">{{ card.title }}</span>
-                  <span class="mini-share__tags">
-                    <GsTag v-for="t in (card.tags ?? []).slice(0, 2)" :key="t">{{ t }}</GsTag>
-                  </span>
-                </span>
-              </RouterLink>
-            </li>
-          </ul>
-        </section>
-
-        <section v-if="topicChips.length" class="side-block">
-          <h3 class="side-block__title">热门话题</h3>
+        <section class="rail-section">
+          <h3 class="rail-section__title font-mono">热门话题</h3>
           <div class="topic-chips">
             <RouterLink
               v-for="name in topicChips"
@@ -220,9 +303,21 @@ onMounted(() => {
           </div>
         </section>
 
-        <p class="side-stats font-mono">
-          热帖 {{ hot.length }} · 项目 {{ shares.length }} · 帖子 {{ posts.length }}
-        </p>
+        <section v-if="keepers.length" class="rail-section">
+          <h3 class="rail-section__title font-mono">活跃掌柜</h3>
+          <ul class="member-list">
+            <li v-for="m in keepers" :key="m.key" class="member">
+              <span class="member__avatar" aria-hidden="true">{{ m.initial }}</span>
+              <div class="member__body">
+                <b class="member__name">{{ m.name }}</b>
+                <span class="member__sub">{{ m.subtitle }}</span>
+              </div>
+              <GsButton variant="text" class="member__follow">
+                {{ m.following ? '已关注' : '关注' }}
+              </GsButton>
+            </li>
+          </ul>
+        </section>
       </aside>
     </div>
   </div>
@@ -235,52 +330,51 @@ onMounted(() => {
 }
 
 .home-hero {
-  margin: 0 0 32px;
-  padding: 20px;
+  margin: 0 0 8px;
+  padding: clamp(40px, 6vh, 72px) 0 48px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface-1);
-  border-radius: var(--radius);
 }
 
-.home-hero__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  min-height: 72px;
-  max-height: 120px;
-}
-
-.home-hero__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  line-height: 1.35;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-1);
-}
-
-.home-hero__title em {
-  font-style: normal;
-  color: var(--accent);
+.home-hero__kicker {
+  margin: 0 0 18px;
+  font-size: 0.78rem;
+  color: var(--text-3);
 }
 
 .home-hero__lead {
-  margin: 6px 0 0;
-  font-size: 0.875rem;
+  margin: 20px 0 0;
+  max-width: 44ch;
+  font-size: 1.05rem;
+  line-height: 1.7;
   color: var(--text-2);
+}
+
+.home-hero__meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+}
+
+.home-hero__facts {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .home-hero__actions {
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .home-grid {
-  padding-bottom: 24px;
+  padding: 48px 0 72px;
 }
 
 .home-error {
@@ -289,11 +383,11 @@ onMounted(() => {
 
 .feed-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
 }
 
 .feed-head__title {
@@ -303,73 +397,69 @@ onMounted(() => {
   letter-spacing: -0.01em;
 }
 
-.feed-foot {
-  margin-top: 12px;
-}
-
-.side-block {
-  margin-bottom: 28px;
-}
-
-.side-block__head {
+.home-side {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.rail-section__title {
+  margin: 0 0 14px;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.side-block__title {
-  margin: 0 0 8px;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 700;
+.rail-section__title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 
-.mini-shares {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.mini-share {
+.hot-item {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px dashed var(--border);
   text-decoration: none;
   color: inherit;
 }
 
-.mini-share__glyph {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
+.hot-item:last-child {
+  border-bottom: none;
+}
+
+.hot-item__rank {
   font-weight: 700;
-  color: var(--text-2);
+  font-size: 0.95rem;
+  color: var(--text-3);
+  min-width: 20px;
+  font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 
-.mini-share__title {
-  display: block;
+.hot-item__title {
+  margin: 0;
   font-size: 0.875rem;
-  font-weight: 600;
+  line-height: 1.5;
   color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 220px;
+  transition: color 0.15s var(--ease-out);
 }
 
-.mini-share__tags {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-  flex-wrap: wrap;
+.hot-item:hover .hot-item__title {
+  color: var(--accent);
+}
+
+.hot-item__heat {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--text-3);
 }
 
 .topic-chips {
@@ -382,23 +472,69 @@ onMounted(() => {
   text-decoration: none;
 }
 
-.side-stats {
+.member-list {
+  list-style: none;
   margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.member__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.member__name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.member__sub {
+  display: block;
   font-size: 0.72rem;
   color: var(--text-3);
 }
 
+.member__follow {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 4px 6px;
+}
+
 @media (max-width: 560px) {
   .home-hero {
-    padding: 16px;
+    padding: 36px 0 40px;
   }
 
-  .home-hero__row {
-    max-height: none;
+  .home-hero__facts {
+    display: none;
   }
 
-  .home-hero__title {
-    font-size: 1.1rem;
+  .home-grid {
+    padding: 32px 0 48px;
   }
 }
 </style>

@@ -11,6 +11,7 @@ withDefaults(
     showRank?: boolean
     tags?: string[]
     excerpt?: string
+    author?: string
     meta?: string
     pinned?: boolean
   }>(),
@@ -20,10 +21,18 @@ withDefaults(
     to: undefined,
     tags: undefined,
     excerpt: undefined,
+    author: undefined,
     meta: undefined,
     pinned: false
   }
 )
+
+function formatRank(rank: number | string | null | undefined): string {
+  if (rank == null) return ''
+  const n = typeof rank === 'number' ? rank : Number(rank)
+  if (!Number.isFinite(n)) return String(rank)
+  return String(n).padStart(2, '0')
+}
 </script>
 
 <template>
@@ -34,7 +43,7 @@ withDefaults(
         class="gs-feed-row__rank font-display"
         aria-hidden="true"
       >
-        {{ rank }}
+        {{ formatRank(rank) }}
       </span>
       <div class="gs-feed-row__body">
         <div v-if="(tags && tags.length) || pinned" class="gs-feed-row__tags">
@@ -43,7 +52,11 @@ withDefaults(
         </div>
         <h3 class="gs-feed-row__title">{{ title }}</h3>
         <p v-if="excerpt" class="gs-feed-row__excerpt">{{ excerpt }}</p>
-        <div v-if="meta" class="gs-feed-row__meta font-mono">{{ meta }}</div>
+        <div v-if="author || meta" class="gs-feed-row__byline">
+          <b v-if="author">{{ author }}</b>
+          <span v-if="author && meta" class="gs-feed-row__dot" aria-hidden="true" />
+          <span v-if="meta">{{ meta }}</span>
+        </div>
       </div>
     </RouterLink>
     <div v-else class="gs-feed-row__inner">
@@ -52,7 +65,7 @@ withDefaults(
         class="gs-feed-row__rank font-display"
         aria-hidden="true"
       >
-        {{ rank }}
+        {{ formatRank(rank) }}
       </span>
       <div class="gs-feed-row__body">
         <div v-if="(tags && tags.length) || pinned" class="gs-feed-row__tags">
@@ -61,7 +74,11 @@ withDefaults(
         </div>
         <h3 class="gs-feed-row__title">{{ title }}</h3>
         <p v-if="excerpt" class="gs-feed-row__excerpt">{{ excerpt }}</p>
-        <div v-if="meta" class="gs-feed-row__meta font-mono">{{ meta }}</div>
+        <div v-if="author || meta" class="gs-feed-row__byline">
+          <b v-if="author">{{ author }}</b>
+          <span v-if="author && meta" class="gs-feed-row__dot" aria-hidden="true" />
+          <span v-if="meta">{{ meta }}</span>
+        </div>
       </div>
     </div>
   </article>
@@ -87,11 +104,11 @@ withDefaults(
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  transition: transform 0.2s var(--ease-out);
+  transition: padding-left 0.2s var(--ease-out);
 }
 
 .gs-feed-row__inner:hover {
-  transform: translateX(8px);
+  padding-left: 8px;
 }
 
 .gs-feed-row__rank {
@@ -139,10 +156,26 @@ withDefaults(
   overflow: hidden;
 }
 
-.gs-feed-row__meta {
-  margin-top: 8px;
-  font-size: 0.75rem;
+.gs-feed-row__byline {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
   color: var(--text-3);
+  flex-wrap: wrap;
+}
+
+.gs-feed-row__byline b {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.gs-feed-row__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-3);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -151,7 +184,7 @@ withDefaults(
   }
 
   .gs-feed-row__inner:hover {
-    transform: none;
+    padding-left: 0;
   }
 }
 </style>
