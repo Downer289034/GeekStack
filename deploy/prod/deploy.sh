@@ -1,32 +1,41 @@
 #!/usr/bin/env bash
-# 一键部署脚本：本机构建 jar + 前端 dist → 传服务器 → compose 拉起
+# 同版本部署：同一 commit 构建 jar + 前端 dist → 只重建 backend/nginx，不动 MySQL/Redis 卷
 # 用法：在仓库根目录执行 bash deploy/prod/deploy.sh
+# 禁止：docker compose down / down -v（会扩大误伤面）
 set -euo pipefail
 
 SERVER="root@172.25.41.137"
 REMOTE_DIR="/opt/community"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 
-echo "==> 1/5 构建后端 jar"
+echo "==> 0/6 部署纪律：前后端同 commit=$COMMIT（禁止只更一侧）"
+
+echo "==> 1/6 构建后端 jar"
 ( cd "$ROOT/backend" && mvn -B -q clean package -DskipTests )
 
-echo "==> 2/5 构建前端 dist"
+echo "==> 2/6 构建前端 dist（与 jar 同一 commit）"
 ( cd "$ROOT/frontend" && npm run build )
 
-echo "==> 3/5 传输产物到服务器"
+echo "==> 3/6 传输产物到服务器"
 ssh "$SERVER" "mkdir -p $REMOTE_DIR/backend-build $REMOTE_DIR/frontend-dist $REMOTE_DIR/nginx/conf.d $REMOTE_DIR/logs/backend $REMOTE_DIR/backups $REMOTE_DIR/certbot/conf $REMOTE_DIR/certbot/www"
 scp "$ROOT"/backend/target/community-backend-*.jar "$SERVER:$REMOTE_DIR/backend-build/"
 scp "$ROOT"/deploy/prod/Dockerfile "$SERVER:$REMOTE_DIR/"
+# 清空旧 dist 再覆盖，避免残留旧 hash 资源
+ssh "$SERVER" "rm -rf $REMOTE_DIR/frontend-dist/*"
 scp -r "$ROOT"/frontend/dist/* "$SERVER:$REMOTE_DIR/frontend-dist/"
-scp "$ROOT"/deploy/prod/docker-compose.yml "$ROOT"/deploy/prod/nginx/conf.d/geekstack.conf "$ROOT"/deploy/prod/backup-db.sh "$SERVER:$REMOTE_DIR/" 2>/dev/null || true
 scp "$ROOT"/deploy/prod/nginx/conf.d/geekstack.conf "$SERVER:$REMOTE_DIR/nginx/conf.d/"
+# compose 仅在显式需要时同步；默认不覆盖，避免未就绪的 MinIO depends_on 拖垮现网
+# scp "$ROOT"/deploy/prod/docker-compose.yml "$SERVER:$REMOTE_DIR/docker-compose.yml"
+ssh "$SERVER" "echo $COMMIT > $REMOTE_DIR/DEPLOY_COMMIT; chmod 600 $REMOTE_DIR/.env 2>/dev/null || true"
 
-echo "==> 4/5 服务器生成 .env（已存在则保留，不覆盖）"
-ssh "$SERVER" "cd $REMOTE_DIR && if [ ! -f .env ]; then echo 'JWT_SECRET='\"$(openssl rand -hex 32)\" > .env && grep -E 'MYSQL_PASSWORD|REDIS_PASSWORD' /dev/null >> .env; fi"
-# 注意：开发版 .env 已有 MYSQL/REDIS 密码，直接复用；JWT_SECRET 若缺失则补
-ssh "$SERVER" "cd $REMOTE_DIR && grep -q '^JWT_SECRET=' .env || echo \"JWT_SECRET=\$(openssl rand -hex 32)\" >> .env; chmod 600 .env"
+echo "==> 4/6 部署前确认 MySQL 卷（必须仍是 community_mysql-data）"
+ssh "$SERVER" "VOL=\$(docker inspect geekstack-mysql --format '{{range .Mounts}}{{.Name}}{{end}}'); echo MYSQL_VOL=\$VOL; test \"\$VOL\" = 'community_mysql-data'"
 
-echo "==> 5/5 compose 拉起（若开发版容器在跑，先停以释放 3306/6379）"
-ssh "$SERVER" "cd $REMOTE_DIR && (docker compose down || true) && docker compose -f docker-compose.yml up -d --build && docker compose ps"
+echo "==> 5/6 只重建 backend + 刷新 nginx（--no-deps，不动 mysql/redis）"
+ssh "$SERVER" "cd $REMOTE_DIR && docker compose build backend && docker compose up -d --no-deps backend && docker compose up -d --no-deps nginx && docker compose ps"
 
-echo "部署完成。验证：curl http://<服务器>/actuator/health"
+echo "==> 6/6 冒烟"
+ssh "$SERVER" "curl -sf http://127.0.0.1/actuator/health && echo && curl -sI http://127.0.0.1/api/v1/oauth/login/GITEE | head -n 5 && echo DEPLOY_COMMIT=\$(cat $REMOTE_DIR/DEPLOY_COMMIT)"
+
+echo "部署完成（commit=$COMMIT）。若 OAuth Location 的 client_id 为空，检查服务器 .env 是否有非空 GITEE_CLIENT_ID（注意本地 .env 勿留空重复键）。"
