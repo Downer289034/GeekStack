@@ -11,6 +11,7 @@ import {
   type FormRules
 } from 'naive-ui'
 import { register } from '@/api/auth'
+import { beginOAuth } from '@/api/oauth'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import type { GsTheme } from '@/theme/tokens'
@@ -247,8 +248,12 @@ onUnmounted(() => {
 
         <div class="login-divider" role="separator">第三方登录</div>
         <div class="login-oauth">
-          <a class="login-oauth__btn" href="/api/v1/oauth/login/GITHUB">使用 GitHub 登录</a>
-          <a class="login-oauth__btn" href="/api/v1/oauth/login/GITEE">使用 Gitee 登录</a>
+          <button type="button" class="login-oauth__btn" @click="beginOAuth('GITHUB')">
+            使用 GitHub 登录
+          </button>
+          <button type="button" class="login-oauth__btn" @click="beginOAuth('GITEE')">
+            使用 Gitee 登录
+          </button>
         </div>
 
         <RouterLink class="login-back" to="/">← 返回首页</RouterLink>
@@ -439,6 +444,7 @@ onUnmounted(() => {
   color: var(--text-2);
   font-size: 0.8125rem;
   font-family: inherit;
+  cursor: pointer;
   transition:
     border-color 0.15s var(--ease-out),
     color 0.15s var(--ease-out);

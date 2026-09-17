@@ -302,9 +302,10 @@
 **描述**：①`/login/{provider}` 生成一次性随机 state（SecureRandom ≥128bit，Redis 存 5 分钟 TTL），`/api/v1/oauth/{provider}/code` 转交时必带并校验：缺失/不匹配/过期/重放一律 401，校验即消费（防重放）；GITHUB/GITEE 两平台同改。②auth 三接口（login/register/refresh）失败计数频控：Redis 按 IP+用户名维度，15 分钟内失败 5 次锁定（返回 429），成功登录清零；实现复用 RedisTemplate 并写降级分支测试（Redis 不可用时放行并记日志，参照 notify 模块 flaky 教训钉死降级分支）
 **验收标准**：state 四路径测试（缺失/篡改/过期/重放均 401，正常登录不受影响）；频控测试（第 6 次失败 429、成功清零、Redis 宕机降级放行）；现有全部测试不回归；mvn verify 末行 + CI 链接；密码/token 存储零明文红线不变
 **前置**：无（T-PROFILE-BE 之后、T-SKILL-1 之前）
-**完成**：`d264767`；契约见开发进度决策 21
+**完成**：`d264767`；契约见开发进度决策 21。PM 验收：push 1672657 同步、CI 双 job success（run 35229485018，138 测全绿）；OAuthStateService 实证——`GETDEL` 原子消费防重放竞态、state 绑定 provider、SecureRandom 128bit、前端 state 白名单 hex（兼保 Redis key 安全）、Redis 读写失败均 fail-closed；AuthRateLimiter 实证——IP+用户名、5 次/15min 第 6 次 429、成功清零、降级三处一致且被 DegradeTest 钉死
 
-### [ ] T-SEC-1-FE：OAuth state 生成与转交（前端）
+### [x] T-SEC-1-FE：OAuth state 生成与转交（前端）
 **描述**：点击授权按钮前用 `crypto.getRandomValues` 生成 state 存 sessionStorage；`/oauth/callback` 页转交 code 时一并提交 state 并比对，不匹配则清空 pending 提示重新发起登录；不匹配/缺失场景 UI 走现有错误态（不新增样式）
 **验收标准**：三绿 + 零硬编码色值；正常 OAuth 登录/绑定全链路实测不受影响；篡改 state 的手动演练被后端拒绝且页面有明确提示
 **前置**：T-SEC-1-BE（契约对齐：code 载荷新增 state 字段）
+**完成**：`beginOAuth` → sessionStorage + `?state=`；回调页 FE 比对闭环 + `POST /code` 带 state；演练说明 `docs/T-SEC-1-FE-OAuth-state-手动演练.md`

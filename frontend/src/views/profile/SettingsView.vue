@@ -14,7 +14,7 @@ import {
 } from 'naive-ui'
 import { updateMe, updatePassword, type UserProfile } from '@/api/auth'
 import { uploadMedia } from '@/api/media'
-import { oauthLoginUrl, unbindOAuth, type OAuthProvider } from '@/api/oauth'
+import { beginOAuth, unbindOAuth, type OAuthProvider } from '@/api/oauth'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -286,7 +286,14 @@ onMounted(() => {
             <strong>GitHub</strong>
             <span class="bind-status font-mono">{{ bindings.github ? '已绑定' : '未绑定' }}</span>
           </div>
-          <a v-if="!bindings.github" class="bind-link" :href="oauthLoginUrl('GITHUB')">去绑定</a>
+          <button
+            v-if="!bindings.github"
+            type="button"
+            class="bind-link"
+            @click="beginOAuth('GITHUB')"
+          >
+            去绑定
+          </button>
           <GsButton v-else variant="text" @click="onUnbind('GITHUB')">解绑</GsButton>
         </div>
         <div class="bind-row">
@@ -294,7 +301,14 @@ onMounted(() => {
             <strong>Gitee</strong>
             <span class="bind-status font-mono">{{ bindings.gitee ? '已绑定' : '未绑定' }}</span>
           </div>
-          <a v-if="!bindings.gitee" class="bind-link" :href="oauthLoginUrl('GITEE')">去绑定</a>
+          <button
+            v-if="!bindings.gitee"
+            type="button"
+            class="bind-link"
+            @click="beginOAuth('GITEE')"
+          >
+            去绑定
+          </button>
           <GsButton v-else variant="text" @click="onUnbind('GITEE')">解绑</GsButton>
         </div>
       </section>
@@ -363,9 +377,15 @@ onMounted(() => {
 }
 
 .bind-link {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
   color: var(--accent);
   text-decoration: none;
   font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .bind-link:hover {
