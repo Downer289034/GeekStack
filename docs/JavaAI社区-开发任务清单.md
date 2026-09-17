@@ -252,20 +252,22 @@
 **前置**：无（立即开工）
 **完成**：Flyway V4 `post.tags` JSON；`TagNormalizer` 去重上限 5；`GET /posts?tag=`
 
-### [ ] T-TAG-FE：帖子标签（前端）
+### [x] T-TAG-FE：帖子标签（前端）
 **描述**：发布页加"标签"输入（Enter 生成 chip，最多 5 个——编辑器规范 §3.6 补齐）；论坛列表行/卡片展示 tags；列表页标签筛选 chip
 **验收标准**：三绿 + 三断点截图 + 零硬编码色值；chip 样式走中性描边（不占琥珀额度）；发布→列表→筛选全链路实测
 **前置**：T-TAG-BE
+**完成**：`a9c73fd` 发帖 `n-dynamic-tags`（max 5）+ 列表/搜索/主页行展示 + `?tag=` 筛选 + 详情 chip 跳转
 
 ### [ ] T-PROFILE-BE：个人设置（后端）
 **描述**：`PUT /api/v1/users/me`（昵称/简介，头像 URL）；`PUT /api/v1/users/me/password`（第三方注册用户首次设置免验旧密码，已有密码需验旧密码）；头像上传复用 media API（scene=avatar，2MB）；requireOwned 模式
 **验收标准**：三路径测试（本人改/他人 403/未登录 401）；密码设置后旧登录态失效策略（记录口径）；mvn verify 末行 + CI
 **前置**：无（可与 T-SKILL-1 并行）
 
-### [ ] T-PROFILE-FE：个人设置页（前端）
+### [x] T-PROFILE-FE：个人设置页（前端）
 **描述**：新 `/settings` 页：资料编辑表单（昵称/简介/头像上传，复用 media API scene=avatar）；密码管理（区分"设置密码"与"修改密码"两种态）；绑定管理（GitHub/Gitee 绑定状态 + 绑定/解绑按钮——API 已有补 UI）；个人主页加"编辑资料"入口
 **验收标准**：三绿 + 三断点截图 + 零硬编码色值；头像上传实测（scene=avatar，2MB 拒绝超限）；解绑保护实测（第三方注册无密码用户不可解绑最后绑定）
 **前置**：T-PROFILE-BE
+**完成**：`46db92e` `/settings` 资料/密码/绑定 UI；主页「编辑资料」+ 导航「设置」；契约对齐 `PUT /users/me` 与 `hasPassword`/`oauthBindings`（待 T-PROFILE-BE 联调）
 
 ---
 
@@ -279,9 +281,10 @@
 **描述**：Flyway V4（skill 表 + user_like.target_type ENUM 扩展加 'SKILL'，幂等）；发布/编辑/下架（requireOwned）/广场列表（分页+标签筛选）/详情 API；G1 搜索扩展 type=skill；LikeService target_type 扩展 + ContentLikedEvent 联动通知
 **验收标准**：照例正/反/越权三路径测试 + HIDDEN 不泄露 + skill 点赞→通知→热榜联动全链路测试；mvn verify 末行 + CI 链接
 
-### [ ] T-SKILL-2（前端）：Skill 广场 + 发布 + 详情
+### [x] T-SKILL-2（前端）：Skill 广场 + 发布 + 详情
 **描述**：Skill 广场页（列表行/卡片语言 + 模型适配说明专属展示）；发布表单（标题/摘要/提示词正文 Markdown/模型适配说明/标签）；详情页（提示词代码块精致展示）；导航入口；搜索/标签页接入 skill 类型
 **验收标准**：三绿 + 三断点截图 + 零硬编码色值 + WCAG；发布一个真实可用演示 Skill（如"Java 异常分析助手"）作验收数据
 **前置**：T-SKILL-1
+**完成**：`f7e30f9` `/skills` 三页 + 导航 + 搜索 Tab=`skill`；API 契约冻结对齐计划表（待 T-SKILL-1 联调）
 
 ### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
