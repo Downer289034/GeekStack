@@ -2,6 +2,7 @@ package com.community.forum.dto;
 
 import com.community.forum.entity.Post;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 帖子列表卡片（不含正文）。
@@ -12,6 +13,7 @@ public record PostCardResponse(
         Long userId,
         Long categoryId,
         String title,
+        List<String> tags,
         Long viewCount,
         Long replyCount,
         LocalDateTime lastReplyAt,
@@ -21,8 +23,9 @@ public record PostCardResponse(
 ) {
     /** 唯一转换入口（T21.1 toCard 收口）。 */
     public static PostCardResponse from(Post post) {
+        List<String> tags = post.getTags() == null ? List.of() : List.copyOf(post.getTags());
         return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(),
-                post.getTitle(), post.getViewCount(), post.getReplyCount(),
+                post.getTitle(), tags, post.getViewCount(), post.getReplyCount(),
                 post.getLastReplyAt(), post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
     }
 }

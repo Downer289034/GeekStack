@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,6 +120,78 @@ class PostApiIntegrationTest {
                                 "categoryId", categoryIdBySlug("java"), "title", "t", "contentMd", "c"))))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(40100));
+    }
+
+    @Test
+    void createWithTagsAndFilterAndOwnerUpdate() throws Exception {
+        long javaId = categoryIdBySlug("java");
+        String uniqueTag = "tag_" + System.nanoTime();
+
+        // 发布带标签 → 详情返回 tags；去重（Java/java 只留首次）
+        String createBody = objectMapper.writeValueAsString(Map.of(
+                "categoryId", javaId,
+                "title", "带标签帖子",
+                "contentMd", "正文",
+                "tags", List.of("Java", "AI", "java", uniqueTag)));
+        String createResp = mockMvc.perform(post("/api/v1/posts")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.tags.length()").value(3))
+                .andExpect(jsonPath("$.data.tags[0]").value("Java"))
+                .andExpect(jsonPath("$.data.tags[1]").value("AI"))
+                .andExpect(jsonPath("$.data.tags[2]").value(uniqueTag))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        long postId = objectMapper.readTree(createResp).path("data").path("id").asLong();
+
+        // 无标签发帖 → 空数组兼容
+        mockMvc.perform(post("/api/v1/posts")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "categoryId", javaId, "title", "无标签帖", "contentMd", "c"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.tags").isArray())
+                .andExpect(jsonPath("$.data.tags.length()").value(0));
+
+        // ?tag= 精确筛选
+        mockMvc.perform(get("/api/v1/posts").param("tag", uniqueTag))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.records.length()").value(1))
+                .andExpect(jsonPath("$.data.records[0].id").value(postId))
+                .andExpect(jsonPath("$.data.records[0].tags[2]").value(uniqueTag));
+
+        // 越权改标签 → 403
+        mockMvc.perform(put("/api/v1/posts/" + postId)
+                        .header("Authorization", "Bearer " + tokenB)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "title", "越权", "contentMd", "x", "tags", List.of("Hack")))))
+                .andExpect(status().isForbidden());
+
+        // 作者改标签
+        mockMvc.perform(put("/api/v1/posts/" + postId)
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "title", "带标签帖子", "contentMd", "正文", "tags", List.of("Spring", uniqueTag)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.tags.length()").value(2))
+                .andExpect(jsonPath("$.data.tags[0]").value("Spring"));
+
+        // 超过 5 个 → 400
+        mockMvc.perform(post("/api/v1/posts")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "categoryId", javaId,
+                                "title", "超限",
+                                "contentMd", "c",
+                                "tags", List.of("a", "b", "c", "d", "e", "f")))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40000));
     }
 
     @Test

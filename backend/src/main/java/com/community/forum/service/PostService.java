@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
+import com.community.common.TagNormalizer;
 import com.community.event.ContentCreatedEvent;
 import com.community.forum.dto.CategoryResponse;
 import com.community.forum.dto.CreatePostRequest;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 public class PostService {
 
     private static final String SORT_HOT = "hot";
+    private static final int MAX_TAGS = 5;
 
     private final PostMapper postMapper;
     private final PostCategoryMapper postCategoryMapper;
@@ -62,6 +64,7 @@ public class PostService {
         post.setCategoryId(request.categoryId());
         post.setTitle(request.title());
         post.setContentMd(request.contentMd());
+        post.setTags(TagNormalizer.normalize(request.tags(), MAX_TAGS));
         post.setViewCount(0L);
         post.setReplyCount(0L);
         post.setIsPinned(0);
@@ -78,6 +81,10 @@ public class PostService {
         Post post = requireOwned(id, username);
         post.setTitle(request.title());
         post.setContentMd(request.contentMd());
+        // tags 字段：null 表示不改；非 null（含空数组）表示覆盖
+        if (request.tags() != null) {
+            post.setTags(TagNormalizer.normalize(request.tags(), MAX_TAGS));
+        }
         postMapper.updateById(post);
         return toDetail(post);
     }
@@ -88,8 +95,11 @@ public class PostService {
         postMapper.deleteById(post.getId());
     }
 
-    /** 帖子分页：可选分类 slug 过滤；sort=latest（默认）按最新，hot 按最热加权。置顶恒在最前。 */
-    public PageResponse<PostCardResponse> page(long current, long size, String categorySlug, String sort) {
+    /**
+     * 帖子分页：可选分类 slug / 标签过滤；sort=latest（默认）按最新，hot 按最热加权。置顶恒在最前。
+     */
+    public PageResponse<PostCardResponse> page(long current, long size, String categorySlug, String sort,
+                                               String tag) {
         Long categoryId = null;
         if (categorySlug != null && !categorySlug.isBlank()) {
             PostCategory category = postCategoryMapper.selectOne(
@@ -103,6 +113,9 @@ public class PostService {
         // 逻辑删除（deleted=0）由 MyBatis-Plus 全局配置自动追加
         if (categoryId != null) {
             wrapper.eq("category_id", categoryId);
+        }
+        if (tag != null && !tag.isBlank()) {
+            wrapper.apply("JSON_CONTAINS(tags, JSON_QUOTE({0}))", tag.trim());
         }
         boolean hot = SORT_HOT.equalsIgnoreCase(sort);
         if (hot) {
@@ -143,8 +156,9 @@ public class PostService {
     }
 
     private PostDetailResponse toDetail(Post post) {
+        List<String> tags = post.getTags() == null ? List.of() : List.copyOf(post.getTags());
         return new PostDetailResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
-                post.getContentMd(), post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(),
+                post.getContentMd(), tags, post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(),
                 post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
     }
 

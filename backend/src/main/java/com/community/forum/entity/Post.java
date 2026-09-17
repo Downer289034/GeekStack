@@ -1,16 +1,20 @@
 package com.community.forum.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Data;
 
 /**
  * 论坛帖子实体，对应 post 表。
  */
 @Data
-@TableName("post")
+@TableName(value = "post", autoResultMap = true)
 public class Post {
 
     /** 数据库自增主键（决策见 docs/开发进度.md 关键决策 8）。 */
@@ -25,6 +29,10 @@ public class Post {
 
     /** 正文（Markdown 原文，前端渲染必须走 utils/markdown.ts 唯一出口）。 */
     private String contentMd;
+
+    /** 标签数组（T-TAG-BE；存量默认可为空数组）。 */
+    @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.ALWAYS)
+    private List<String> tags;
 
     private Long viewCount;
 

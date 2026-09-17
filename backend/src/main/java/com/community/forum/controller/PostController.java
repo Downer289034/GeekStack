@@ -40,13 +40,14 @@ public class PostController {
         return Result.ok(postService.listCategories());
     }
 
-    /** 帖子分页（公开）：category=分类 slug，sort=latest|hot。 */
+    /** 帖子分页（公开）：category=分类 slug，tag=精确标签，sort=latest|hot。 */
     @GetMapping
     public Result<PageResponse<PostCardResponse>> page(@RequestParam(defaultValue = "1") long current,
                                                        @RequestParam(defaultValue = "10") long size,
                                                        @RequestParam(required = false) String category,
+                                                       @RequestParam(required = false) String tag,
                                                        @RequestParam(defaultValue = "latest") String sort) {
-        return Result.ok(postService.page(current, size, category, sort));
+        return Result.ok(postService.page(current, size, category, sort, tag));
     }
 
     /** 帖子详情（公开）。 */

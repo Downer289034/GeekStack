@@ -238,3 +238,50 @@
 **描述**：输出方案建议文档——帖子/分享关键字搜索（MySQL FULLTEXT ngram vs LIKE 成本对比，8.0 中文支持现状）、标签聚合（V1 的 JSON_CONTAINS 现状 vs 建标签表）、分页口径；给出推荐与工作量估算
 **验收标准**：方案文档（docs/T-BE-4-搜索标签接口预研.md）含对比表 + 推荐 + 理由；**不写实现代码**——T-FE-1 缺口单到位后合并成正式实现任务
 **前置**：T-BE-2
+
+---
+
+# M9 帖子标签与个人设置（2026-09-14 立项，老板拍板）
+
+> 背景：老板发帖发现分类单选无法表达"Java+AI"交叉内容（分类=频道归属保持单选，正解是补标签多选）；个人资料编辑/密码管理确认缺失（个人主页纯展示、user 模块无 PUT 资料接口）。
+> 执行顺序（老板批准的计划表）：**后端** T-TAG-BE → T-SKILL-1 → T-PROFILE-BE；**前端** T-TAG-FE → T-SKILL-2 → T-PROFILE-FE（前后端各自串行，两线并行）。
+
+### [x] T-TAG-BE：帖子标签（后端）
+**描述**：post 表加 tags（按 T-BE-4 预研结论选型：JSON 列或标签表）；发布/编辑 API 接收 tags（1-5 个，去重防呆）；列表/详情接口返回 tags；新增按标签筛选（`GET /posts?tag=`）
+**验收标准**：三路径测试（发布带标签/编辑改标签/越权）；无标签存量帖兼容（默认空数组）；`?tag=` 筛选与 JSON_CONTAINS 或新表方案一致；mvn verify 末行 + CI
+**前置**：无（立即开工）
+**完成**：Flyway V4 `post.tags` JSON；`TagNormalizer` 去重上限 5；`GET /posts?tag=`
+
+### [ ] T-TAG-FE：帖子标签（前端）
+**描述**：发布页加"标签"输入（Enter 生成 chip，最多 5 个——编辑器规范 §3.6 补齐）；论坛列表行/卡片展示 tags；列表页标签筛选 chip
+**验收标准**：三绿 + 三断点截图 + 零硬编码色值；chip 样式走中性描边（不占琥珀额度）；发布→列表→筛选全链路实测
+**前置**：T-TAG-BE
+
+### [ ] T-PROFILE-BE：个人设置（后端）
+**描述**：`PUT /api/v1/users/me`（昵称/简介，头像 URL）；`PUT /api/v1/users/me/password`（第三方注册用户首次设置免验旧密码，已有密码需验旧密码）；头像上传复用 media API（scene=avatar，2MB）；requireOwned 模式
+**验收标准**：三路径测试（本人改/他人 403/未登录 401）；密码设置后旧登录态失效策略（记录口径）；mvn verify 末行 + CI
+**前置**：无（可与 T-SKILL-1 并行）
+
+### [ ] T-PROFILE-FE：个人设置页（前端）
+**描述**：新 `/settings` 页：资料编辑表单（昵称/简介/头像上传，复用 media API scene=avatar）；密码管理（区分"设置密码"与"修改密码"两种态）；绑定管理（GitHub/Gitee 绑定状态 + 绑定/解绑按钮——API 已有补 UI）；个人主页加"编辑资料"入口
+**验收标准**：三绿 + 三断点截图 + 零硬编码色值；头像上传实测（scene=avatar，2MB 拒绝超限）；解绑保护实测（第三方注册无密码用户不可解绑最后绑定）
+**前置**：T-PROFILE-BE
+
+---
+
+# M8 Skill 专区（2026-09-14 立项，老板拍板形态 A）
+
+> 背景：老板提出"Skill 专区"——AI 技能分享市场（用户发布自己的 Agent 技能/提示词包，广场浏览/点赞/搜索）。
+> 架构决策：独立 skill 模块（不塞进 share）；复用点赞/标签/搜索通过类型扩展接入。
+> 一期裁剪：发布/广场/详情/点赞/标签/搜索；二期：评论、Skill 文件包上传（MinIO scene=skill）、评分。
+
+### [ ] T-SKILL-1（后端）：数据模型 + API
+**描述**：Flyway V4（skill 表 + user_like.target_type ENUM 扩展加 'SKILL'，幂等）；发布/编辑/下架（requireOwned）/广场列表（分页+标签筛选）/详情 API；G1 搜索扩展 type=skill；LikeService target_type 扩展 + ContentLikedEvent 联动通知
+**验收标准**：照例正/反/越权三路径测试 + HIDDEN 不泄露 + skill 点赞→通知→热榜联动全链路测试；mvn verify 末行 + CI 链接
+
+### [ ] T-SKILL-2（前端）：Skill 广场 + 发布 + 详情
+**描述**：Skill 广场页（列表行/卡片语言 + 模型适配说明专属展示）；发布表单（标题/摘要/提示词正文 Markdown/模型适配说明/标签）；详情页（提示词代码块精致展示）；导航入口；搜索/标签页接入 skill 类型
+**验收标准**：三绿 + 三断点截图 + 零硬编码色值 + WCAG；发布一个真实可用演示 Skill（如"Java 异常分析助手"）作验收数据
+**前置**：T-SKILL-1
+
+### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
