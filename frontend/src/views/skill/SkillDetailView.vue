@@ -106,9 +106,9 @@ onMounted(() => {
         <GsTag v-for="t in skill.tags ?? []" :key="t">{{ t }}</GsTag>
       </div>
 
-      <section v-if="skill.modelNotes" class="model-notes" aria-label="模型适配说明">
+      <section v-if="skill.modelAdaptationMd" class="model-notes" aria-label="模型适配说明">
         <h3 class="model-notes__title font-mono">模型适配</h3>
-        <p class="model-notes__body">{{ skill.modelNotes }}</p>
+        <p class="model-notes__body">{{ skill.modelAdaptationMd }}</p>
       </section>
 
       <dl class="detail-meta font-mono">
@@ -131,7 +131,7 @@ onMounted(() => {
       </dl>
 
       <h3 class="prompt-heading font-display">提示词</h3>
-      <pre class="prompt-block font-mono" tabindex="0">{{ skill.promptMd }}</pre>
+      <pre class="prompt-block font-mono" tabindex="0">{{ skill.contentMd }}</pre>
     </article>
   </div>
 </template>

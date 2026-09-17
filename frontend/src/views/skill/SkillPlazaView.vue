@@ -57,7 +57,7 @@ function skillMeta(card: SkillCard): string {
 
 function modelExcerpt(card: SkillCard): string {
   const summary = card.summary?.trim()
-  const notes = card.modelNotes?.trim()
+  const notes = card.modelAdaptationMd?.trim()
   if (summary && notes) return `${summary}\n模型适配：${notes}`
   if (notes) return `模型适配：${notes}`
   return summary ?? ''

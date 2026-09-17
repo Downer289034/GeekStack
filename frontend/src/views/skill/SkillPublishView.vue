@@ -33,8 +33,8 @@ const loadingSkill = ref(isEdit.value)
 const model = reactive({
   title: '',
   summary: '',
-  promptMd: '',
-  modelNotes: '',
+  contentMd: '',
+  modelAdaptationMd: '',
   tags: [] as string[]
 })
 
@@ -43,9 +43,12 @@ const rules: FormRules = {
     { required: true, message: '请输入标题' },
     { max: 200, message: '标题最长 200 字' }
   ],
-  summary: [{ max: 500, message: '摘要最长 500 字' }],
-  promptMd: [{ required: true, message: '请输入提示词正文（Markdown）' }],
-  modelNotes: [{ max: 500, message: '模型适配说明最长 500 字' }]
+  summary: [
+    { required: true, message: '请输入摘要' },
+    { max: 500, message: '摘要最长 500 字' }
+  ],
+  contentMd: [{ required: true, message: '请输入提示词正文（Markdown）' }],
+  modelAdaptationMd: [{ max: 1000, message: '模型适配说明最长 1000 字' }]
 }
 
 async function prefillForEdit() {
@@ -54,8 +57,8 @@ async function prefillForEdit() {
     const skill = await fetchSkill(editId.value)
     model.title = skill.title
     model.summary = skill.summary ?? ''
-    model.promptMd = skill.promptMd
-    model.modelNotes = skill.modelNotes ?? ''
+    model.contentMd = skill.contentMd
+    model.modelAdaptationMd = skill.modelAdaptationMd ?? ''
     model.tags = skill.tags ?? []
   } finally {
     loadingSkill.value = false
@@ -76,9 +79,9 @@ async function onSubmit() {
   try {
     const payload = {
       title: model.title,
-      summary: model.summary || undefined,
-      promptMd: model.promptMd,
-      modelNotes: model.modelNotes || undefined,
+      summary: model.summary,
+      contentMd: model.contentMd,
+      modelAdaptationMd: model.modelAdaptationMd || undefined,
       tags: model.tags.length > 0 ? model.tags : undefined
     }
     const saved = isEdit.value
@@ -103,7 +106,7 @@ void prefillForEdit()
       <n-form-item label="标题" path="title">
         <n-input v-model:value="model.title" placeholder="例如：Java 异常分析助手" />
       </n-form-item>
-      <n-form-item label="摘要（可选）" path="summary">
+      <n-form-item label="摘要" path="summary">
         <n-input
           v-model:value="model.summary"
           type="textarea"
@@ -114,17 +117,17 @@ void prefillForEdit()
       <n-form-item label="标签（回车添加，最多 5 个）" path="tags">
         <n-dynamic-tags v-model:value="model.tags" :max="5" />
       </n-form-item>
-      <n-form-item label="模型适配说明（可选）" path="modelNotes">
+      <n-form-item label="模型适配说明（可选）" path="modelAdaptationMd">
         <n-input
-          v-model:value="model.modelNotes"
+          v-model:value="model.modelAdaptationMd"
           type="textarea"
           :rows="2"
           placeholder="适用模型、温度、上下文长度等注意事项"
         />
       </n-form-item>
-      <n-form-item label="提示词正文（Markdown）" path="promptMd">
+      <n-form-item label="提示词正文（Markdown）" path="contentMd">
         <GsMdEditor
-          v-model="model.promptMd"
+          v-model="model.contentMd"
           placeholder="写出可直接复制使用的系统/用户提示词…"
         />
       </n-form-item>

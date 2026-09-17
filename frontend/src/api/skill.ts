@@ -1,40 +1,40 @@
 import request, { unwrap } from '@/api/request'
 import type { PageResult } from '@/api/share'
 
-/** 发布/编辑 Skill（与计划冻结契约对齐） */
+/** 发布/编辑 Skill（与后端 SkillPayload 对齐） */
 export interface SkillPayload {
   title: string
-  summary?: string
-  promptMd: string
-  modelNotes?: string
+  summary: string
+  contentMd: string
+  modelAdaptationMd?: string
   tags?: string[]
 }
 
-/** Skill 详情 */
+/** Skill 详情（与后端 SkillResponse 对齐） */
 export interface SkillResponse {
   id: number
   userId: number
   title: string
-  summary: string | null
-  promptMd: string
-  modelNotes: string | null
+  summary: string
+  contentMd: string
+  modelAdaptationMd: string | null
   tags: string[] | null
-  status: 'PUBLISHED' | 'HIDDEN'
+  status: 'PUBLISHED' | 'HIDDEN' | string
   viewCount: number
-  likeCount?: number
+  likeCount: number
   createdAt: string
 }
 
-/** 广场卡片 */
+/** 广场卡片（与后端 SkillCardResponse 对齐） */
 export interface SkillCard {
   id: number
-  userId?: number
+  userId: number
   title: string
-  summary: string | null
-  modelNotes: string | null
+  summary: string
+  modelAdaptationMd: string | null
   tags: string[] | null
   viewCount: number
-  likeCount?: number
+  likeCount: number
   createdAt: string
 }
 

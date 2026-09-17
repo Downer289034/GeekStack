@@ -297,8 +297,8 @@ onMounted(async () => {
           :to="`/skills/${card.id}`"
           :tags="card.tags ?? []"
           :excerpt="
-            card.modelNotes
-              ? `${card.summary ?? ''}${card.summary ? '\n' : ''}模型适配：${card.modelNotes}`
+            card.modelAdaptationMd
+              ? `${card.summary ?? ''}${card.summary ? '\n' : ''}模型适配：${card.modelAdaptationMd}`
               : (card.summary ?? undefined)
           "
           :meta="`浏览 ${card.viewCount} · ${formatTime(card.createdAt)}`"
