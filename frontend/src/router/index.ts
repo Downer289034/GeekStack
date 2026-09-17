@@ -40,6 +40,30 @@ const router = createRouter({
           meta: { title: '项目详情' }
         },
         {
+          path: 'skills',
+          name: 'skill-plaza',
+          component: () => import('@/views/skill/SkillPlazaView.vue'),
+          meta: { title: 'Skill 广场', containerWidth: 'md' }
+        },
+        {
+          path: 'skills/new',
+          name: 'skill-publish',
+          component: () => import('@/views/skill/SkillPublishView.vue'),
+          meta: { title: '发布 Skill', requiresAuth: true, containerWidth: 'md' }
+        },
+        {
+          path: 'skills/edit/:id',
+          name: 'skill-edit',
+          component: () => import('@/views/skill/SkillPublishView.vue'),
+          meta: { title: '编辑 Skill', requiresAuth: true, containerWidth: 'md' }
+        },
+        {
+          path: 'skills/:id',
+          name: 'skill-detail',
+          component: () => import('@/views/skill/SkillDetailView.vue'),
+          meta: { title: 'Skill 详情', containerWidth: 'md' }
+        },
+        {
           path: 'forum',
           name: 'forum',
           component: () => import('@/views/forum/ForumListView.vue'),

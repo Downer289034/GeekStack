@@ -1,17 +1,18 @@
 import request, { unwrap } from '@/api/request'
 import type { PostCard } from '@/api/forum'
 import type { PageResult, ShareCard } from '@/api/share'
+import type { SkillCard } from '@/api/skill'
 
-export type SearchType = 'post' | 'share'
+export type SearchType = 'post' | 'share' | 'skill'
 
-/** G1：关键字搜索（type 仅 post|share，不做 all） */
+/** G1：关键字搜索（type 仅 post|share|skill，不做 all） */
 export function searchContent(
   q: string,
   type: SearchType,
   current = 1,
   size = 10
-): Promise<PageResult<PostCard | ShareCard>> {
-  return unwrap<PageResult<PostCard | ShareCard>>(
+): Promise<PageResult<PostCard | ShareCard | SkillCard>> {
+  return unwrap<PageResult<PostCard | ShareCard | SkillCard>>(
     request.get('/v1/search', {
       params: { q, type, current, size }
     })

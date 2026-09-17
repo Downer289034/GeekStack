@@ -5,11 +5,13 @@ import { NEmpty, NIcon, NInput, NPagination } from 'naive-ui'
 import {
   ChatbubblesOutline,
   CubeOutline,
+  FlashOutline,
   PricetagOutline,
   SearchOutline
 } from '@vicons/ionicons5'
 import { fetchCategories, type Category, type PostCard } from '@/api/forum'
 import type { ShareCard } from '@/api/share'
+import type { SkillCard } from '@/api/skill'
 import { searchContent, type SearchType } from '@/api/search'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
@@ -33,6 +35,7 @@ const total = ref(0)
 const current = ref(1)
 const postRecords = ref<PostCard[]>([])
 const shareRecords = ref<ShareCard[]>([])
+const skillRecords = ref<SkillCard[]>([])
 const categories = ref<Category[]>([])
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -42,13 +45,14 @@ let inputReady = false
 
 const typeTabs = [
   { key: 'post', label: '帖子' },
-  { key: 'share', label: '项目' }
+  { key: 'share', label: '项目' },
+  { key: 'skill', label: 'Skill' }
 ]
 
 const typeModel = computed({
   get: () => searchType.value,
   set: (v: string) => {
-    if (v === 'post' || v === 'share') {
+    if (v === 'post' || v === 'share' || v === 'skill') {
       searchType.value = v
       void runSearch(1)
     }
@@ -93,6 +97,7 @@ async function runSearch(page = current.value) {
   if (!q) {
     postRecords.value = []
     shareRecords.value = []
+    skillRecords.value = []
     total.value = 0
     loading.value = false
     return
@@ -107,14 +112,21 @@ async function runSearch(page = current.value) {
     if (searchType.value === 'post') {
       postRecords.value = pageData.records as PostCard[]
       shareRecords.value = []
-    } else {
+      skillRecords.value = []
+    } else if (searchType.value === 'share') {
       shareRecords.value = pageData.records as ShareCard[]
       postRecords.value = []
+      skillRecords.value = []
+    } else {
+      skillRecords.value = pageData.records as SkillCard[]
+      postRecords.value = []
+      shareRecords.value = []
     }
   } catch {
     if (seq !== requestSeq) return
     postRecords.value = []
     shareRecords.value = []
+    skillRecords.value = []
     total.value = 0
   } finally {
     if (seq === requestSeq) {
@@ -141,7 +153,9 @@ watch(qInput, () => {
 
 onMounted(async () => {
   const q = typeof route.query.q === 'string' ? route.query.q : ''
-  const type = route.query.type === 'share' ? 'share' : 'post'
+  const typeRaw = route.query.type
+  const type: SearchType =
+    typeRaw === 'share' || typeRaw === 'skill' || typeRaw === 'post' ? typeRaw : 'post'
   const page = Math.max(1, Number(route.query.page) || 1)
   qInput.value = q
   searchType.value = type
@@ -190,13 +204,17 @@ onMounted(async () => {
 
     <p v-if="qActive" class="search-echo font-mono">
       关键词：<strong>{{ qActive }}</strong>
-      <span> · {{ searchType === 'post' ? '帖子' : '项目' }} · 共 {{ total }} 条</span>
+      <span>
+        ·
+        {{ searchType === 'post' ? '帖子' : searchType === 'share' ? '项目' : 'Skill' }}
+        · 共 {{ total }} 条
+      </span>
     </p>
 
     <GsSkeleton
       v-if="loading"
       :variant="searchType === 'share' ? 'card' : 'row'"
-      :count="searchType === 'share' ? 6 : 6"
+      :count="6"
     />
 
     <template v-else>
@@ -206,7 +224,13 @@ onMounted(async () => {
       >
         <template #icon>
           <n-icon
-            :component="searchType === 'post' ? ChatbubblesOutline : CubeOutline"
+            :component="
+              searchType === 'post'
+                ? ChatbubblesOutline
+                : searchType === 'share'
+                  ? CubeOutline
+                  : FlashOutline
+            "
             :size="48"
           />
         </template>
@@ -215,9 +239,17 @@ onMounted(async () => {
             <GsButton variant="ghost" to="/tags">浏览标签</GsButton>
             <GsButton
               variant="primary"
-              :to="searchType === 'post' ? '/forum/new' : '/shares/new'"
+              :to="
+                searchType === 'post'
+                  ? '/forum/new'
+                  : searchType === 'share'
+                    ? '/shares/new'
+                    : '/skills/new'
+              "
             >
-              {{ searchType === 'post' ? '去发帖' : '去发布' }}
+              {{
+                searchType === 'post' ? '去发帖' : searchType === 'share' ? '去发布' : '发布 Skill'
+              }}
             </GsButton>
           </div>
         </template>
@@ -253,6 +285,23 @@ onMounted(async () => {
           :view-count="card.viewCount"
           :time="formatTime(card.createdAt)"
           :featured="current === 1 && index === 0"
+        />
+      </div>
+
+      <div v-else-if="searchType === 'skill' && skillRecords.length" class="result-list">
+        <GsFeedRow
+          v-for="card in skillRecords"
+          :key="card.id"
+          v-reveal
+          :title="card.title"
+          :to="`/skills/${card.id}`"
+          :tags="card.tags ?? []"
+          :excerpt="
+            card.modelNotes
+              ? `${card.summary ?? ''}${card.summary ? '\n' : ''}模型适配：${card.modelNotes}`
+              : (card.summary ?? undefined)
+          "
+          :meta="`浏览 ${card.viewCount} · ${formatTime(card.createdAt)}`"
         />
       </div>
 

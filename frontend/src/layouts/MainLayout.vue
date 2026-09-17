@@ -42,6 +42,12 @@ const navItems: Array<{
     match: (n) => typeof n === 'string' && n.startsWith('share')
   },
   {
+    name: 'skill-plaza',
+    label: 'Skill',
+    to: '/skills',
+    match: (n) => typeof n === 'string' && n.startsWith('skill')
+  },
+  {
     name: 'forum',
     label: '技术论坛',
     to: '/forum',
