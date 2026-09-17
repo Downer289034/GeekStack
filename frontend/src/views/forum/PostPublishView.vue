@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { NForm, NFormItem, NInput, type FormInst, type FormRules } from 'naive-ui'
+import { NDynamicTags, NForm, NFormItem, NInput, type FormInst, type FormRules } from 'naive-ui'
 import { createPost, fetchCategories, type Category } from '@/api/forum'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsMdEditor from '@/components/gs/GsMdEditor.vue'
@@ -16,7 +16,11 @@ const submitting = ref(false)
 const categories = ref<Category[]>([])
 const categoryId = ref<number | null>(null)
 
-const model = reactive({ title: '', contentMd: '' })
+const model = reactive({
+  title: '',
+  contentMd: '',
+  tags: [] as string[]
+})
 
 const rules: FormRules = {
   categoryId: [{ required: true, type: 'number', message: '请选择分类' }],
@@ -41,7 +45,8 @@ async function onSubmit() {
     const post = await createPost({
       categoryId: categoryId.value,
       title: model.title,
-      contentMd: model.contentMd
+      contentMd: model.contentMd,
+      tags: model.tags.length > 0 ? model.tags : undefined
     })
     void router.push(`/forum/posts/${post.id}`)
   } catch {
@@ -77,6 +82,9 @@ void init()
       </n-form-item>
       <n-form-item label="标题" path="title">
         <n-input v-model:value="model.title" placeholder="一句话说清你的问题或主题" />
+      </n-form-item>
+      <n-form-item label="标签（回车添加，最多 5 个）" path="tags">
+        <n-dynamic-tags v-model:value="model.tags" :max="5" />
       </n-form-item>
       <n-form-item label="正文（Markdown）" path="contentMd">
         <GsMdEditor

@@ -145,6 +145,14 @@ onMounted(() => {
       <div class="post-card__toolbar">
         <n-space align="center" :wrap="true" class="post-meta">
           <GsBadge v-if="post.isPinned === 1" tone="pinned">置顶</GsBadge>
+          <RouterLink
+            v-for="tag in post.tags ?? []"
+            :key="tag"
+            class="post-tag-link"
+            :to="{ path: '/forum', query: { tag } }"
+          >
+            <GsTag interactive>{{ tag }}</GsTag>
+          </RouterLink>
           <GsTag>浏览 {{ post.viewCount }}</GsTag>
           <GsTag>回帖 {{ post.replyCount }}</GsTag>
           <span class="post-time font-mono">{{ formatTime(post.createdAt) }}</span>
@@ -261,6 +269,11 @@ onMounted(() => {
 
 .post-meta {
   min-width: 0;
+}
+
+.post-tag-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .post-time,

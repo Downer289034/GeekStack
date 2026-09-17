@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { NEmpty, NIcon, NPagination } from 'naive-ui'
-import { AddOutline, ChatbubblesOutline, CreateOutline } from '@vicons/ionicons5'
+import { useRoute, useRouter } from 'vue-router'
+import { NEmpty, NIcon, NInput, NPagination, NSpace } from 'naive-ui'
+import { AddOutline, ChatbubblesOutline, CreateOutline, SearchOutline } from '@vicons/ionicons5'
 import { fetchCategories, pagePosts, type Category, type PostCard } from '@/api/forum'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsFeedRow from '@/components/gs/GsFeedRow.vue'
@@ -10,9 +11,14 @@ import GsUnderlineTabs from '@/components/gs/GsUnderlineTabs.vue'
 
 const PAGE_SIZE = 12
 
+const route = useRoute()
+const router = useRouter()
+
 const categories = ref<Category[]>([])
 const activeCategory = ref('')
 const sortBy = ref<'latest' | 'hot'>('latest')
+const tagInput = ref('')
+const activeTag = ref('')
 const posts = ref<PostCard[]>([])
 const total = ref(0)
 const current = ref(1)
@@ -47,19 +53,54 @@ function categoryLabel(post: PostCard): string {
   return categoryById.value.get(post.categoryId)?.name ?? '讨论'
 }
 
+function rowTags(post: PostCard): string[] {
+  return [categoryLabel(post), ...(post.tags ?? [])]
+}
+
 function postMeta(post: PostCard): string {
   return `回帖 ${post.replyCount} · 浏览 ${post.viewCount} · 最后回复 ${formatTime(post.lastReplyAt)}`
+}
+
+function syncTagQuery(tag: string) {
+  const next = { ...route.query } as Record<string, string | string[] | undefined>
+  if (tag) {
+    next.tag = tag
+  } else {
+    delete next.tag
+  }
+  void router.replace({ query: next })
 }
 
 async function load() {
   loading.value = true
   try {
-    const page = await pagePosts(current.value, PAGE_SIZE, activeCategory.value || undefined, sortBy.value)
+    const page = await pagePosts(
+      current.value,
+      PAGE_SIZE,
+      activeCategory.value || undefined,
+      sortBy.value,
+      activeTag.value || undefined
+    )
     posts.value = page.records
     total.value = page.total
   } finally {
     loading.value = false
   }
+}
+
+function applyTagFilter() {
+  activeTag.value = tagInput.value.trim()
+  current.value = 1
+  syncTagQuery(activeTag.value)
+  void load()
+}
+
+function clearTagFilter() {
+  tagInput.value = ''
+  activeTag.value = ''
+  current.value = 1
+  syncTagQuery('')
+  void load()
 }
 
 function formatTime(iso: string | null): string {
@@ -82,6 +123,11 @@ watch(current, () => {
 })
 
 onMounted(async () => {
+  const qTag = typeof route.query.tag === 'string' ? route.query.tag.trim() : ''
+  if (qTag) {
+    tagInput.value = qTag
+    activeTag.value = qTag
+  }
   try {
     categories.value = await fetchCategories()
   } finally {
@@ -97,10 +143,25 @@ onMounted(async () => {
         <n-icon :component="ChatbubblesOutline" :size="22" />
         技术论坛
       </h2>
-      <GsButton variant="ghost" to="/forum/new">
-        <n-icon :component="AddOutline" :size="16" />
-        发帖
-      </GsButton>
+      <n-space align="center" :wrap="true">
+        <n-input
+          v-model:value="tagInput"
+          placeholder="按标签筛选"
+          size="small"
+          style="width: 180px"
+          @keyup.enter="applyTagFilter"
+        >
+          <template #prefix>
+            <n-icon :component="SearchOutline" />
+          </template>
+        </n-input>
+        <GsButton variant="ghost" @click="applyTagFilter">筛选</GsButton>
+        <GsButton v-if="activeTag" variant="text" @click="clearTagFilter">清除</GsButton>
+        <GsButton variant="ghost" to="/forum/new">
+          <n-icon :component="AddOutline" :size="16" />
+          发帖
+        </GsButton>
+      </n-space>
     </div>
 
     <div class="forum-filter">
@@ -138,7 +199,7 @@ onMounted(async () => {
         v-reveal
         :title="post.title"
         :to="`/forum/posts/${post.id}`"
-        :tags="[categoryLabel(post)]"
+        :tags="rowTags(post)"
         :pinned="post.isPinned === 1"
         :rank="hotRank(index)"
         :show-rank="hotRank(index) != null"
@@ -163,6 +224,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
 }
 

@@ -7,6 +7,7 @@ export interface PostCard {
   userId: number
   categoryId: number
   title: string
+  tags: string[]
   viewCount: number
   replyCount: number
   lastReplyAt: string | null
@@ -22,6 +23,7 @@ export interface PostDetail {
   categoryId: number
   title: string
   contentMd: string
+  tags: string[]
   viewCount: number
   replyCount: number
   lastReplyAt: string | null
@@ -52,9 +54,23 @@ export function fetchCategories(): Promise<Category[]> {
   return unwrap<Category[]>(request.get('/v1/posts/categories'))
 }
 
-export function pagePosts(current: number, size: number, category?: string, sort?: string): Promise<PageResult<PostCard>> {
+export function pagePosts(
+  current: number,
+  size: number,
+  category?: string,
+  sort?: string,
+  tag?: string
+): Promise<PageResult<PostCard>> {
   return unwrap<PageResult<PostCard>>(
-    request.get('/v1/posts', { params: { current, size, category: category || undefined, sort: sort || undefined } })
+    request.get('/v1/posts', {
+      params: {
+        current,
+        size,
+        category: category || undefined,
+        sort: sort || undefined,
+        tag: tag || undefined
+      }
+    })
   )
 }
 
@@ -62,11 +78,19 @@ export function fetchPost(id: number | string): Promise<PostDetail> {
   return unwrap<PostDetail>(request.get(`/v1/posts/${id}`))
 }
 
-export function createPost(payload: { categoryId: number; title: string; contentMd: string }): Promise<PostDetail> {
+export function createPost(payload: {
+  categoryId: number
+  title: string
+  contentMd: string
+  tags?: string[]
+}): Promise<PostDetail> {
   return unwrap<PostDetail>(request.post('/v1/posts', payload))
 }
 
-export function updatePost(id: number, payload: { title: string; contentMd: string }): Promise<PostDetail> {
+export function updatePost(
+  id: number,
+  payload: { title: string; contentMd: string; tags?: string[] }
+): Promise<PostDetail> {
   return unwrap<PostDetail>(request.put(`/v1/posts/${id}`, payload))
 }
 
