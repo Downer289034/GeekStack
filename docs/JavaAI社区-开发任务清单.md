@@ -262,7 +262,7 @@
 **描述**：`PUT /api/v1/users/me`（昵称/简介，头像 URL）；`PUT /api/v1/users/me/password`（第三方注册用户首次设置免验旧密码，已有密码需验旧密码）；头像上传复用 media API（scene=avatar，2MB）；requireOwned 模式
 **验收标准**：三路径测试（本人改/他人隔离/未登录 401）；密码设置后旧登录态失效策略（记录口径）；mvn verify 末行 + CI
 **前置**：无（可与 T-SKILL-1 并行）
-**完成**：待填 commit；V6 `token_version` + PUT me/password + MeResponse(hasPassword/oauthBindings)；改密口径见开发进度决策 20
+**完成**：`f32decb`；V6 `token_version` + PUT me/password + MeResponse(hasPassword/oauthBindings)；改密口径见开发进度决策 20
 
 ### [x] T-PROFILE-FE：个人设置页（前端）
 **描述**：新 `/settings` 页：资料编辑表单（昵称/简介/头像上传，复用 media API scene=avatar）；密码管理（区分"设置密码"与"修改密码"两种态）；绑定管理（GitHub/Gitee 绑定状态 + 绑定/解绑按钮——API 已有补 UI）；个人主页加"编辑资料"入口
