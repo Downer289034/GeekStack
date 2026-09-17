@@ -11,6 +11,8 @@ import com.community.like.entity.UserLike;
 import com.community.like.mapper.UserLikeMapper;
 import com.community.share.entity.ProjectShare;
 import com.community.share.mapper.ProjectShareMapper;
+import com.community.skill.entity.Skill;
+import com.community.skill.mapper.SkillMapper;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
 import java.util.List;
@@ -33,19 +35,22 @@ public class LikeService {
     public static final String TYPE_POST = "POST";
     public static final String TYPE_SHARE = "SHARE";
     public static final String TYPE_COMMENT = "COMMENT";
+    public static final String TYPE_SKILL = "SKILL";
 
     private final UserLikeMapper likeMapper;
     private final PostMapper postMapper;
     private final ProjectShareMapper shareMapper;
+    private final SkillMapper skillMapper;
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
 
     public LikeService(UserLikeMapper likeMapper, PostMapper postMapper,
-                       ProjectShareMapper shareMapper, UserService userService,
-                       ApplicationEventPublisher eventPublisher) {
+                       ProjectShareMapper shareMapper, SkillMapper skillMapper,
+                       UserService userService, ApplicationEventPublisher eventPublisher) {
         this.likeMapper = likeMapper;
         this.postMapper = postMapper;
         this.shareMapper = shareMapper;
+        this.skillMapper = skillMapper;
         this.userService = userService;
         this.eventPublisher = eventPublisher;
     }
@@ -118,7 +123,11 @@ public class LikeService {
                     .eq(Post::getId, targetId).setSql(sql));
             case TYPE_SHARE -> shareMapper.update(null, Wrappers.<ProjectShare>lambdaUpdate()
                     .eq(ProjectShare::getId, targetId).setSql(sql));
-            // COMMENT: like_count 在 comment 表上，后续 T20 接入时加
+            case TYPE_SKILL -> skillMapper.update(null, Wrappers.<Skill>lambdaUpdate()
+                    .eq(Skill::getId, targetId).setSql(sql));
+            // COMMENT: like_count 在 comment 表上，后续接入时加
+            default -> {
+            }
         }
     }
 
@@ -138,6 +147,10 @@ public class LikeService {
             ProjectShare share = shareMapper.selectById(targetId);
             return share != null ? share.getUserId() : -1;
         }
+        if (TYPE_SKILL.equals(targetType)) {
+            Skill skill = skillMapper.selectById(targetId);
+            return skill != null ? skill.getUserId() : -1;
+        }
         return -1;
     }
 
@@ -153,8 +166,13 @@ public class LikeService {
                     throw new BusinessException(ErrorCode.NOT_FOUND, "项目分享不存在");
                 }
             }
+            case TYPE_SKILL -> {
+                if (skillMapper.selectById(targetId) == null) {
+                    throw new BusinessException(ErrorCode.NOT_FOUND, "Skill 不存在");
+                }
+            }
             case TYPE_COMMENT -> {
-                // TODO: T20 接入时补充评论存在性检查
+                // TODO: 评论存在性检查
             }
             default -> throw new BusinessException(ErrorCode.PARAM_ERROR, "不支持的点赞目标类型");
         }

@@ -32,6 +32,7 @@ public class SecurityConfig {
                         // OAuth 回调与授权码转交：双语义由是否携带 JWT 决定，匿名必须可达
                         .requestMatchers("/api/v1/oauth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/shares", "/api/v1/shares/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/skills", "/api/v1/skills/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts", "/api/v1/posts/categories",
                                 "/api/v1/posts/*", "/api/v1/posts/*/comments",
                                 "/api/v1/shares/*/comments", "/api/v1/users/*/profile",

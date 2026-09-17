@@ -45,11 +45,11 @@ class FlywayMigrationTest {
         List<String> tables = tableNames();
         assertThat(tables).containsExactlyInAnyOrder("user", "user_oauth_binding", "user_repo",
                 "project_share", "post", "post_category", "comment", "notification",
-                "user_like", "user_favorite",
+                "user_like", "user_favorite", "skill",
                 "flyway_schema_history");
 
         for (String table : List.of("user", "user_oauth_binding", "user_repo", "project_share",
-                "post", "post_category", "comment", "notification", "user_like", "user_favorite")) {
+                "post", "post_category", "comment", "notification", "user_like", "user_favorite", "skill")) {
             List<Map<String, Object>> columns = jdbcTemplate.queryForList(
                     "SELECT column_name FROM information_schema.columns "
                             + "WHERE table_schema = DATABASE() AND table_name = ?",

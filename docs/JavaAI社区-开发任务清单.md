@@ -277,9 +277,10 @@
 > 架构决策：独立 skill 模块（不塞进 share）；复用点赞/标签/搜索通过类型扩展接入。
 > 一期裁剪：发布/广场/详情/点赞/标签/搜索；二期：评论、Skill 文件包上传（MinIO scene=skill）、评分。
 
-### [ ] T-SKILL-1（后端）：数据模型 + API
+### [x] T-SKILL-1（后端）：数据模型 + API
 **描述**：Flyway V4（skill 表 + user_like.target_type ENUM 扩展加 'SKILL'，幂等）；发布/编辑/下架（requireOwned）/广场列表（分页+标签筛选）/详情 API；G1 搜索扩展 type=skill；LikeService target_type 扩展 + ContentLikedEvent 联动通知
 **验收标准**：照例正/反/越权三路径测试 + HIDDEN 不泄露 + skill 点赞→通知→热榜联动全链路测试；mvn verify 末行 + CI 链接
+**完成**：实际用 Flyway **V5**（V4 已被 T-TAG-BE 占用）；广场 `sort=hot`≈ view+like*2；标签云 UNION skill；`/api/v1/hot` 仍仅帖子
 
 ### [x] T-SKILL-2（前端）：Skill 广场 + 发布 + 详情
 **描述**：Skill 广场页（列表行/卡片语言 + 模型适配说明专属展示）；发布表单（标题/摘要/提示词正文 Markdown/模型适配说明/标签）；详情页（提示词代码块精致展示）；导航入口；搜索/标签页接入 skill 类型
@@ -288,3 +289,20 @@
 **完成**：`f7e30f9` `/skills` 三页 + 导航 + 搜索 Tab=`skill`；API 契约冻结对齐计划表（待 T-SKILL-1 联调）
 
 ### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
+
+---
+
+# M10 登录安全加固（2026-09-17 立项，老板拍板）
+
+> 背景：PM 例行登录链路安全审计（亲审 JwtService/UserService/SecurityConfig/OAuthService/OAuthController/GiteeOAuthService/RegisterRequest）结论：整体及格线以上、无致命漏洞，但发现两处必修项——①OAuth 无 state 参数（Login CSRF/绑定劫持面，OWASP 标准必修）；②`/api/v1/auth/**` 无频控（爆破/撞库面）。审计达标项（BCrypt、统一 401 防枚举、refresh 查封禁、AES-GCM 落库、保守合并语义、解绑保护）无需改动。
+> 执行顺序（老板批准的计划表增量）：**后端** T-PROFILE-BE → T-SEC-1-BE → T-SKILL-1；**前端** T-SEC-1-FE 立即开工（当前前端无在途任务）。Flyway 版本号一律以合并后 main 最大版本 +1 顺延，禁止写死编号。
+
+### [ ] T-SEC-1-BE：OAuth state 校验 + 登录频控（后端）
+**描述**：①`/login/{provider}` 生成一次性随机 state（SecureRandom ≥128bit，Redis 存 5 分钟 TTL），`/api/v1/oauth/{provider}/code` 转交时必带并校验：缺失/不匹配/过期/重放一律 401，校验即消费（防重放）；GITHUB/GITEE 两平台同改。②auth 三接口（login/register/refresh）失败计数频控：Redis 按 IP+用户名维度，15 分钟内失败 5 次锁定（返回 429），成功登录清零；实现复用 RedisTemplate 并写降级分支测试（Redis 不可用时放行并记日志，参照 notify 模块 flaky 教训钉死降级分支）
+**验收标准**：state 四路径测试（缺失/篡改/过期/重放均 401，正常登录不受影响）；频控测试（第 6 次失败 429、成功清零、Redis 宕机降级放行）；现有全部测试不回归；mvn verify 末行 + CI 链接；密码/token 存储零明文红线不变
+**前置**：无（T-PROFILE-BE 之后、T-SKILL-1 之前）
+
+### [ ] T-SEC-1-FE：OAuth state 生成与转交（前端）
+**描述**：点击授权按钮前用 `crypto.getRandomValues` 生成 state 存 sessionStorage；`/oauth/callback` 页转交 code 时一并提交 state 并比对，不匹配则清空 pending 提示重新发起登录；不匹配/缺失场景 UI 走现有错误态（不新增样式）
+**验收标准**：三绿 + 零硬编码色值；正常 OAuth 登录/绑定全链路实测不受影响；篡改 state 的手动演练被后端拒绝且页面有明确提示
+**前置**：T-SEC-1-BE（契约对齐：code 载荷新增 state 字段）

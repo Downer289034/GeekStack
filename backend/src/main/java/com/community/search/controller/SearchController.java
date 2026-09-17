@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * G1 搜索接口：公开；{@code type} 仅 {@code post|share}（不做 type=all 混合分页）。
+ * G1 搜索接口：公开；{@code type} 仅 {@code post|share|skill}（不做 type=all 混合分页）。
  */
 @RestController
 @RequestMapping("/api/v1/search")

@@ -73,6 +73,8 @@ public class NotifyService {
         return switch (targetType) {
             case "POST", "post" -> "帖子";
             case "SHARE", "share" -> "项目分享";
+            case "SKILL", "skill" -> "Skill";
+            case "COMMENT", "comment" -> "评论";
             default -> "内容";
         };
     }
