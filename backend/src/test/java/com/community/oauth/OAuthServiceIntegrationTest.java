@@ -9,6 +9,7 @@ import com.community.common.AesGcmCipher;
 import com.community.oauth.dto.OAuthUserInfo;
 import com.community.oauth.service.GitHubOAuthService;
 import com.community.oauth.service.GiteeOAuthService;
+import com.community.oauth.service.OAuthStateService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -16,9 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -51,6 +50,9 @@ class OAuthServiceIntegrationTest {
     @Autowired
     private AesGcmCipher cipher;
 
+    @Autowired
+    private OAuthStateService oAuthStateService;
+
     @MockBean
     private GitHubOAuthService gitHubOAuthService;
 
@@ -73,10 +75,16 @@ class OAuthServiceIntegrationTest {
                 .thenReturn(new OAuthUserInfo(openid, login, "GH昵称_" + login, email, "http://a/img.png"));
     }
 
+    private String codeBody(String code, String provider) throws Exception {
+        return objectMapper.writeValueAsString(Map.of(
+                "code", code,
+                "state", oAuthStateService.issue(provider)));
+    }
+
     private String submitGithubCode(String code) throws Exception {
         String resp = mockMvc.perform(post("/api/v1/oauth/GITHUB/code")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("code", code))))
+                        .content(codeBody(code, "GITHUB")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andReturn()
@@ -137,7 +145,7 @@ class OAuthServiceIntegrationTest {
         mockGitHub("9002", "ghuser_b", "conflict15@test.local");
         mockMvc.perform(post("/api/v1/oauth/GITHUB/code")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("code", "code-3"))))
+                        .content(codeBody("code-3", "GITHUB")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(40900))
                 .andExpect(jsonPath("$.message").value("该邮箱已注册，请使用密码登录后在设置中绑定GITHUB账号"));
@@ -171,7 +179,7 @@ class OAuthServiceIntegrationTest {
         mockMvc.perform(post("/api/v1/oauth/GITHUB/code")
                         .header("Authorization", "Bearer " + jwt)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("code", "code-4"))))
+                        .content(codeBody("code-4", "GITHUB")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0));
 
@@ -198,7 +206,7 @@ class OAuthServiceIntegrationTest {
 
         String resp = mockMvc.perform(post("/api/v1/oauth/GITEE/code")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("code", "code-5"))))
+                        .content(codeBody("code-5", "GITEE")))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()

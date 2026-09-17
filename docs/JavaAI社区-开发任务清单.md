@@ -262,7 +262,7 @@
 **描述**：`PUT /api/v1/users/me`（昵称/简介，头像 URL）；`PUT /api/v1/users/me/password`（第三方注册用户首次设置免验旧密码，已有密码需验旧密码）；头像上传复用 media API（scene=avatar，2MB）；requireOwned 模式
 **验收标准**：三路径测试（本人改/他人隔离/未登录 401）；密码设置后旧登录态失效策略（记录口径）；mvn verify 末行 + CI
 **前置**：无（可与 T-SKILL-1 并行）
-**完成**：`f32decb`；V6 `token_version` + PUT me/password + MeResponse(hasPassword/oauthBindings)；改密口径见开发进度决策 20
+**完成**：`f32decb`；V6 `token_version` + PUT me/password + MeResponse(hasPassword/oauthBindings)；改密口径见开发进度决策 20。PM 验收：push 86b50af 同步、CI 双 job success（run 35226481560，126 测全绿）；token_version 机制实证（refresh 时比对 JWT ver 与 DB 版本，normalizeVersion 兼容存量用户，旧 refresh 立即 401 / 旧 access 30min TTL 自然过期）；端点三件套与 FE（auth.ts + SettingsView）契约逐一比对一致
 
 ### [x] T-PROFILE-FE：个人设置页（前端）
 **描述**：新 `/settings` 页：资料编辑表单（昵称/简介/头像上传，复用 media API scene=avatar）；密码管理（区分"设置密码"与"修改密码"两种态）；绑定管理（GitHub/Gitee 绑定状态 + 绑定/解绑按钮——API 已有补 UI）；个人主页加"编辑资料"入口
@@ -298,10 +298,11 @@
 > 背景：PM 例行登录链路安全审计（亲审 JwtService/UserService/SecurityConfig/OAuthService/OAuthController/GiteeOAuthService/RegisterRequest）结论：整体及格线以上、无致命漏洞，但发现两处必修项——①OAuth 无 state 参数（Login CSRF/绑定劫持面，OWASP 标准必修）；②`/api/v1/auth/**` 无频控（爆破/撞库面）。审计达标项（BCrypt、统一 401 防枚举、refresh 查封禁、AES-GCM 落库、保守合并语义、解绑保护）无需改动。
 > 执行顺序（老板批准的计划表增量，2026-09-17 修订：T-SKILL-1 / T-PROFILE-BE 已收官）：**后端** T-SEC-1-BE；**前端** T-SEC-1-FE。Flyway 版本号一律以合并后 main 最大版本 +1 顺延，禁止写死编号。
 
-### [ ] T-SEC-1-BE：OAuth state 校验 + 登录频控（后端）
+### [x] T-SEC-1-BE：OAuth state 校验 + 登录频控（后端）
 **描述**：①`/login/{provider}` 生成一次性随机 state（SecureRandom ≥128bit，Redis 存 5 分钟 TTL），`/api/v1/oauth/{provider}/code` 转交时必带并校验：缺失/不匹配/过期/重放一律 401，校验即消费（防重放）；GITHUB/GITEE 两平台同改。②auth 三接口（login/register/refresh）失败计数频控：Redis 按 IP+用户名维度，15 分钟内失败 5 次锁定（返回 429），成功登录清零；实现复用 RedisTemplate 并写降级分支测试（Redis 不可用时放行并记日志，参照 notify 模块 flaky 教训钉死降级分支）
 **验收标准**：state 四路径测试（缺失/篡改/过期/重放均 401，正常登录不受影响）；频控测试（第 6 次失败 429、成功清零、Redis 宕机降级放行）；现有全部测试不回归；mvn verify 末行 + CI 链接；密码/token 存储零明文红线不变
 **前置**：无（T-PROFILE-BE 之后、T-SKILL-1 之前）
+**完成**：待填；契约见开发进度决策 21
 
 ### [ ] T-SEC-1-FE：OAuth state 生成与转交（前端）
 **描述**：点击授权按钮前用 `crypto.getRandomValues` 生成 state 存 sessionStorage；`/oauth/callback` 页转交 code 时一并提交 state 并比对，不匹配则清空 pending 提示重新发起登录；不匹配/缺失场景 UI 走现有错误态（不新增样式）
