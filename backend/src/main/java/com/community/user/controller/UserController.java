@@ -1,13 +1,18 @@
 package com.community.user.controller;
 
 import com.community.common.Result;
+import com.community.user.dto.MeResponse;
 import com.community.user.dto.ProfileAggregateResponse;
-import com.community.user.dto.UserResponse;
+import com.community.user.dto.UpdateMeRequest;
+import com.community.user.dto.UpdatePasswordRequest;
 import com.community.user.service.ProfileService;
 import com.community.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,10 +31,28 @@ public class UserController {
         this.profileService = profileService;
     }
 
-    /** 当前登录用户资料；principal 为 JWT subject（用户名）。 */
+    /** 当前登录用户资料（含 hasPassword / oauthBindings）；principal 为 JWT subject（用户名）。 */
     @GetMapping("/me")
-    public Result<UserResponse> me(Authentication authentication) {
-        return Result.ok(userService.me(authentication.getName()));
+    public Result<MeResponse> me(Authentication authentication) {
+        return Result.ok(userService.meDetail(authentication.getName()));
+    }
+
+    /** 更新当前用户昵称/简介/头像 URL。 */
+    @PutMapping("/me")
+    public Result<MeResponse> updateMe(Authentication authentication,
+                                       @Valid @RequestBody UpdateMeRequest request) {
+        return Result.ok(userService.updateMe(authentication.getName(), request));
+    }
+
+    /**
+     * 设置或修改密码。无密用户首设免验旧密码；已有密码须验旧。
+     * 成功后旧 refresh 立即失效（见 UserService.changePassword 口径）。
+     */
+    @PutMapping("/me/password")
+    public Result<Void> updatePassword(Authentication authentication,
+                                       @Valid @RequestBody UpdatePasswordRequest request) {
+        userService.changePassword(authentication.getName(), request);
+        return Result.ok();
     }
 
     /**

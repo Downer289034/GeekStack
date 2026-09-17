@@ -36,6 +36,9 @@ public class User {
     /** 状态：0 正常 1 封禁。 */
     private Integer status;
 
+    /** JWT 版本：改密/设密时递增，旧 refresh 校验失败。 */
+    private Integer tokenVersion;
+
     /** 逻辑删除标记（全局配置 deleted=1 视为已删）。 */
     private Integer deleted;
 

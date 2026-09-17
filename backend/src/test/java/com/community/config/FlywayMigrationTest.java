@@ -85,6 +85,17 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void userTokenVersionColumnExists() {
+        List<Map<String, Object>> columns = jdbcTemplate.queryForList(
+                "SELECT column_name FROM information_schema.columns "
+                        + "WHERE table_schema = DATABASE() AND table_name = 'user'");
+        List<String> names = columns.stream()
+                .map(c -> String.valueOf(c.get("column_name")))
+                .toList();
+        assertThat(names).contains("token_version");
+    }
+
+    @Test
     void uniqueConstraintsExist() {
         assertThat(indexInfos("user"))
                 .filteredOn(IndexInfo::unique)

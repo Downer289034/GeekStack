@@ -4,11 +4,9 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.community.common.AesGcmCipher;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
-import com.community.common.JwtService;
 import com.community.oauth.dto.OAuthUserInfo;
 import com.community.oauth.entity.UserOauthBinding;
 import com.community.oauth.mapper.UserOauthBindingMapper;
-import com.community.user.dto.RegisterRequest;
 import com.community.user.dto.TokenResponse;
 import com.community.user.dto.UserResponse;
 import com.community.user.entity.User;
@@ -16,7 +14,6 @@ import com.community.user.mapper.UserMapper;
 import com.community.user.service.UserService;
 import java.time.LocalDateTime;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,14 +38,11 @@ public class OAuthService {
     private final GitHubOAuthService gitHubOAuthService;
     private final GiteeOAuthService giteeOAuthService;
     private final AesGcmCipher cipher;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
     private final RepoSyncService repoSyncService;
 
     public OAuthService(UserOauthBindingMapper bindingMapper, UserMapper userMapper,
                         UserService userService, GitHubOAuthService gitHubOAuthService,
                         GiteeOAuthService giteeOAuthService, AesGcmCipher cipher,
-                        JwtService jwtService, PasswordEncoder passwordEncoder,
                         RepoSyncService repoSyncService) {
         this.bindingMapper = bindingMapper;
         this.userMapper = userMapper;
@@ -56,8 +50,6 @@ public class OAuthService {
         this.gitHubOAuthService = gitHubOAuthService;
         this.giteeOAuthService = giteeOAuthService;
         this.cipher = cipher;
-        this.jwtService = jwtService;
-        this.passwordEncoder = passwordEncoder;
         this.repoSyncService = repoSyncService;
     }
 
@@ -111,7 +103,11 @@ public class OAuthService {
         }
         saveOrUpdateBinding(me.id(), provider, info, accessToken, refreshToken, expiresAt);
         repoSyncService.syncRepos(me.id(), provider);
-        return new TokenResponse(jwtService.generateAccess(me.username()), jwtService.generateRefresh(me.username()));
+        User current = userMapper.selectById(me.id());
+        if (current == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "绑定账号不存在");
+        }
+        return userService.issueTokens(current);
     }
 
     /** 未登录：找绑定→命中登录；未命中→邮箱冲突检查→自动注册+绑定。 */
@@ -128,8 +124,7 @@ public class OAuthService {
             if (user.getStatus() != null && user.getStatus() != 0) {
                 throw new BusinessException(ErrorCode.FORBIDDEN, "账号已被封禁");
             }
-            return new TokenResponse(jwtService.generateAccess(user.getUsername()),
-                    jwtService.generateRefresh(user.getUsername()));
+            return userService.issueTokens(user);
         }
 
         // 邮箱冲突（保守语义，PM 拍板）：邮箱已被本地账号占用 → 提示走密码登录后绑定，不自动合并
@@ -158,6 +153,7 @@ public class OAuthService {
         user.setAvatarUrl(info.avatarUrl());
         user.setRole("USER");
         user.setStatus(0);
+        user.setTokenVersion(0);
         try {
             userMapper.insert(user);
         } catch (DuplicateKeyException e) {
@@ -165,8 +161,7 @@ public class OAuthService {
         }
         saveOrUpdateBinding(user.getId(), provider, info, accessToken, refreshToken, expiresAt);
         repoSyncService.syncRepos(user.getId(), provider);
-        return new TokenResponse(jwtService.generateAccess(user.getUsername()),
-                jwtService.generateRefresh(user.getUsername()));
+        return userService.issueTokens(user);
     }
 
     private void saveOrUpdateBinding(long userId, String provider, OAuthUserInfo info,
