@@ -93,6 +93,9 @@ onMounted(() => {
           @{{ profile?.profile.username }} · 加入于 {{ formatTime(profile?.profile.createdAt ?? '') }}
         </p>
         <p class="profile-bio">{{ profile?.profile.bio || '这个人很懒，什么都没写' }}</p>
+        <GsButton v-if="isOwner" variant="ghost" to="/settings" class="edit-profile-btn">
+          编辑资料
+        </GsButton>
       </div>
     </header>
 
@@ -199,6 +202,10 @@ onMounted(() => {
   margin: 10px 0 0;
   color: var(--text-2);
   max-width: 62ch;
+}
+
+.edit-profile-btn {
+  margin-top: 12px;
 }
 
 .profile-section {

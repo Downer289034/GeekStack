@@ -107,6 +107,12 @@ const router = createRouter({
           meta: { title: '个人主页' }
         },
         {
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/profile/SettingsView.vue'),
+          meta: { title: '个人设置', requiresAuth: true, containerWidth: 'sm' }
+        },
+        {
           path: 'search',
           name: 'search',
           component: () => import('@/views/search/SearchView.vue'),

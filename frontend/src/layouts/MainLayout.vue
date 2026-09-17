@@ -154,6 +154,7 @@ function logout() {
           >
             {{ avatarLetter }}
           </RouterLink>
+          <RouterLink class="gs-text-btn" to="/settings">设置</RouterLink>
           <button type="button" class="gs-text-btn" @click="logout">退出</button>
         </template>
         <RouterLink v-else class="gs-text-btn" to="/login">登录</RouterLink>
