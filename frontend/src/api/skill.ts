@@ -56,6 +56,6 @@ export function updateSkill(id: number, payload: SkillPayload): Promise<SkillRes
   return unwrap<SkillResponse>(request.put(`/v1/skills/${id}`, payload))
 }
 
-export function hideSkill(id: number): Promise<void> {
-  return unwrap<void>(request.delete(`/v1/skills/${id}`))
+export function hideSkill(id: number): Promise<SkillResponse> {
+  return unwrap<SkillResponse>(request.post(`/v1/skills/${id}/hide`))
 }
