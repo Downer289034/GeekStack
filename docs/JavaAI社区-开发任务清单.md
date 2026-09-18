@@ -1,4 +1,4 @@
-# Java & AI 交流社区 — 开发任务清单
+﻿# Java & AI 交流社区 — 开发任务清单
 
 > **规格来源**：《JavaAI社区-架构与产品规划.md》v1.0
 > **技术栈**：JDK17 + Spring Boot 3.3 + MyBatis-Plus + MySQL 8 + Redis ｜ Vue3 + Vite + Pinia + 定制鸿蒙风主题
@@ -293,7 +293,7 @@
 **描述**：Flyway 顺延加 `skill.version`、`skill.changelog`（存量回填 `1.0.0`）；发布/编辑收两字段（version SemVer 核心校验，缺省 `1.0.0`）；详情/广场列表返回
 **验收标准**：三路径（本人改/越权 403/未登录 401）+ 非法 SemVer 400；mvn verify + CI
 **前置**：T-SKILL-1
-**完成**：待填 commit
+**完成**：`757dcf2`；V7 version/changelog + SemVer；详情/广场返回
 
 ### [x] T-SKILL-3-FE：发布对齐 SkillHub 规范（前端，与 T-AI-0 并行）
 **描述**：①发布/编辑表单加版本号（默认 `1.0.0`，SemVer 核心正则与 BE `SemVer` 对齐）+ 变更说明（选填 textarea，≤2000）；②摘要框支持粘贴 `SKILL.md`：纯前端解析 YAML frontmatter 的 `name`/`description` 预填标题与摘要，失败静默降级为手填；③契约对齐 T-SKILL-3-BE：`POST/PUT` 载荷 `version`（必填）+ `changelog`（选填）；旧数据无版本号展示兜底 `1.0.0`；④详情页展示版本号 + 最近变更说明（不做版本历史列表）
