@@ -11,11 +11,13 @@
     sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
 
-  /* 墨蓝中性阶（暖偏染，非纯灰） */
-  --ink-950: oklch(13% 0.015 262);
-  --ink-900: oklch(16% 0.018 262);
-  --ink-800: oklch(21% 0.02 262);
-  --ink-700: oklch(28% 0.02 262);
+  /* 墨蓝中性阶（暖偏染，非纯灰）
+     2026-09-18 修正：整阶上提 3 个点对齐规范 v1.1（13%/16% 落地过黑，
+     近纯黑无蓝偏染、行卡片与背景层次糊死，老板反馈"黑得看不清"） */
+  --ink-950: oklch(16% 0.018 262);
+  --ink-900: oklch(20% 0.02 262);
+  --ink-800: oklch(24% 0.022 262);
+  --ink-700: oklch(30% 0.022 262);
   --ink-500: oklch(52% 0.015 262);
   --ink-300: oklch(72% 0.01 262);
   --ink-100: oklch(93% 0.008 262);
@@ -56,22 +58,22 @@
   --surface-1: var(--ink-900);
   --surface-2: var(--ink-800);
   --surface-3: var(--ink-700);
-  --border: oklch(28% 0.02 262 / 0.9);
-  --border-strong: oklch(38% 0.02 262);
+  --border: oklch(30% 0.02 262 / 0.9);
+  --border-strong: oklch(40% 0.02 262);
   --text-1: var(--ink-100);
   --text-2: var(--ink-300);
-  /* L58：meta/占位符需 ≥4.5:1（ink-500≈3.65 不达标） */
-  --text-3: oklch(58% 0.012 262);
+  /* L60：bg 提亮后（13%→16%）随调，保证 vs bg 4.92 / vs surface-1 4.59 均 ≥4.5 */
+  --text-3: oklch(60% 0.012 262);
   --accent: var(--amber-500);
   --accent-hover: var(--amber-300);
   --accent-text: var(--ink-950);
-  --nav-bg: oklch(16% 0.018 262 / 0.82);
-  --overlay: oklch(13% 0.015 262 / 0.75);
+  --nav-bg: oklch(20% 0.02 262 / 0.85);
+  --overlay: oklch(16% 0.018 262 / 0.75);
   --body-weight: 380;
   --card-shadow: none;
   --shadow-sm: none;
-  --shadow-md: 0 4px 12px oklch(13% 0.015 262 / 0.35);
-  --shadow-lg: 0 8px 24px oklch(13% 0.015 262 / 0.45);
+  --shadow-md: 0 4px 12px oklch(16% 0.018 262 / 0.35);
+  --shadow-lg: 0 8px 24px oklch(16% 0.018 262 / 0.45);
   /* 粒子层调色（canvas 不支持 oklch，sRGB 三元组）：夜=琥珀萤火，出处 particles-bg.html §2 */
   --particles-rgb: 255, 186, 100;
   /* 语义色「字」：暗色可用基色本身；error 略提亮以满足徽章 15% 底 ≥4.5 */
