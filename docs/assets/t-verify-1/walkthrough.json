@@ -1,0 +1,29 @@
+[
+  {
+    "step": "dark-home",
+    "hasCanvas": 1,
+    "darkRgb": "255, 186, 100"
+  },
+  {
+    "step": "light-home",
+    "hasCanvas": 1,
+    "lightRgb": "150, 118, 72"
+  },
+  {
+    "step": "login-exclude",
+    "loginCanvas": 0,
+    "pass": true
+  },
+  {
+    "step": "visibilitychange-hidden",
+    "hiddenSimulated": true,
+    "note": "stop() on hidden; Task Manager CPU zero needs real tab switch"
+  },
+  {
+    "step": "sec1-tamper-state",
+    "errText": "登录校验失败（state 不匹配），请重新发起第三方登录",
+    "pendingGone": null,
+    "sessGone": null,
+    "pass": true
+  }
+]

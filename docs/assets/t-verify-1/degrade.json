@@ -1,0 +1,7 @@
+{
+  "warns": [
+    "[GsParticles] 掉帧降级：密度减半至 25",
+    "[GsParticles] 停用： 掉帧降级触发两次，粒子层停用"
+  ],
+  "canvasLeft": 1
+}

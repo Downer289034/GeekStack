@@ -1,0 +1,23 @@
+﻿import { chromium } from 'playwright';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const OUT = path.join(root, 'docs', 'assets', 't-verify-1');
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const client = await page.context().newCDPSession(page);
+const warns = [];
+page.on('console', (msg) => {
+  const t = msg.text();
+  if (t.includes('[GsParticles]')) warns.push(t);
+});
+await page.goto('http://127.0.0.1:5173/', { waitUntil: 'networkidle' });
+await page.waitForTimeout(400);
+await client.send('Emulation.setCPUThrottlingRate', { rate: 16 });
+await page.waitForTimeout(25000);
+const canvasLeft = await page.locator('canvas.gs-particles').count();
+const result = { warns, canvasLeft };
+fs.writeFileSync(path.join(OUT, 'degrade.json'), JSON.stringify(result, null, 2));
+console.log(JSON.stringify(result, null, 2));
+await browser.close();

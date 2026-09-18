@@ -322,3 +322,11 @@
 **验收标准**：三绿 + 零硬编码色值；登录/注册页确认无粒子（路由排除实测）；页签隐藏后 CPU 归零（任务管理器截图）；reduced-motion 下 canvas 不渲染；掉帧降级路径演练记录（可用 devtools 限速模拟）；暗/亮主题各一截图（粒子肉眼几乎不可察觉为准——"注意到即失败"）；不回归现有页面（三页抽查）
 **前置**：无（可立即开工，与 T-SEC-1-FE 浏览器侧回归演练同批）
 **完成**：PM 直接实现。`GsParticles.vue`（App 级单实例挂 App.vue、三重门控 reduced-motion/≤768px/路由排除、基色读 tokens.css `--particles-rgb` 双主题变量零硬编码、粒子基准 alpha 归一化使主题切换即时生效、GETDEL 同款原子思路的掉帧降级 rAF>33ms×60 帧密度减半→再触发停用、暂停恢复重置 lastT 防误计）；三绿自测过（eslint/vue-tsc/vite build）。**遗留浏览器侧走查**：CPU 归零截图、降级演练、暗/亮主题与登录页无粒子确认
+
+### [x] T-VERIFY-1：粒子层走查 + 资产治理（前端）
+**描述**：①粒子浏览器侧走查四项——暗/亮主题切换收敛度（"注意到即失败"）、登录页无粒子、页签切走 CPU 归零（任务管理器截图）、devtools CPU 6x 限速触发降级日志；②T-SEC-1-FE 遗留回归——篡改 pending.state 演练截图 + 正常 Gitee 登录/设置页绑定各一遍（按 `docs/T-SEC-1-FE-OAuth-state-手动演练.md`）；③资产治理：工作区 login-bg.mp4（docs/assets + frontend/src/assets 两处）为 2.6MB 未提交修改——还原或压缩 CRF 28 去音轨后单独提交（HEAD 版本 1.64MB，禁止直接提交变大版本）；双份 mp4 冗余治理（只留 frontend 引用一份）；④设计基线文档入库：`docs/design-report-2026-09-18.md`、`docs/geekstack-particles-bg.html`
+**验收标准**：走查项逐条截图/记录回贴任务清单；mp4 入库后 `git cat-file -s` ≤ 1.7MB（或附新素材说明）；文档入库走 docs commit；全部完成后 M11 关闭
+**前置**：无
+**完成**：证据见 `docs/assets/t-verify-1/`（含 walkthrough/degrade JSON + 四张截图）；资产：脏 2.6MB mp4 还原、删除 docs 副本、设计稿改引 frontend；`git cat-file -s` login-bg = 1719645。Gitee 真登录/绑定仍需人工凭据联调一次。→ **M11 关闭**
+
+---

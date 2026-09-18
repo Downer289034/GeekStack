@@ -30,6 +30,8 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
 /* ============ 视频背景层 ============ */
 .bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--ink-950); }
 .bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 粒子流层（灯笼萤火）：位于视频之上、卡片之下，reduced-motion 不启动 */
+.bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 /* 不加压暗层：视频本身是暗调雨夜场景，可读性由卡片实色自担 */
 /* 降级态（视频关闭/加载失败/reduced-motion）：纯墨蓝 + 微弱网格 */
 .bg.no-video video { display: none; }
@@ -158,10 +160,11 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
 </head>
 <body data-page-node-id="Gka5puaAAGuSxAYnGrqU4m">
 
-<!-- 视频背景：video 原样全屏（无压暗层）→ 内容(z1) -->
+<!-- 视频背景：video 原样全屏（无压暗层）→ 粒子流层 → 内容(z1) -->
 <div class="bg" id="bg" data-page-node-id="F6RMKMS0CqAkGc96ZDC2QO">
-  <video id="bgvideo" src="assets/login-bg.mp4" autoplay muted loop playsinline
+  <video id="bgvideo" src="../frontend/src/assets/login-bg.mp4" autoplay muted loop playsinline
          preload="metadata" disablepictureinpicture aria-hidden="true" tabindex="-1" data-page-node-id="Kw8Qd2ht565Qpc8QQpBpIS"></video>
+  <canvas id="fx" aria-hidden="true"></canvas>
 </div>
 
 <main class="stage" data-page-node-id="NeVfjsaDYfQxF1SwYc6nh9">
@@ -209,6 +212,8 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
 <div class="demo-panel" role="group" aria-label="设计评审控制" data-page-node-id="d2pQ6gqGphG0m7S9vVTlPf">
   <button id="toggleVideo" data-page-node-id="LU3kv1qHcRSa4G9fhRB0Rb">视频 开/关</button>
   <span id="stateLabel" data-page-node-id="ydIalhITWe0efg46y1HITa">video: on</span>
+  <button id="toggleFx">粒子 开/关</button>
+  <span id="fxLabel">fx: on</span>
 </div>
 
 <!-- ============ 实现规格 ============ -->
@@ -220,7 +225,7 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
     <h3 data-page-node-id="McKiEcDdf0peOgSR5SaYMF">1. 视频层</h3>
     <table data-page-node-id="sqPAhA4mwBeAjISohR741e">
       <tr data-page-node-id="s7tqVJGmBOzCqbM12b98er"><th data-page-node-id="UqSmjSB3HSoRy3XOd9xohI">项</th><th data-page-node-id="sQzyVRJauhh4nqLPqi88tv">要求</th></tr>
-      <tr data-page-node-id="Q4pEQa8HjXFwVBlcyz3EKm"><td data-page-node-id="Q5OzdD9sw6G1aSoGhldxzn">素材</td><td data-page-node-id="4cv10VCUAnBtLAEQ9ZorZJ"><code data-page-node-id="E1retln16rmZKTr9eqEMMz">src/assets/login-bg.mp4</code>（1280×720 · 4.35s · 2.7MB · 含音轨）——入库时建议压制 <code data-page-node-id="fTY6WXQBQrOrXfGEwfvHcq">crf 28</code> 再缩体积，并去掉音轨（背景永远静音，音轨纯占体积）</td></tr>
+      <tr data-page-node-id="Q4pEQa8HjXFwVBlcyz3EKm"><td data-page-node-id="Q5OzdD9sw6G1aSoGhldxzn">素材</td><td data-page-node-id="4cv10VCUAnBtLAEQ9ZorZJ"><code data-page-node-id="E1retln16rmZKTr9eqEMMz">frontend/src/assets/login-bg.mp4</code>（设计稿经相对路径引用；入库版 ≤1.7MB、去音轨；docs/assets 不再保留副本）</td></tr>
       <tr data-page-node-id="6DiTarqC4DyKMSxDBFWfSd"><td data-page-node-id="rM4p4w8BFAINc26FDEZnxr">属性（必写全）</td><td data-page-node-id="IzoWIMUrlaxr4pMRBVaADk"><code data-page-node-id="hlqXWUDvqDZSGdwIEiC7sC">autoplay muted loop playsinline disablepictureinpicture</code>——缺 <code data-page-node-id="34cN9cACkMFqXZoSBuuSUv">muted playsinline</code> 会被浏览器拒绝自动播放</td></tr>
       <tr data-page-node-id="3DWpyE4CSsGOIFz06FcYbH"><td data-page-node-id="7K1ARgOAH6PLP2I7VudFpc">铺排</td><td data-page-node-id="C8otFpXURz8m1iVWo2bQcl"><code data-page-node-id="JDkXNXzQkC8oAhMZAWL28c">object-fit: cover</code> 全屏铺排；<code data-page-node-id="fajU2iZ9t3ADIfACF0VcSG">aria-hidden="true" tabindex="-1"</code>（纯装饰，对辅助技术隐身）</td></tr>
       <tr data-page-node-id="JDBgJHOaYJsdtXzIUoIQjd"><td data-page-node-id="tnFEHm1vs0vvGoCMoM2RvO">加载策略</td><td data-page-node-id="DtkrGncQa4h8wlOy1cqF4t">视频仅在登录/注册路由加载（组件挂载时才插 &lt;video&gt;，路由离开即销毁）；<code data-page-node-id="QeoKB1ACh83lC18G3FMFDv">preload="metadata"</code>，不要 auto</td></tr>
@@ -233,7 +238,19 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
       <li data-page-node-id="ScrimFallbackNote">日后若换高亮度视频素材：优先换暗调素材，其次才恢复轻量 scrim——禁止靠拉黑视频换对比度</li>
     </ul>
 
-    <h3 data-page-node-id="CfSDZzvDFWPBTHDHcW6QdO">3. 红线（沿用 v1.1，视频背景下重申）</h3>
+    <h3 data-page-node-id="CfSDZzvDFWPBTHDHcW6QdO">2.5 粒子流层（灯笼萤火）</h3>
+    <table>
+      <tr><th>参数</th><th>取值</th><th>说明</th></tr>
+      <tr><td>层序</td><td>video → canvas → 卡片</td><td>粒子叠在视频上、卡片下；<code>pointer-events: none</code> 不挡交互</td></tr>
+      <tr><td>数量</td><td><code>min(70, 面积/22000)</code></td><td>随视口自适应，封顶 70——氛围层不许喧宾夺主</td></tr>
+      <tr><td>运动</td><td>上浮 0.12–0.42px/帧 + 正弦横摆 ±0.12px</td><td>萤火上升 + 微风摆动；周期 2.4s，避免匀速机械感</td></tr>
+      <tr><td>外观</td><td>半径 0.8–2.6px · <code>rgba(255,186,100)</code> · alpha 0.08–0.28</td><td>琥珀微光 + 0.9s 呼吸闪烁——属氛围光，不计入琥珀 3 处纪律额度</td></tr>
+      <tr><td>性能</td><td>DPR 封顶 2 · 只画 <code>arc</code> 无阴影/模糊</td><td>4K 屏不烧 GPU；<code>visibilitychange</code> 页签隐藏即停</td></tr>
+      <tr><td>降级</td><td><code>prefers-reduced-motion</code> → canvas 直接不插入</td><td>降级态（墨蓝+网格）同样保留粒子；两者独立开关</td></tr>
+      <tr><td>优先级</td><td>性能掉帧时第一个砍掉的就是这层</td><td>纯装饰，视频 > 粒子 > 一切交互的优先级次序不可变</td></tr>
+    </table>
+
+    <h3 data-page-node-id="CfSDZzvDFWPBTHDHcW6QdO2">3. 红线（沿用 v1.1，视频背景下重申）</h3>
     <ul data-page-node-id="Jq9fKAgCG0gKF8ebgr6DAk">
       <li data-page-node-id="wu6oX3Yy2EyHtqn7Giazxf"><strong data-page-node-id="oofbXJpiqBUWF7R6q0K5rR">禁 backdrop-blur</strong>：卡片用 94% 不透明实色（<code data-page-node-id="cHNrQsDBRLxxHa2OuNHS5B">oklch(20% 0.02 262 / 0.94)</code>），不用毛玻璃——blur 叠视频是 GPU 大户且违反主规范</li>
       <li data-page-node-id="YzWrB0OlGUb8Pz0ioyACqv"><strong data-page-node-id="4KcSqPtQzryL83F0jAwUh1">琥珀纪律</strong>：本页仅 3 处——Logo、Tab 下划线选中态、登录主按钮 + 输入框焦点环；OAuth 按钮、文案全部中性</li>
@@ -264,6 +281,8 @@ body { background: var(--ink-950); color: var(--text-1); font-family: var(--font
       <li data-page-node-id="sjPtUFfXpZaA4xRKjNmOur">[ ] prefers-reduced-motion 下无视频无动画</li>
       <li data-page-node-id="b4JZx3IbMr7PSROAU5XBKO">[ ] 仅登录路由加载视频，离开后网络面板无持续请求</li>
       <li data-page-node-id="VrQipdA8MLxT24pY4kSHyb">[ ] DevTools Performance：视频播放不掉帧、不阻塞输入交互</li>
+      <li>[ ] 粒子层叠加不遮挡任何输入交互（pointer-events 实测），页签切走后 rAF 停止</li>
+      <li>[ ] prefers-reduced-motion 下无视频无粒子无动画</li>
     </ul>
   </div>
 </section>
@@ -281,6 +300,74 @@ document.getElementById('toggleVideo').addEventListener('click', () => {
 // 自动播放被拒 → 自动降级
 v.addEventListener('error', () => bg.classList.add('no-video'));
 v.play().catch(() => bg.classList.add('no-video'));
+
+// ============ 粒子流（灯笼萤火） ============
+// 设计：琥珀微粒缓缓上浮 + 正弦横摆 + 明暗呼吸，呼应「夜栈灯码」
+// 红线：纯装饰氛围层——reduced-motion 不启动；页签隐藏即暂停；掉帧先砍这一层
+const fx = (() => {
+  const cv = document.getElementById('fx');
+  const ctx = cv.getContext('2d');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { cv.remove(); return null; }
+
+  let W, H, parts = [], running = true;
+  const N = () => Math.min(70, Math.round(innerWidth * innerHeight / 22000)); // 数量随面积，封顶 70
+
+  function spawn(fromBottom) {
+    return {
+      x: Math.random() * W,
+      y: fromBottom ? H + 8 : Math.random() * H,
+      r: 0.8 + Math.random() * 1.8,            // 半径 0.8–2.6px
+      vy: 0.12 + Math.random() * 0.3,          // 上浮速度
+      drift: 0.05 + Math.random() * 0.08,      // 基础横移
+      ph: Math.random() * Math.PI * 2,         // 摆动/闪烁相位
+      a: 0.08 + Math.random() * 0.2            // 基础 alpha，封顶 0.28
+    };
+  }
+  function resize() {
+    const dpr = Math.min(devicePixelRatio || 1, 2); // DPR 封顶 2，4K 屏不烧 GPU
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    parts = Array.from({ length: N() }, () => spawn(false));
+  }
+  function tick(t) {
+    if (!running) return;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.y -= p.vy;
+      p.x += p.drift + Math.sin(t / 2400 + p.ph) * 0.12;  // 风摆
+      const tw = p.a * (0.6 + 0.4 * Math.sin(t / 900 + p.ph * 3)); // 呼吸
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255, 186, 100, ' + tw.toFixed(3) + ')';
+      ctx.arc(p.x, p.y, p.r, 0, 7);
+      ctx.fill();
+      if (p.y < -10 || p.x < -12 || p.x > W + 12) parts[parts.indexOf(p)] = spawn(true);
+    }
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', () => {
+    const was = running;
+    running = !document.hidden;
+    if (running && !was) requestAnimationFrame(tick);
+  });
+  resize();
+  requestAnimationFrame(tick);
+  return {
+    toggle(on) {
+      cv.style.display = on ? '' : 'none';
+      const was = running; running = on;
+      if (running && !was) requestAnimationFrame(tick);
+    }
+  };
+})();
+document.getElementById('toggleFx').addEventListener('click', () => {
+  if (!fx) return;
+  const on = fxCanvasOn = !(fxCanvasOn ?? true);
+  fx.toggle(on);
+  document.getElementById('fxLabel').textContent = 'fx: ' + (on ? 'on' : 'off');
+});
+let fxCanvasOn;
 </script>
 </body>
 </html>

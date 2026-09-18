@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极客栈 · 全站背景粒子层组件稿</title>
+<style>
+/* ============ 夜栈灯码 v1.1 tokens ============ */
+:root {
+  --ink-950: oklch(16% 0.018 262);
+  --ink-900: oklch(20% 0.02 262);
+  --ink-800: oklch(25% 0.022 262);
+  --paper-50: oklch(97% 0.008 85);
+  --amber-500: oklch(72% 0.15 72);
+  --font-display: "Space Grotesk", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+[data-theme="dark"] {
+  --bg-page: var(--ink-950);
+  --text-1: oklch(93% 0.012 85);
+  --text-2: oklch(76% 0.014 85);
+  --text-3: oklch(58% 0.014 262);
+  --border: oklch(30% 0.02 262);
+  --surface-1: oklch(20% 0.02 262);
+  --surface-2: oklch(24% 0.022 262);
+}
+[data-theme="light"] {
+  --bg-page: var(--paper-50);
+  --text-1: oklch(26% 0.02 262);
+  --text-2: oklch(42% 0.016 262);
+  --text-3: oklch(58% 0.012 262);
+  --border: oklch(88% 0.01 85);
+  --surface-1: oklch(99% 0.005 85);
+  --surface-2: oklch(95% 0.008 85);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg-page); color: var(--text-1); font-family: var(--font-display); transition: background .3s ease-out; }
+
+/* ============ 粒子层：fixed 全站底层，内容 z1 之上 ============ */
+#fx {
+  position: fixed; inset: 0; z-index: 0;
+  width: 100%; height: 100%; pointer-events: none;
+}
+.topbar, .page { position: relative; z-index: 1; }
+
+/* ============ 页面骨架（示意内容与粒子的层关系） ============ */
+.topbar {
+  display: flex; align-items: center; gap: 24px;
+  padding: 0 32px; height: 60px;
+  background: var(--surface-1); border-bottom: 1px solid var(--border);
+}
+.logo { font-weight: 700; font-size: 17px; }
+.logo b { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 8px; border-radius: 7px; background: var(--amber-500); color: var(--ink-950); font-size: 15px; }
+.topbar nav { display: flex; gap: 20px; font-size: 14px; color: var(--text-2); }
+.topbar nav span:hover { color: var(--text-1); cursor: pointer; }
+.topbar .spacer { flex: 1; }
+
+.page { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+.hero { margin-bottom: 28px; }
+.hero h1 { font-size: 28px; letter-spacing: -0.01em; margin-bottom: 6px; }
+.hero p { font-size: 14px; color: var(--text-3); }
+
+.feed { border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); overflow: hidden; }
+.row { display: flex; gap: 14px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.row:last-child { border-bottom: none; }
+.row .no { font-size: 15px; font-weight: 700; color: var(--text-3); width: 26px; font-variant-numeric: tabular-nums; }
+.row .t { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.row .m { font-size: 12px; color: var(--text-3); }
+.row:hover { background: var(--surface-2); }
+
+/* ============ 评审控制 ============ */
+.demo-panel {
+  position: fixed; right: 16px; bottom: 16px; z-index: 10;
+  display: flex; gap: 8px; padding: 8px;
+  background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+  font-size: 12px;
+}
+.demo-panel button {
+  padding: 6px 12px; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 12px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+}
+.demo-panel button:hover { color: var(--text-1); }
+.demo-panel span { align-self: center; color: var(--text-3); font-family: ui-monospace, monospace; }
+
+/* ============ 集成规格 ============ */
+.spec { position: relative; z-index: 1; border-top: 1px solid var(--border); background: var(--surface-2); padding: 56px 24px 80px; }
+.spec-inner { max-width: 860px; margin: 0 auto; }
+.spec h2 { font-size: 20px; margin-bottom: 6px; }
+.spec .sub { font-size: 13px; color: var(--text-3); margin-bottom: 28px; font-family: ui-monospace, monospace; }
+.spec h3 { font-size: 15px; margin: 26px 0 12px; }
+.spec table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.spec th, .spec td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec th { color: var(--text-3); font-weight: 600; font-size: 12px; }
+.spec td { color: var(--text-2); line-height: 1.6; }
+.spec td:first-child { color: var(--text-1); white-space: nowrap; }
+.spec code { font-family: ui-monospace, monospace; font-size: 12px; color: var(--amber-500); }
+.spec pre { background: var(--bg-page); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; font-family: ui-monospace, monospace; color: var(--text-2); }
+.spec ul { margin: 8px 0 0 18px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- 粒子层：全站唯一实例，App 级挂载 -->
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<header class="topbar">
+  <div class="logo"><b>极</b>极客栈</div>
+  <nav><span>首页</span><span>项目广场</span><span>技术论坛</span><span>AI 实验室</span></nav>
+  <div class="spacer"></div>
+</header>
+
+<main class="page">
+  <div class="hero">
+    <h1>代码为灯，技术为栈</h1>
+    <p>粒子层铺在全站内容之下——在页边距、留白、卡片间隙处可见，内容表面之下静默流动</p>
+  </div>
+
+  <div class="feed">
+    <div class="row"><span class="no">1</span><div><div class="t">Spring AI 1.0 GA 迁移实录：从 LangChain4j 换过来踩了哪些坑</div><div class="m">墨问 · 2 小时前 · 128 浏览</div></div></div>
+    <div class="row"><span class="no">2</span><div><div class="t">Vue3 容器查询实战：让组件自己决定自己的布局</div><div class="m">栈主 · 4 小时前 · 96 浏览</div></div></div>
+    <div class="row"><span class="no">3</span><div><div class="t">Milvus + AST 的代码检索方案，RAG 召回率从 41% 到 78%</div><div class="m">灯芯 · 6 小时前 · 210 浏览</div></div></div>
+    <div class="row"><span class="no">4</span><div><div class="t">PostgreSQL 审计表设计：append-only + 分区 + 保留策略</div><div class="m">掌柜 · 昨天 · 156 浏览</div></div></div>
+  </div>
+</main>
+
+<!-- 评审控制 -->
+<div class="demo-panel" role="group" aria-label="设计评审控制">
+  <button id="toggleTheme">日 / 夜</button>
+  <button id="toggleFx">粒子 开/关</button>
+  <span id="fxLabel">fx: on</span>
+</div>
+
+<!-- ============ 集成规格 ============ -->
+<section class="spec">
+  <div class="spec-inner">
+    <h2>全站背景粒子层 · 集成规格</h2>
+    <p class="sub">geekstack-particles-bg.html ｜ v1.0 ｜ 2026-09-18 ｜ 上游：geekstack-ui-design-spec.md v1.1</p>
+
+    <h3>1. 挂载方式（Vue3，全站唯一实例）</h3>
+    <pre>// src/components/GsParticles.vue —— App.vue 里挂一次，路由切换不重建
+&lt;template&gt;
+  &lt;canvas class="gs-particles" aria-hidden="true"&gt;&lt;/canvas&gt;
+&lt;/template&gt;
+
+// App.vue
+&lt;GsParticles /&gt;   ← 放在 &lt;router-view/&gt; 之前，fixed 底层
+// CSS：.gs-particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+//      #app 内容容器 z-index: 1（或各布局组件自带层叠上下文即可）</pre>
+
+    <h3>2. 双主题配色（随 data-theme 切换，每帧读一次 <code>dataset.theme</code>）</h3>
+    <table>
+      <tr><th>主题</th><th>粒子色</th><th>alpha</th><th>气质</th></tr>
+      <tr><td>夜（默认）</td><td><code>rgba(255,186,100)</code> 琥珀</td><td>0.08–0.28</td><td>灯笼萤火，呼应「灯」</td></tr>
+      <tr><td>日（晨纸）</td><td><code>rgba(150,118,72)</code> 暖墨</td><td>0.05–0.14</td><td>纸上浮尘，降到几乎不可见但不至于死板</td></tr>
+    </table>
+
+    <h3>3. 参数（与登录稿 2.5 节同源，站点模式略收敛）</h3>
+    <table>
+      <tr><th>参数</th><th>取值</th></tr>
+      <tr><td>数量</td><td><code>min(56, 面积/26000)</code>——内容页比登录页更收敛（56 vs 70），避免在正文页抢注意力</td></tr>
+      <tr><td>运动</td><td>上浮 0.1–0.36px/帧 + 正弦横摆 ±0.1px，周期 2.4s；0.9s 呼吸闪烁</td></tr>
+      <tr><td>尺寸</td><td>半径 0.8–2.4px；DPR 封顶 2</td></tr>
+      <tr><td>层序</td><td>canvas fixed z-0 → 站点内容 z-1；粒子只在留白/页边距/间隙可见，绝不盖字</td></tr>
+      <tr><td>生命周期</td><td>App 级单实例；<code>visibilitychange</code> 暂停；<code>prefers-reduced-motion</code> 不启动</td></tr>
+      <tr><td>优先级</td><td>性能预算最低位：掉帧先砍粒子，再砍视频类，最后才动内容</td></tr>
+    </table>
+
+    <h3>4. 红线</h3>
+    <ul>
+      <li>粒子是<strong>氛围层不是内容层</strong>：不允许加鼠标跟随、不允许加连线、不允许放大加亮——一旦被用户「注意到」就是失败</li>
+      <li>琥珀粒子不计入琥珀 3 处纪律额度（同登录稿口径），但日间主题 alpha 必须减半，晨纸上不许出现明显色块</li>
+      <li><code>pointer-events: none</code> 与 <code>aria-hidden</code> 必写——不挡交互、不进辅助技术树</li>
+      <li>登录/注册页若也启用，沿用其独立稿参数（70 颗版）；两处共用同一组件，用 prop 区分密度</li>
+    </ul>
+
+    <h3>5. 验收清单</h3>
+    <ul>
+      <li>[ ] 日/夜主题切换粒子配色跟随，日间 alpha 明显更收敛</li>
+      <li>[ ] 粒子只在留白区可见，正文、卡片表面之上无粒子</li>
+      <li>[ ] 长列表滚动、路由切换不掉帧（Performance 面板 GPU 占用增量 &lt;3%）</li>
+      <li>[ ] 页签切走 rAF 停止，切回恢复</li>
+      <li>[ ] prefers-reduced-motion 下无粒子</li>
+      <li>[ ] 键盘 Tab 巡检：粒子不进焦点序</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+// ============ 极客栈全站背景粒子层（GsParticles 参考实现） ============
+// 双主题：夜=琥珀萤火 / 日=暖墨浮尘；reduced-motion 不启动；页签隐藏即暂停
+(() => {
+  const cv = document.getElementById('fx');
+  const ctx = cv.getContext('2d');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { cv.remove(); return; }
+
+  const PALETTE = {
+    dark:  { c: [255, 186, 100], aMin: 0.08, aMax: 0.28 },
+    light: { c: [150, 118, 72],  aMin: 0.05, aMax: 0.14 }
+  };
+  let W, H, parts = [], running = true;
+  const theme = () => document.documentElement.dataset.theme === 'light' ? PALETTE.light : PALETTE.dark;
+  const N = () => Math.min(56, Math.round(innerWidth * innerHeight / 26000));
+
+  function spawn(fromBottom) {
+    const t = theme();
+    return {
+      x: Math.random() * W,
+      y: fromBottom ? H + 8 : Math.random() * H,
+      r: 0.8 + Math.random() * 1.6,
+      vy: 0.1 + Math.random() * 0.26,
+      drift: 0.04 + Math.random() * 0.07,
+      ph: Math.random() * Math.PI * 2,
+      a: t.aMin + Math.random() * (t.aMax - t.aMin)
+    };
+  }
+  function resize() {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    parts = Array.from({ length: N() }, () => spawn(false));
+  }
+  function tick(t) {
+    if (!running) return;
+    const [r, g, b] = theme().c;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.y -= p.vy;
+      p.x += p.drift + Math.sin(t / 2400 + p.ph) * 0.1;
+      const tw = p.a * (0.6 + 0.4 * Math.sin(t / 900 + p.ph * 3));
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${r},${g},${b},${tw.toFixed(3)})`;
+      ctx.arc(p.x, p.y, p.r, 0, 7);
+      ctx.fill();
+      if (p.y < -10 || p.x < -12 || p.x > W + 12) parts[parts.indexOf(p)] = spawn(true);
+    }
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', () => {
+    const was = running;
+    running = !document.hidden;
+    if (running && !was) requestAnimationFrame(tick);
+  });
+  resize();
+  requestAnimationFrame(tick);
+
+  // 评审控制
+  let fxOn = true;
+  document.getElementById('toggleFx').addEventListener('click', () => {
+    fxOn = !fxOn;
+    cv.style.display = fxOn ? '' : 'none';
+    const was = running; running = fxOn;
+    if (running && !was) requestAnimationFrame(tick);
+    document.getElementById('fxLabel').textContent = 'fx: ' + (fxOn ? 'on' : 'off');
+  });
+  document.getElementById('toggleTheme').addEventListener('click', () => {
+    const el = document.documentElement;
+    el.dataset.theme = el.dataset.theme === 'light' ? 'dark' : 'light';
+  });
+})();
+</script>
+</body>
+</html>

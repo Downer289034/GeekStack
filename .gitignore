@@ -21,6 +21,8 @@ frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 frontend/coverage/
+scripts/node_modules/
+scripts/package-lock.json
 
 # 本地工具状态
 .workbuddy/
