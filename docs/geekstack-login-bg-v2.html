@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>极客栈 · 登录页背景 v2.3（实景图视差）设计稿</title>
+<style>
+/* ============ 夜栈灯码 v1.1 tokens ============ */
+:root {
+  --ink-950: oklch(16% 0.018 262);
+  --ink-900: oklch(20% 0.02 262);
+  --ink-800: oklch(24% 0.022 262);
+  --amber-450: oklch(78% 0.14 75);
+  --amber-500: oklch(72% 0.15 72);
+  --amber-600: oklch(64% 0.14 68);
+  --text-1: oklch(93% 0.012 85);
+  --text-2: oklch(76% 0.014 85);
+  --text-3: oklch(60% 0.012 262);
+  --border: oklch(30% 0.02 262);
+  --surface-1: oklch(20% 0.02 262);
+  --surface-2: oklch(24% 0.022 262);
+  --font-display: "Space Grotesk", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--ink-950); color: var(--text-1); font-family: var(--font-display); overflow-x: hidden; }
+
+/* ============ 背景层：实景图视差（老板自制素材） ============ */
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; background: var(--ink-950); }
+.bg.no-par .bg-par { transform: translate3d(0,0,0) scale(1.2) !important; }
+/* 视差壳：scale 1.2 预留 20% 出血，鼠标/滚动位移永远裁不出边 */
+.bg-par { position: absolute; inset: 0; will-change: transform; transform: translate3d(0,0,0) scale(1.2); }
+.bg-par img { width: 100%; height: 100%; object-fit: cover; object-position: center 80%; display: block; }
+/* 暗角：压四边不压中心——聚焦灯与窗，不改变照片本身的明暗结构 */
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 46%, transparent 58%, oklch(12% 0.015 262 / 0.38) 100%),
+    linear-gradient(to top, oklch(12% 0.015 262 / 0.30), transparent 26%);
+}
+
+/* 粒子层（萤火，压暗适配照片氛围） */
+#fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* ============ 登录视口：卡片靠右 + 下移避让图中品牌字 ============ */
+.stage { position: relative; z-index: 1; min-height: 100vh; display: flex; align-items: center; justify-content: flex-end; padding: 40px 8vw 40px 20px; }
+.card { width: 100%; max-width: 400px; margin-top: 20vh; background: oklch(16% 0.018 262 / 0.90); border: 1px solid oklch(30% 0.02 262 / 0.8); border-radius: 12px; padding: 36px 32px 28px; backdrop-filter: none; box-shadow: 0 24px 60px oklch(10% 0.015 262 / 0.5); }
+
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.brand-logo {
+  width: 40px; height: 40px; border-radius: 9px; flex: none;
+  background: var(--amber-500); color: var(--ink-950);
+  display: grid; place-items: center; font-weight: 700; font-size: 20px;
+  /* 禁外发光：扁平实色（v1.1 红线） */
+}
+.brand h1 { font-size: 18px; letter-spacing: 0.01em; }
+.brand p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+.tabs button {
+  flex: 1; padding: 10px 0; font-size: 14px; font-family: inherit;
+  background: none; border: none; color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s ease-out, border-color .15s ease-out;
+}
+.tabs button[aria-selected="true"] { color: var(--text-1); font-weight: 600; border-bottom-color: var(--amber-500); }
+
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 7px; }
+.field label em { font-style: normal; color: var(--amber-450); margin-left: 2px; }
+.field input {
+  width: 100%; height: 42px; padding: 0 13px;
+  background: oklch(12% 0.015 262 / 0.85); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-1); font-size: 14px; font-family: inherit;
+  transition: border-color .15s ease-out, box-shadow .15s ease-out;
+}
+.field input::placeholder { color: var(--text-3); }
+.field input:focus { outline: none; border-color: var(--amber-500); box-shadow: 0 0 0 3px oklch(72% 0.15 72 / 0.14); }
+
+.row-meta { display: flex; justify-content: space-between; align-items: center; margin: 2px 0 20px; font-size: 13px; }
+.remember { display: inline-flex; align-items: center; gap: 7px; color: var(--text-3); cursor: pointer; }
+.remember input { accent-color: var(--amber-500); width: 15px; height: 15px; }
+.forgot { color: var(--amber-450); text-decoration: none; }
+.forgot:hover { color: var(--amber-500); text-decoration: underline; }
+
+.btn-login {
+  width: 100%; height: 44px; border: none; border-radius: 6px; cursor: pointer;
+  background: var(--amber-500); color: var(--ink-950);
+  font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.06em;
+  transition: background .15s ease-out;
+}
+.btn-login:hover { background: var(--amber-600); }
+
+.divider { display: flex; align-items: center; gap: 14px; margin: 22px 0 16px; color: var(--text-3); font-size: 12px; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.btn-oauth {
+  width: 100%; height: 40px; margin-bottom: 10px; cursor: pointer;
+  background: oklch(22% 0.02 262 / 0.85); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-2); font-family: inherit; font-size: 13px;
+  transition: border-color .15s ease-out, color .15s ease-out;
+}
+.btn-oauth:hover { border-color: oklch(40% 0.02 262); color: var(--text-1); }
+.back { display: block; text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-3); text-decoration: none; }
+.back:hover { color: var(--text-2); }
+
+.copyright { position: fixed; left: 0; right: 0; bottom: 14px; z-index: 1; text-align: center; font-size: 12px; color: oklch(60% 0.012 262 / 0.8); }
+
+/* ============ 演示控制 ============ */
+.demo-panel {
+  position: fixed; right: 16px; bottom: 16px; z-index: 10;
+  display: flex; gap: 8px; padding: 8px;
+  background: oklch(20% 0.02 262 / 0.95); border: 1px solid var(--border); border-radius: 8px; font-size: 12px;
+}
+.demo-panel button {
+  padding: 6px 12px; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 12px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2);
+}
+
+/* ============ 规格 ============ */
+.spec { position: relative; z-index: 1; background: var(--ink-950); border-top: 1px solid var(--border); padding: 56px 24px 80px; }
+.spec-inner { max-width: 860px; margin: 0 auto; }
+.spec h2 { font-size: 20px; margin-bottom: 6px; }
+.spec .sub { font-size: 13px; color: var(--text-3); margin-bottom: 32px; font-family: var(--font-mono); }
+.spec h3 { font-size: 15px; margin: 28px 0 12px; }
+.spec table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.spec th, .spec td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec th { color: var(--text-3); font-weight: 600; font-size: 12px; }
+.spec td { color: var(--text-2); line-height: 1.6; }
+.spec td:first-child { color: var(--text-1); white-space: nowrap; }
+.spec code { font-family: var(--font-mono); font-size: 12px; color: var(--amber-450); }
+.spec ul { margin: 8px 0 0 18px; font-size: 13px; color: var(--text-2); line-height: 1.9; }
+
+@media (max-width: 900px) { .stage { justify-content: center; padding: 48px 20px; } .card { margin-top: 0; } }
+@media (max-width: 560px) { .card { padding: 28px 22px 22px; } .copyright { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 背景层栈：实景图(视差) → 暗角 → 萤火粒子 → 内容(z1) -->
+<div class="bg" id="bg">
+  <div class="bg-par" id="bgPar">
+    <img src="assets/login-bg-dusk.jpg" alt="" preload="auto"
+         disablepictureinpicture aria-hidden="true" draggable="false">
+  </div>
+  <div class="vignette" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+</div>
+
+<main class="stage">
+  <div class="card">
+    <div class="brand">
+      <div class="brand-logo">极</div>
+      <div><h1>极客栈</h1><p>代码为灯，技术为栈</p></div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="登录或注册">
+      <button role="tab" aria-selected="true">登录</button>
+      <button role="tab" aria-selected="false">注册</button>
+    </div>
+    <form autocomplete="on">
+      <div class="field"><label for="u">用户名<em>*</em></label><input id="u" type="text" placeholder="用户名" autocomplete="username"></div>
+      <div class="field"><label for="p">密码<em>*</em></label><input id="p" type="password" placeholder="密码" autocomplete="current-password"></div>
+      <div class="row-meta">
+        <label class="remember"><input type="checkbox">记住我</label>
+        <a class="forgot" href="#">忘记密码?</a>
+      </div>
+      <button type="submit" class="btn-login">登 录</button>
+    </form>
+    <div class="divider">第三方登录</div>
+    <button type="button" class="btn-oauth">使用 GitHub 登录</button>
+    <button type="button" class="btn-oauth">使用 Gitee 登录</button>
+    <a class="back" href="#">← 返回首页</a>
+  </div>
+</main>
+
+<p class="copyright">© 2026 极客栈 GeekStack</p>
+
+<div class="demo-panel" role="group" aria-label="设计评审控制">
+  <button id="togglePar">视差 开/关</button>
+  <button id="toggleFx">粒子 开/关</button>
+</div>
+
+<!-- ============ 实现规格 ============ -->
+<section class="spec">
+  <div class="spec-inner">
+    <h2>登录背景 v2.3 · 实景图视差（SVG 灯笼下线）</h2>
+    <p class="sub">geekstack-login-bg-v2.html ｜ v2.3.2 ｜ 2026-09-18 ｜ 素材：老板自制暮色实景图（docs/assets/login-bg-dusk.jpg · 2848×1600 · q85 压缩后 421KB；PNG 原图 4.4MB 留档不进库）</p>
+
+    <h3>1. 决策记录：为什么放弃 SVG 灯笼</h3>
+    <ul>
+      <li>两轮迭代结论（v2.1 悬挂灯笼 / v2.2 重雕放大）：手绘 SVG 再怎么加骨架、柱面渐变、轮辋光，质感天花板就是<strong>扁平插画</strong>——与登录页要的「夜宿实感」不在一个层级，判定为方向性失败，果断下线</li>
+      <li>实景图的优势：摄影级景深（桌灯实光影、窗外暮色焦外）、品牌字已按构图烙印在图中、素材零成本（老板自制）</li>
+      <li>历史包袱清理：orbs 光斑 / 灯笼 defs / 字标 HTML 全部移除——图中已有品牌字，HTML 字标再渲染一遍是重复</li>
+    </ul>
+
+    <h3>2. 图层栈与视差参数</h3>
+    <table>
+      <tr><th>层</th><th>参数</th></tr>
+      <tr><td>① 实景图（视差壳）</td><td><code>scale(1.2)</code> 常驻——预留 20% 出血，鼠标/滚动位移永远裁不出边｜ <strong>鼠标反向漂移</strong> ±20px·±14px（图与光标反向 = 窗景在「远处」的纵深错觉）｜ <strong>滚动</strong> 0.05x scrollY 上移（封顶一屏），离场感｜ 目标值 lerp 0.05/帧，带质量惯性</td></tr>
+      <tr><td>② 暗角 vignette</td><td>radial 四边 38% + 底部 30%，只压边缘不压中心——聚焦桌灯与窗景，卡片区域再叠自身 90% 实色</td></tr>
+      <tr><td>③ 萤火粒子</td><td>全站 GsParticles 降档（α 0.06~0.22·44 颗封顶）——照片自带空气感，粒子只补「活气」</td></tr>
+      <tr><td>④ 登录卡片</td><td>靠右 + <strong>margin-top 20vh 下移</strong>：避让图中右上品牌字（16:9 桌面实测不遮挡）｜ 卡片 90% 实色 + 大投影托层次，<strong>禁 backdrop-blur</strong>（叠照片是 GPU 大户 + v1.1 红线）</td></tr>
+    </table>
+
+    <h3>3. 素材与生产化要求（重要）</h3>
+    <ul>
+      <li><strong>分辨率</strong>：v2.3.2 已换 <strong>2848×1600</strong> 原图（PNG 4.4MB 已压 q85 渐进式 JPG · 421KB 入库），4K 屏覆盖无压力，分辨率事项关闭</li>
+      <li><strong>建议出「无字版」底图</strong>：品牌字烙在图里意味着换语言/改品牌就要重做图——生产建议底图不带字，<code>极客栈 / geekstack</code> 用 HTML 叠加渲染（任意分辨率锐利、可国际化、可做入场动效）</li>
+      <li><strong>加载策略</strong>：图仅在登录/注册路由加载；<code>preload</code> + 骨架底色 <code>--ink-950</code> 兜底，图未到时页面不白屏</li>
+    </ul>
+
+    <h3>4. 性能门控（沿袭 v2.2 全套）</h3>
+    <ul>
+      <li>单 rAF 循环全包（mousemove passive，无 scroll 监听——每帧读一次 <code>scrollY</code>）；持续掉帧（&gt;34ms × 90 帧）自动降为隔帧更新；页签隐藏即暂停</li>
+      <li><strong>触屏（pointer:coarse）与 prefers-reduced-motion 不启动视差</strong>：图静止在 scale(1.2)，粒子不启动——装饰退回纯氛围</li>
+      <li>只动画 transform（GPU 合成层）；暗角/卡片全是静态层，零逐帧成本</li>
+    </ul>
+
+    <h3>5. 验收清单</h3>
+    <ul>
+      <li>[ ] 鼠标左右缓移：窗景与桌灯整体反向轻漂（≤20px），松手带惯性缓停，无硬连感</li>
+      <li>[ ] 滚动到规格区：图缓慢上移退场（0.05x），滚回复位；任意时刻四边不露黑边（20% 出血验证）</li>
+      <li>[ ] 16:9 桌面：卡片不遮图中「极客栈 / geekstack」品牌字（卡片顶缘在品牌字下缘之下）</li>
+      <li>[ ] prefers-reduced-motion / 触屏：视差与粒子全关，图静止，无任何运动</li>
+      <li>[ ] 视差开关关闭后 transform 复位，无残留偏移</li>
+      <li>[ ] 弱网模拟：图未加载时背景为墨蓝底色 + 卡片可用，无白屏闪烁</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+// ============ 萤火粒子（照片氛围降档：更少更淡） ============
+(() => {
+  const cv = document.getElementById('fx');
+  const ctx = cv.getContext('2d');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { cv.remove(); return; }
+  let W, H, parts = [], running = true;
+  const N = () => Math.min(44, Math.round(innerWidth * innerHeight / 30000));
+  function spawn(fb) {
+    return { x: Math.random()*W, y: fb ? H+8 : Math.random()*H, r: 0.8+Math.random()*1.6,
+      vy: 0.1+Math.random()*0.26, drift: 0.04+Math.random()*0.07,
+      ph: Math.random()*Math.PI*2, a: 0.06+Math.random()*0.16 };
+  }
+  function resize() {
+    const dpr = Math.min(devicePixelRatio||1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    parts = Array.from({length: N()}, () => spawn(false));
+  }
+  function tick(t) {
+    if (!running) return;
+    ctx.clearRect(0,0,W,H);
+    for (const p of parts) {
+      p.y -= p.vy; p.x += p.drift + Math.sin(t/2400+p.ph)*0.1;
+      const tw = p.a * (0.6 + 0.4*Math.sin(t/900+p.ph*3));
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,186,100,'+tw.toFixed(3)+')';
+      ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+      if (p.y < -10 || p.x < -12 || p.x > W+12) parts[parts.indexOf(p)] = spawn(true);
+    }
+    requestAnimationFrame(tick);
+  }
+  addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', () => {
+    const was = running; running = !document.hidden;
+    if (running && !was) requestAnimationFrame(tick);
+  });
+  resize(); requestAnimationFrame(tick);
+  document.getElementById('toggleFx').addEventListener('click', () => {
+    cv.style.display = cv.style.display === 'none' ? '' : 'none';
+  });
+})();
+
+// ============ 实景图视差：鼠标反向漂移 + 滚动退场（rAF 单循环 + lerp） ============
+(() => {
+  const par = document.getElementById('bgPar');
+  // 触屏 / 减动效：装饰退回纯氛围
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!matchMedia('(pointer: fine)').matches) return;
+  let tx = 0, ty = 0, cx = 0, cy = 0, running = true, slow = 0, skip = false;
+  addEventListener('mousemove', e => {
+    tx = (e.clientX / innerWidth) * 2 - 1;
+    ty = (e.clientY / innerHeight) * 2 - 1;
+  }, { passive: true });
+  function tick(t) {
+    if (!running) return;
+    const dt = t - (tick.pt || t); tick.pt = t;
+    if (dt > 34 && ++slow > 90) skip = true;   // 持续掉帧 → 降为隔帧更新
+    if (!(skip && (tick.n = (tick.n || 0) + 1) % 2)) {
+      cx += (tx - cx) * 0.05; cy += (ty - cy) * 0.05;   // lerp 质量感
+      const sy = Math.min(scrollY, innerHeight);          // 滚动贡献封顶一屏
+      par.style.transform =
+        'translate3d(' + (-cx * 20).toFixed(2) + 'px,' + (-cy * 14 - sy * 0.05).toFixed(2) + 'px,0) scale(1.2)';
+    }
+    requestAnimationFrame(tick);
+  }
+  document.addEventListener('visibilitychange', () => {
+    const was = running; running = !document.hidden;
+    if (running && !was) requestAnimationFrame(tick);
+  });
+  requestAnimationFrame(tick);
+  document.getElementById('togglePar').addEventListener('click', () => {
+    document.getElementById('bg').classList.toggle('no-par');
+  });
+})();
+</script>
+</body>
+</html>

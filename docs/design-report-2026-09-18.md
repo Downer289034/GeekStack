@@ -14,12 +14,13 @@
 - 核心方案：编辑器三模式（默认单栏编辑，分栏/预览为用户主动切换）｜ 工具栏 5 分组 + 全员 tooltip + 快捷键 ｜ 自动保存（3s 防抖）｜ 图片粘贴/拖拽上传 ｜ inline 校验不弹窗
 - 附 **9 条验收清单**，可逐条销项
 
-### 2. 登录页视频背景稿 v1.1
-**文件**：`docs/geekstack-login-video.html` + 素材仅存 `frontend/src/assets/login-bg.mp4`（docs 不另存副本）
+### 2. 登录页背景（演进）
+**现行**：`docs/geekstack-login-bg-handoff.md` + `docs/geekstack-login-bg-v2.html` + 素材 `docs/assets/login-bg-dusk.jpg`（实景视差，视频方案已淘汰）  
+**归档**：`docs/geekstack-login-video.html`（视频方案设计稿，仅作历史对照，勿再按此实现）
 
-- 素材实测：1280×720 · 4.35s 循环 · 2.7MB（体量适合网页背景）
-- 布局：卡片靠右、左侧露出视频主视觉（≤900px 回中）；**不加压暗层**（视频本身为暗调雨夜场景，产品已确认）
-- 可读性策略：卡片 94% 实色承担对比度，禁 backdrop-blur（红线）；降级矩阵完整（reduced-motion / 加载失败 / 省流模式 → 墨蓝+微网格静态态）
+- 实景图 + 鼠标视差（反向 ±20px · lerp 0.05）+ 滚动退场 + 暗角 + 萤火粒子（44 颗）
+- 卡片靠右 + `margin-top: 20vh` 避让图中「极客栈」字；卡片 90% 实色 + 投影，禁 backdrop-blur
+- 降级：reduced-motion / 触屏 → 静态图；图挂 → `--ink-950`；90 帧 avg FPS&lt;50 → 静态+粒子减半
 
 ### 3. 全站背景粒子层组件 GsParticles v1.0
 **文件**：`docs/geekstack-particles-bg.html`（含参考实现 + Vue3 挂载方式）
@@ -41,7 +42,7 @@
 
 ## 三、风险与待办
 
-1. **视频入库前需处理**：建议压 CRF 28 并去除音轨（背景永远静音，音轨纯占体积）——待前端执行
+1. **视频方案已淘汰**（T-LOGIN-BG）：勿再入库 mp4；现行素材仅 `login-bg-dusk.jpg`
 2. **编辑器库选型未定**：规范按通用 Markdown 编辑器写（vditor / md-editor-v3 / bytemd 均可落）；P0 暗色修复依赖所选库支持主题透传，选定后我可细化到配置项
 3. **校验阈值待对齐**：发帖页标题 5–64 字、正文 ≥10 字为设计侧建议值，以后端接口校验规则为准
 

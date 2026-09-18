@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // T-DESIGN-P1：全站背景粒子氛围层（规格：docs/geekstack-particles-bg.html v1.0 §集成规格）
 // 红线：纯装饰不交互（禁跟随/连线）、canvas fixed 底层只在留白可见、"被用户注意到即失败"。
-// 门控：prefers-reduced-motion 不启动；≤768px 不启动；/login 与 /oauth/callback 排除（登录页视频背景独占）。
+// 门控：prefers-reduced-motion 不启动；≤768px 不启动；/login 排除（登录页 LoginBackground 自带粒子，两套不重叠）。
 // 性能四件套：DPR 封顶 2、visibilitychange 暂停、掉帧降级（rAF delta >33ms 连续 60 帧 → 密度减半，再触发 → 停用）、App 级单实例。
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'

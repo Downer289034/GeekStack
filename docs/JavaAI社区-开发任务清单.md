@@ -340,5 +340,20 @@
 **改动**：`ImageValidator.validate` 签名收敛为 `(byte[] header)`，扩展名/Content-Type 不再参与判定；存盘扩展名按魔数真实格式（假 PNG 内容 JPEG → 存 .jpg）；`MediaUploadService` 调用同步。测试：`ImageValidatorTest` 按新语义重写（新增假 PNG 通过、EXE 魔数拒绝、过短 header 拒绝）；`MediaUploadIntegrationTest` 新增 `fakePngWithJpegContentAcceptedAsJpg` 用例。
 **验收**：后端全量测试绿（CI）+ 用户真实文件复传通过。
 **备注**：本地 mvn 执行受审批环境限制未能在沙箱内跑通，验证以 CI 全量测试为准（红则修复重推，按 fix 两次连续绿关闭）。生产/dev 栈需重建后生效。
+**验收**：`f2386cf` 已 push，CI 双 job success（run 35326870859，backend 全量测试含 `fakePngWithJpegContentAcceptedAsJpg` 用例通过）→ **P2-18 关闭**。生效条件：用户所测环境的 backend 重新构建部署
+
+---
+
+# M12 登录页背景 v2 实景视差（2026-09-18 立项，老板自制实景图）
+
+> 基准：`docs/geekstack-login-bg-handoff.md` v1.0（UI Designer 交接文档）+ 视觉稿 `docs/geekstack-login-bg-v2.html`（v2.3.2 逐屏对照唯一基准）。
+> 方案演进（设计侧已论证）：**视频背景正式淘汰**（1.7MB+音轨重；"土"的根因是具象三件套不在媒介）→ 终稿为老板自制暮色实景图（login-bg-dusk.jpg，2848×1600 q85 渐进 JPG 421KB）+ 鼠标视差（反向 ±20px，lerp 0.05 惯性）+ 滚动退场（0.05×scrollY）+ 暗角 + 萤火粒子（44 颗 α 0.06–0.22）。
+> 红线（一票否决）：禁 backdrop-blur（卡片 90% 实色+投影）；登录/注册页锁定夜色；禁文字/Logo 外发光、禁前端渲染 HTML 字标（图中已有品牌字）；视差/粒子禁交互化；性能预算最低位。
+
+### [x] T-LOGIN-BG：LoginBackground 组件 + 视频方案拆除（前端）
+**描述**：①封装 `<LoginBackground />`（视差壳 scale(1.2) 常驻 20% 出血 + img + 暗角 radial-gradient + 粒子 canvas 三件），仅登录路由挂载，`onUnmounted` 销毁 rAF 与监听，mousemove `passive:true`，单 rAF 循环 lerp 0.05；②登录页粒子复用 GsParticles 参数（44 颗封顶、α 0.06–0.22、只画 arc 禁 shadowBlur、页签隐藏暂停）——App 级实例维持排除 `/login` 不变，两套画布不重叠；③降级矩阵：reduced-motion/触屏（无 hover）→ 静态图+暗角；图加载失败 → `--ink-950` 墨蓝兜底；90 帧 avg<50 → 交互降级静态+粒子减半；④**拆除视频方案**：LoginView 移除 video 元素与四层降级矩阵代码、删除 `frontend/src/assets/login-bg.mp4` 引用与文件；素材只入库 `docs/assets/login-bg-dusk.jpg`（≤450KB，PNG 原图严禁入库）
+**验收标准**（对照 handoff §6）：1920×1080 卡片不遮图中「极客栈」品牌字、任何滚动/视差位置不露黑边；视差有惯性缓停非 1:1；滚动退场 0.05× 滚回复位；触屏/reduced-motion 全静态；图挂墨蓝兜底且可正常登录；Performance 面板 GPU 增量 ≤3%；仓库无 mp4/PNG 冗余；三绿 + 零硬编码色值（暗角/兜底色走 token）
+**前置**：无
+**完成**：`LoginBackground.vue` + LoginView 视频拆除；卡片下移 20vh、去重复品牌字标；素材 `docs/assets/login-bg-dusk.jpg`（430788 B）；`@docs` 别名引用；mp4 已删
 
 ---

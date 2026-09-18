@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import {
   NButton,
@@ -12,10 +12,10 @@ import {
 } from 'naive-ui'
 import { register } from '@/api/auth'
 import { beginOAuth } from '@/api/oauth'
+import LoginBackground from '@/components/gs/LoginBackground.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/theme'
 import type { GsTheme } from '@/theme/tokens'
-import loginBgUrl from '@/assets/login-bg.mp4'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -27,45 +27,7 @@ const registerFormRef = ref<FormInst | null>(null)
 const submitting = ref(false)
 const rememberMe = ref(false)
 
-/** 是否允许插入 video（降级矩阵） */
-const allowVideo = ref(false)
-/** 运行时失败后强制降级 */
-const videoFailed = ref(false)
-const videoRef = ref<HTMLVideoElement | null>(null)
-
 let prevTheme: GsTheme | null = null
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-function isSaveData(): boolean {
-  const nav = navigator as Navigator & {
-    connection?: { saveData?: boolean; effectiveType?: string }
-  }
-  const c = nav.connection
-  if (c?.saveData) return true
-  const t = c?.effectiveType
-  return t === 'slow-2g' || t === '2g'
-}
-
-function isMobileViewport(): boolean {
-  return window.matchMedia('(max-width: 768px)').matches
-}
-
-function resolveAllowVideo() {
-  if (prefersReducedMotion() || isSaveData() || isMobileViewport()) {
-    allowVideo.value = false
-    return
-  }
-  allowVideo.value = true
-}
-
-const showVideo = computed(() => allowVideo.value && !videoFailed.value)
-
-function onVideoError() {
-  videoFailed.value = true
-}
 
 const loginModel = reactive({ username: '', password: '' })
 const registerModel = reactive({ username: '', email: '', password: '' })
@@ -127,57 +89,33 @@ async function onRegisterSubmit() {
 }
 
 onMounted(() => {
-  /* 登录页锁定夜色（视频成立前提）；离开时恢复 */
+  /* 登录页锁定夜色（实景图成立前提）；离开时恢复 */
   prevTheme = themeStore.theme
   if (themeStore.theme !== 'dark') {
     themeStore.setTheme('dark')
   }
-  resolveAllowVideo()
 })
 
 onUnmounted(() => {
   if (prevTheme && prevTheme !== themeStore.theme) {
     themeStore.setTheme(prevTheme)
   }
-  /* 路由离开：video 随 v-if 销毁，无持续请求 */
 })
 </script>
 
 <template>
   <div class="login-page">
-    <div class="login-bg" :class="{ 'is-fallback': !showVideo }" aria-hidden="true">
-      <video
-        v-if="showVideo"
-        ref="videoRef"
-        class="login-bg__video"
-        :src="loginBgUrl"
-        autoplay
-        muted
-        loop
-        playsinline
-        disablepictureinpicture
-        preload="metadata"
-        tabindex="-1"
-        aria-hidden="true"
-        @error="onVideoError"
-      />
-    </div>
+    <LoginBackground />
 
     <main class="login-stage">
       <div class="login-card">
-        <div class="login-brand">
-          <span class="login-brand__mark" aria-hidden="true">极</span>
-          <div>
-            <div class="login-brand__name">极客栈</div>
-            <div class="login-brand__slogan font-mono">代码为灯，技术为栈</div>
-          </div>
-        </div>
-
+        <!-- 图中已有「极客栈」品牌字：卡片内禁重复 HTML 字标（handoff §4） -->
         <div class="login-tabs" role="tablist" aria-label="登录或注册">
           <button
             type="button"
             role="tab"
             :aria-selected="tab === 'login'"
+            :tabindex="tab === 'login' ? 0 : -1"
             @click="tab = 'login'"
           >
             登录
@@ -186,16 +124,27 @@ onUnmounted(() => {
             type="button"
             role="tab"
             :aria-selected="tab === 'register'"
+            :tabindex="tab === 'register' ? 0 : -1"
             @click="tab = 'register'"
           >
             注册
           </button>
         </div>
 
-        <div v-show="tab === 'login'" class="login-body" role="tabpanel">
-          <n-form ref="loginFormRef" :model="loginModel" :rules="rules" label-placement="top">
+        <div v-show="tab === 'login'">
+          <n-form
+            ref="loginFormRef"
+            :model="loginModel"
+            :rules="rules"
+            label-placement="top"
+            require-mark-placement="right-hanging"
+          >
             <n-form-item label="用户名" path="username">
-              <n-input v-model:value="loginModel.username" placeholder="用户名" />
+              <n-input
+                v-model:value="loginModel.username"
+                placeholder="用户名"
+                autocomplete="username"
+              />
             </n-form-item>
             <n-form-item label="密码" path="password">
               <n-input
@@ -203,12 +152,12 @@ onUnmounted(() => {
                 type="password"
                 show-password-on="click"
                 placeholder="密码"
-                @keyup.enter="onLoginSubmit"
+                autocomplete="current-password"
               />
             </n-form-item>
             <div class="login-row">
               <n-checkbox v-model:checked="rememberMe">记住我</n-checkbox>
-              <span class="login-forgot">忘记密码？</span>
+              <span class="login-forgot">忘记密码?</span>
             </div>
             <n-button type="primary" block :loading="submitting" @click="onLoginSubmit">
               登录
@@ -216,18 +165,16 @@ onUnmounted(() => {
           </n-form>
         </div>
 
-        <div v-show="tab === 'register'" class="login-body" role="tabpanel">
+        <div v-show="tab === 'register'">
           <n-form
             ref="registerFormRef"
             :model="registerModel"
             :rules="rules"
             label-placement="top"
+            require-mark-placement="right-hanging"
           >
             <n-form-item label="用户名" path="username">
-              <n-input
-                v-model:value="registerModel.username"
-                placeholder="3-50 位字母、数字或下划线"
-              />
+              <n-input v-model:value="registerModel.username" placeholder="用户名" />
             </n-form-item>
             <n-form-item label="邮箱" path="email">
               <n-input v-model:value="registerModel.email" placeholder="邮箱" />
@@ -237,7 +184,7 @@ onUnmounted(() => {
                 v-model:value="registerModel.password"
                 type="password"
                 show-password-on="click"
-                placeholder="8-64 位"
+                placeholder="至少 8 位"
               />
             </n-form-item>
             <n-button type="primary" block :loading="submitting" @click="onRegisterSubmit">
@@ -269,43 +216,8 @@ onUnmounted(() => {
   position: relative;
   min-height: 100vh;
   color: var(--text-1);
-  /* 卡片实色不透明，任意视频帧上表单对比度由卡片自担（无视频 scrim） */
-  --login-card-bg: oklch(20% 0.02 262);
-}
-
-.login-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  background: var(--ink-950, oklch(13% 0.015 262));
-  pointer-events: none;
-}
-
-.login-bg__video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* 降级：墨蓝 + 48px 微网格，无 scrim */
-.login-bg.is-fallback::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent 0 47px,
-      oklch(25% 0.022 262 / 0.25) 47px 48px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 47px,
-      oklch(25% 0.022 262 / 0.25) 47px 48px
-    ),
-    var(--ink-950, oklch(13% 0.015 262));
+  /* 卡片 90% 实色 + 投影托层次（禁 backdrop-blur） */
+  --login-card-bg: color-mix(in oklch, var(--ink-950) 90%, transparent);
 }
 
 .login-stage {
@@ -315,50 +227,20 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 48px 8vw 48px 20px;
+  padding: 40px 8vw 40px 20px;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
+  /* 下移避让图中品牌字（handoff §2.1） */
+  margin-top: 20vh;
   background: var(--login-card-bg);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
   border-radius: 12px;
   padding: 36px 32px 28px;
+  box-shadow: 0 24px 60px color-mix(in oklch, var(--ink-950) 50%, transparent);
   /* 禁 backdrop-blur */
-}
-
-.login-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-}
-
-.login-brand__mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 9px;
-  flex-shrink: 0;
-  background: var(--accent);
-  color: var(--accent-text);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25rem;
-}
-
-.login-brand__name {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.125rem;
-}
-
-.login-brand__slogan {
-  margin-top: 2px;
-  font-size: 0.75rem;
-  color: var(--text-3);
 }
 
 .login-tabs {
@@ -401,7 +283,6 @@ onUnmounted(() => {
   margin-bottom: 20px;
 }
 
-/* 琥珀纪律：忘记密码中性，不占强调色额度 */
 .login-forgot {
   font-size: 0.8125rem;
   color: var(--text-3);
@@ -481,7 +362,6 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Naive 输入框焦点：琥珀边 + 14% 光环（本页覆盖） */
 .login-card :deep(.n-input:not(.n-input--disabled).n-input--focus) {
   --n-border-hover: var(--accent) !important;
   --n-border-focus: var(--accent) !important;
@@ -493,11 +373,16 @@ onUnmounted(() => {
     justify-content: center;
     padding: 48px 20px;
   }
+
+  .login-card {
+    margin-top: 8vh;
+  }
 }
 
 @media (max-width: 560px) {
   .login-card {
     padding: 28px 22px 22px;
+    margin-top: 4vh;
   }
 
   .login-copy {
