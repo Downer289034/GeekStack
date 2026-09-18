@@ -33,6 +33,13 @@ public class Skill {
     @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private String modelAdaptationMd;
 
+    /** SemVer 版本号，如 1.0.0。 */
+    private String version;
+
+    /** 版本更新说明；ALWAYS 以便清空。 */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    private String changelog;
+
     @TableField(typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.ALWAYS)
     private List<String> tags;
 

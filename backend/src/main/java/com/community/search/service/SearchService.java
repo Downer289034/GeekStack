@@ -100,8 +100,8 @@ public class SearchService {
     private SkillCardResponse toSkillCard(Skill skill) {
         List<String> tags = skill.getTags() == null ? List.of() : List.copyOf(skill.getTags());
         return new SkillCardResponse(skill.getId(), skill.getUserId(), skill.getTitle(), skill.getSummary(),
-                skill.getModelAdaptationMd(), tags, skill.getViewCount(), skill.getLikeCount(),
-                skill.getCreatedAt());
+                skill.getModelAdaptationMd(), skill.getVersion(), skill.getChangelog(), tags,
+                skill.getViewCount(), skill.getLikeCount(), skill.getCreatedAt());
     }
 
     private static void requireKeyword(String q) {

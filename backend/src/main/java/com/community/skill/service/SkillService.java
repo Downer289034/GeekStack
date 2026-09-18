@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
+import com.community.common.SemVer;
 import com.community.common.TagNormalizer;
 import com.community.skill.dto.SkillCardResponse;
 import com.community.skill.dto.SkillPayload;
@@ -107,21 +108,35 @@ public class SkillService {
         skill.setSummary(payload.summary());
         skill.setContentMd(payload.contentMd());
         skill.setModelAdaptationMd(payload.modelAdaptationMd());
+        skill.setVersion(resolveVersion(payload.version()));
+        String changelog = payload.changelog();
+        skill.setChangelog(changelog == null || changelog.isBlank() ? null : changelog.trim());
         skill.setTags(TagNormalizer.normalize(payload.tags(), MAX_TAGS));
+    }
+
+    private static String resolveVersion(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "1.0.0";
+        }
+        String version = raw.trim();
+        if (!SemVer.isValid(version)) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "version 须为 SemVer 格式，如 1.0.0");
+        }
+        return version;
     }
 
     private SkillCardResponse toCard(Skill skill) {
         List<String> tags = skill.getTags() == null ? List.of() : List.copyOf(skill.getTags());
         return new SkillCardResponse(skill.getId(), skill.getUserId(), skill.getTitle(), skill.getSummary(),
-                skill.getModelAdaptationMd(), tags, skill.getViewCount(), skill.getLikeCount(),
-                skill.getCreatedAt());
+                skill.getModelAdaptationMd(), skill.getVersion(), skill.getChangelog(), tags,
+                skill.getViewCount(), skill.getLikeCount(), skill.getCreatedAt());
     }
 
     private SkillResponse toResponse(Skill skill) {
         List<String> tags = skill.getTags() == null ? List.of() : List.copyOf(skill.getTags());
         return new SkillResponse(skill.getId(), skill.getUserId(), skill.getTitle(), skill.getSummary(),
-                skill.getContentMd(), skill.getModelAdaptationMd(), tags, skill.getStatus(),
-                skill.getViewCount(), skill.getLikeCount(), skill.getCreatedAt());
+                skill.getContentMd(), skill.getModelAdaptationMd(), skill.getVersion(), skill.getChangelog(),
+                tags, skill.getStatus(), skill.getViewCount(), skill.getLikeCount(), skill.getCreatedAt());
     }
 
     private Skill requireOwned(long id, String username) {

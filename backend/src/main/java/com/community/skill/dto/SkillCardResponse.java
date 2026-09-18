@@ -12,6 +12,8 @@ public record SkillCardResponse(
         String title,
         String summary,
         String modelAdaptationMd,
+        String version,
+        String changelog,
         List<String> tags,
         Long viewCount,
         Long likeCount,

@@ -13,6 +13,8 @@ public record SkillResponse(
         String summary,
         String contentMd,
         String modelAdaptationMd,
+        String version,
+        String changelog,
         List<String> tags,
         String status,
         Long viewCount,

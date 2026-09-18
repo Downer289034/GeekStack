@@ -289,6 +289,18 @@
 **前置**：T-SKILL-1
 **完成**：`f7e30f9` `/skills` 三页 + 导航 + 搜索 Tab=`skill`；API 契约冻结对齐计划表（待 T-SKILL-1 联调）
 
+### [x] T-SKILL-3-BE：Skill 版本号与 changelog（后端）
+**描述**：Flyway 顺延加 `skill.version`、`skill.changelog`（存量回填 `1.0.0`）；发布/编辑收两字段（version SemVer 核心校验，缺省 `1.0.0`）；详情/广场列表返回
+**验收标准**：三路径（本人改/越权 403/未登录 401）+ 非法 SemVer 400；mvn verify + CI
+**前置**：T-SKILL-1
+**完成**：待填 commit
+
+### [x] T-SKILL-3-FE：发布对齐 SkillHub 规范（前端，与 T-AI-0 并行）
+**描述**：①发布/编辑表单加版本号（默认 `1.0.0`，SemVer 核心正则与 BE `SemVer` 对齐）+ 变更说明（选填 textarea，≤2000）；②摘要框支持粘贴 `SKILL.md`：纯前端解析 YAML frontmatter 的 `name`/`description` 预填标题与摘要，失败静默降级为手填；③契约对齐 T-SKILL-3-BE：`POST/PUT` 载荷 `version`（必填）+ `changelog`（选填）；旧数据无版本号展示兜底 `1.0.0`；④详情页展示版本号 + 最近变更说明（不做版本历史列表）
+**验收标准**：三绿 + 零硬编码色值 + 三断点截图；粘贴真实 SKILL.md 自动提取演示；契约与 BE 联调通过
+**前置**：T-SKILL-3-BE
+**完成**：`skillMdFrontmatter.ts` + Publish/Detail/`skill.ts`；样例与截图 `docs/assets/t-skill-3-fe/`
+
 ### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
 
 ---
@@ -355,5 +367,46 @@
 **验收标准**（对照 handoff §6）：1920×1080 卡片不遮图中「极客栈」品牌字、任何滚动/视差位置不露黑边；视差有惯性缓停非 1:1；滚动退场 0.05× 滚回复位；触屏/reduced-motion 全静态；图挂墨蓝兜底且可正常登录；Performance 面板 GPU 增量 ≤3%；仓库无 mp4/PNG 冗余；三绿 + 零硬编码色值（暗角/兜底色走 token）
 **前置**：无
 **完成**：`LoginBackground.vue` + LoginView 视频拆除；卡片下移 20vh、去重复品牌字标；素材 `docs/assets/login-bg-dusk.jpg`（430788 B）；`@docs` 别名引用；mp4 已删
+**PM 验收**：aeef427/9924e4d 已 push（f2386cf..9924e4d），CI 双 job success（run 35335626538，frontend 58s/backend 1m55s）；实现实证——LERP 0.05 常量、`prefers-reduced-motion` + `pointer: fine` 双 matchMedia 门控、mousemove `passive:true`、滚动 0.05×（`-sy*0.05`）、visibilitychange 暂停、兜底 `--ink-950` token；`frontend/src/assets` 无 mp4 残留、docs 素材 430788B。→ **M12 关闭**。遗留：实机视差手感与品牌字避让由老板浏览器侧过目（纯主观项）
+
+---
+
+# M13 AI 助手（RAG 问答，2026-09-18 立项，老板批准）
+
+> 需求：页面内嵌 AI 助手，基于两类语料回答——①平台知识（使用说明/版规/功能区介绍，需新建）；②社区内容（帖子/分享/文档/Skill，RAG 主体）。回答必须带来源链接。
+> 架构决策（随计划批准，预研 T-AI-0 中复核）：**AI 服务独立部署**（Python 3.12 + FastAPI + LangGraph，与 Java 主站解耦，复用 DownerCode 编排经验）；**向量库 Qdrant**（单容器轻量，量级上来再迁 Milvus，embedding 层屏蔽差异）；**LLM 首选小米 MiMo v2.5**（老板拍板意向；官方 OpenAI 兼容 API `api.xiaomimimo.com/v1`，模型 mimo-v2.5 / mimo-v2.5-pro，支持 SSE 流式与 tool_calls，国内直连合规；注意 thinking 模式默认开启、thinking 下 temperature/top_p 被强制覆盖，RAG 场景对比 disabled/enabled 的延迟与质量后定）；**embedding 走 BGE-M3**（MiMo API 未含 embedding 端点，独立供给）。
+> 硬约束：只索引公开内容（HIDDEN/草稿/封禁用户内容不进语料）；回答必带来源链接（防幻觉兜底）；API Key 全走 .env（零明文红线）；用户级限流（复用频控思路）；一期纯 RAG 问答，不做工具调用 agent/语音/推送。
+> 排期定位：建议**先上线再接 AI**（公测真实语料避免空转调优）；一期开发可与上线准备并行，部署跟随上线。
+
+### [ ] T-AI-0：RAG 链路预研 spike（AI 服务）
+**状态**：已放行（2026-09-18 老板确认 MIMO_API_KEY 已配置于开发环境 .env，仓库零入库正确）
+**描述**：搭最小可跑链路——FastAPI 骨架 + LangGraph 单节点图 + Qdrant（docker 单容器）+ BGE-M3 embedding + MiMo v2.5 API（`api.xiaomimimo.com/v1`，OpenAI 兼容）；用 10 条真实社区内容走通「分块 → embedding → 入库 → 检索 top-5 → 生成带引用回答」；产出选型复核报告（含分块策略 512token/50overlap 建议、成本估算、延迟实测、**MiMo thinking disabled vs enabled 的延迟/质量对比**）
+**验收标准**：spike 代码入库 `ai-service/`（骨架可复用）；报告落 docs；关键决策（供应商/分块参数/thinking 开关）复核确认
+**前置**：无（LLM API Key 已由老板线下配置）
+
+### [ ] T-AI-1：语料索引管道（Java 后端）
+**描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 embedding API → 写 Qdrant（metadata: contentId/type/url/authorId/时间）；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
+**验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；mvn verify 末行 + CI
+**前置**：T-AI-0（embedding 接口契约定稿）
+
+### [ ] T-AI-2：问答链路（AI 服务）
+**描述**：LangGraph 流程：问题改写 → Qdrant 检索 top-5（相似度阈值过滤）→ prompt 组装（系统提示词含"仅基于资料回答，资料不足如实说"）→ LLM 流式生成 → 来源列表（url+标题）；SSE 输出；空检索结果走兜底话术
+**验收标准**：单测（检索为空/正常/超阈值三分支）；真实问答 10 问人工评测（相关性+引用正确性记录 docs）；延迟 P95 记录
+**前置**：T-AI-0、T-AI-1
+
+### [ ] T-AI-3：网关与安全（Java 后端）
+**描述**：`/api/v1/ai/ask`（POST，SSE 透传）：JWT 鉴权 → 用户级限流（如 10 问/小时，Redis）→ 请求体清洗（长度上限）→ 转发 ai-service（内网地址走 .env）→ 敏感词/无关问题前置过滤可选；成本日志（token 用量按用户记录）
+**验收标准**：未登录 401、超限 429、ai-service 宕机 503 降级话术；三路径测试；CI
+**前置**：T-AI-2
+
+### [ ] T-AI-4：前端浮窗
+**描述**：右下角悬浮球 → 展开对话面板（夜栈灯码组件语言：面板 surface-1、琥珀仅用于发送按钮）；SSE 流式渲染 Markdown（复用渲染唯一出口防 XSS）；来源链接卡片（favicon+标题，新窗打开）；会话历史 localStorage 本地保留；移动端折叠为全屏底部抽屉
+**验收标准**：三绿 + 零硬编码色值 + 三断点截图；流式无卡顿；来源链接可点；未登录提示登录；CI
+**前置**：T-AI-3
+
+### [ ] T-AI-5：部署与走查
+**描述**：docker-compose 增 `ai-service` + `qdrant` 服务（dev 栈先行，生产栈跟随上线）；.env.example 增 LLM/embedding/Qdrant 配置项（占位符）；健康检查；部署指引补交接文档；全链路走查清单执行
+**验收标准**：dev 栈全链路实测（发帖→自动索引→提问命中）；compose up 一键起；走查记录入库
+**前置**：T-AI-4
 
 ---

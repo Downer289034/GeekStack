@@ -96,6 +96,17 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void skillVersionAndChangelogColumnsExist() {
+        List<Map<String, Object>> columns = jdbcTemplate.queryForList(
+                "SELECT column_name FROM information_schema.columns "
+                        + "WHERE table_schema = DATABASE() AND table_name = 'skill'");
+        List<String> names = columns.stream()
+                .map(c -> String.valueOf(c.get("column_name")))
+                .toList();
+        assertThat(names).contains("version", "changelog");
+    }
+
+    @Test
     void uniqueConstraintsExist() {
         assertThat(indexInfos("user"))
                 .filteredOn(IndexInfo::unique)
