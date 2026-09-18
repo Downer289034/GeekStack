@@ -72,6 +72,8 @@
   --shadow-sm: none;
   --shadow-md: 0 4px 12px oklch(13% 0.015 262 / 0.35);
   --shadow-lg: 0 8px 24px oklch(13% 0.015 262 / 0.45);
+  /* 粒子层调色（canvas 不支持 oklch，sRGB 三元组）：夜=琥珀萤火，出处 particles-bg.html §2 */
+  --particles-rgb: 255, 186, 100;
   /* 语义色「字」：暗色可用基色本身；error 略提亮以满足徽章 15% 底 ≥4.5 */
   --success-on: var(--success);
   --warning-on: var(--warning);
@@ -108,6 +110,8 @@
   --warning-on: oklch(48% 0.12 75);
   --error-on: oklch(48% 0.16 25);
   --info-on: oklch(45% 0.1 230);
+  /* 粒子层调色：日=暖墨浮尘（alpha 区间由组件减半，出处 particles-bg.html §2） */
+  --particles-rgb: 150, 118, 72;
 }
 
 /* ---------- M5 兼容别名（业务页未迁完前） ---------- */

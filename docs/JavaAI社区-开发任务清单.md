@@ -1,4 +1,4 @@
-﻿# Java & AI 交流社区 — 开发任务清单
+# Java & AI 交流社区 — 开发任务清单
 
 > **规格来源**：《JavaAI社区-架构与产品规划.md》v1.0
 > **技术栈**：JDK17 + Spring Boot 3.3 + MyBatis-Plus + MySQL 8 + Redis ｜ Vue3 + Vite + Pinia + 定制鸿蒙风主题
@@ -308,4 +308,17 @@
 **描述**：点击授权按钮前用 `crypto.getRandomValues` 生成 state 存 sessionStorage；`/oauth/callback` 页转交 code 时一并提交 state 并比对，不匹配则清空 pending 提示重新发起登录；不匹配/缺失场景 UI 走现有错误态（不新增样式）
 **验收标准**：三绿 + 零硬编码色值；正常 OAuth 登录/绑定全链路实测不受影响；篡改 state 的手动演练被后端拒绝且页面有明确提示
 **前置**：T-SEC-1-BE（契约对齐：code 载荷新增 state 字段）
-**完成**：`beginOAuth` → sessionStorage + `?state=`；回调页 FE 比对闭环 + `POST /code` 带 state；演练说明 `docs/T-SEC-1-FE-OAuth-state-手动演练.md`
+**完成**：`beginOAuth` → sessionStorage + `?state=`；回调页 FE 比对闭环 + `POST /code` 带 state；演练说明 `docs/T-SEC-1-FE-OAuth-state-手动演练.md`。PM 验收：7cf2ca9 已 push、CI 双 job success（run 35291684463，frontend 53s/backend 1m53s）；实现实证——`generateOAuthState` 16 字节 crypto.getRandomValues → 32 hex 合 BE 白名单、`takeExpectedOAuthState` 读即删、回调页三重比对（`!expected || !returned || expected !== returned`）、失败双清（pending+state）走 n-empty、登录页与设置页入口统一走 `beginOAuth`、转交用原生 axios 避开 refresh 拦截器。**M10 关闭，功能开发线全部收官**。遗留浏览器侧两步：篡改 state 演练截图 + 正常登录/绑定回归（按演练文档执行）
+
+---
+
+# M11 全站粒子氛围层（2026-09-18 立项，老板拍板：仅全站页面，不含登录页）
+
+> 背景：UI 设计师交付 GsParticles v1.0（`docs/geekstack-particles-bg.html` + `docs/design-report-2026-09-18.md`）。老板拍板范围：仅全站内容页背景，**登录/注册页不做**（该页已有视频背景，避免双层动画叠加）。
+> 设计纪律（设计师自约束，PM 采纳为验收红线）：纯装饰不交互（禁鼠标跟随/连线）、canvas fixed 底层只在留白可见、夜=琥珀萤火 alpha 0.08–0.28 / 日=暖墨浮尘 alpha 减半、"被用户注意到即失败"。
+
+### [x] T-DESIGN-P1：GsParticles 全站氛围层（前端）
+**描述**：`GsParticles.vue` 组件，App 级单实例挂载于布局层（router-view 之外），canvas fixed 底层（z-index 低于内容、高于 body 背景）；双主题色值走 token（禁硬编码）；密度 ≤56；路由排除 `/login` `/register` `/oauth/callback`；性能四件套——DPR 封顶 2、`visibilitychange` 页签隐藏即暂停、`prefers-reduced-motion` 不启动、掉帧降级（rAF 间隔 >33ms 连续 60 帧 → 密度减半，再触发 → 停用并记日志）；≤768px 不启动
+**验收标准**：三绿 + 零硬编码色值；登录/注册页确认无粒子（路由排除实测）；页签隐藏后 CPU 归零（任务管理器截图）；reduced-motion 下 canvas 不渲染；掉帧降级路径演练记录（可用 devtools 限速模拟）；暗/亮主题各一截图（粒子肉眼几乎不可察觉为准——"注意到即失败"）；不回归现有页面（三页抽查）
+**前置**：无（可立即开工，与 T-SEC-1-FE 浏览器侧回归演练同批）
+**完成**：PM 直接实现。`GsParticles.vue`（App 级单实例挂 App.vue、三重门控 reduced-motion/≤768px/路由排除、基色读 tokens.css `--particles-rgb` 双主题变量零硬编码、粒子基准 alpha 归一化使主题切换即时生效、GETDEL 同款原子思路的掉帧降级 rAF>33ms×60 帧密度减半→再触发停用、暂停恢复重置 lastT 防误计）；三绿自测过（eslint/vue-tsc/vite build）。**遗留浏览器侧走查**：CPU 归零截图、降级演练、暗/亮主题与登录页无粒子确认
