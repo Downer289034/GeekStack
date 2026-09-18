@@ -73,11 +73,12 @@
 **验收标准**：公网域名 HTTPS 可访问；"注册→分享项目→论坛发帖回帖"全链路真实走通
 **里程碑**：✅ MVP 上线，邀请 5–10 名种子用户内测
 
-### [ ] Task 14.6：发帖/评论/分享事件推送（Agent 对接，契约 v1.0）
+### [x] Task 14.6：发帖/评论/分享事件推送（Agent 对接，契约 v1.0）
 **描述**：按《社区事件对接契约》v1.0（`.agent-contract/docs/community-api-contract.md`，d8613fd）实现事件 webhook 推送。`ApplicationEvent` 发布（post/comment/share 三类创建动作）+ `@Async` 监听器 HMAC 签名推送 `POST <agent>:18000/api/v1/events`。**只推 post.created / comment.created / share.created，编辑/删除不推**；请求体直接用 Agent 冻结的 Event Schema（content_id 带 `post_`/`user_`/`share_` 前缀、content_text 全文快照 ≤5000 字符超长截断置 metadata.truncated=true、评论只推自身文本不推父链、多态宿主写 metadata.target_type）。
 **验收标准**：① 三类创建动作推送到 Agent 返回 202 并记录 trace_id；② HMAC-SHA256 签名（timestamp + "." + raw_body，hex 小写）+ `X-Steward-Timestamp` 头，密钥 32 字节走 .env（`openssl rand -hex 32` 生成，不入 git）；③ 401/5xx/超时仅记日志不重试、不阻塞发帖；④ **422 不静默**——记 ERROR 级日志并按契约 bug 上报 Agent PM；⑤ 推送失败时发帖主流程无感（测试覆盖）。
 **安全红线**：共享密钥线下交换给 Agent PM，不经 git、不经聊天明文长期留存；疑似泄露即轮换（90 天常规轮换 P2 前不强制）。
 **备注**：Agent 侧 T10.1（EventContentType.SHARE 增量）由 Agent 开发者随其 T13 提交；编号撞车已双标注（Agent-T18 = 社区 API 对接 ≠ 本清单 T18 = 一键导入项目分享）。
+**完成（台账补记 2026-09-18）**：`f93106b` 事件推送合入 main + `091cb07` 联调三项修复（422 真实 HttpStatusCodeException 分流 / trace_id 解析 / event_time 改 OffsetDateTime）+ `09f78c3` 联调样例；测试 WebhookPushListenerTest×7 + EventPayloadSerializationTest×1。此前台账误记"取消"（实为联调暂停，开发已交付）——Agent 对接重启函引用"已交付"属实。遗留：生产/dev .env 的 AGENT_WEBHOOK_URL 与 HMAC 密钥线下交换、Agent 侧验签完成后约定联调窗口
 
 ---
 
@@ -300,6 +301,7 @@
 **验收标准**：三绿 + 零硬编码色值 + 三断点截图；粘贴真实 SKILL.md 自动提取演示；契约与 BE 联调通过
 **前置**：T-SKILL-3-BE
 **完成**：`skillMdFrontmatter.ts` + Publish/Detail/`skill.ts`；样例与截图 `docs/assets/t-skill-3-fe/`（三断点 + 粘贴提取 `paste-extract.json` ok）；契约对齐 BE `SkillPayload`/`SemVer` 核心正则；FE 载荷字段与 `SkillVersionIntegrationTest` 一致
+**PM 验收**：`36b783a`（FE 实现）+ `3a52e54`（墨阶提亮修正，老板反馈"黑得看不清"的正规修复，对比度复核 4.92/4.59 ≥4.5，单独 commit）已 push，CI 双 job success（run 35340543682）→ **T-SKILL-3 关闭**。过程备注：push 遭遇网络抖动（代理 502/直连超时），首次"失败"push 实际已到达，经 GitHub API 核实远程 main=3a52e54；本地三绿（直调 node）同步验证
 
 ### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
 
