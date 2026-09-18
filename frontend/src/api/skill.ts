@@ -1,12 +1,15 @@
 import request, { unwrap } from '@/api/request'
 import type { PageResult } from '@/api/share'
 
-/** 发布/编辑 Skill（与后端 SkillPayload 对齐） */
+/** 发布/编辑 Skill（与后端 SkillPayload 对齐；T-SKILL-3：version 必填、changelog 选填） */
 export interface SkillPayload {
   title: string
   summary: string
   contentMd: string
   modelAdaptationMd?: string
+  /** SemVer 核心，如 1.0.0 */
+  version: string
+  changelog?: string
   tags?: string[]
 }
 
@@ -18,6 +21,9 @@ export interface SkillResponse {
   summary: string
   contentMd: string
   modelAdaptationMd: string | null
+  /** 旧数据可能缺省；展示侧兜底 1.0.0 */
+  version: string | null
+  changelog: string | null
   tags: string[] | null
   status: 'PUBLISHED' | 'HIDDEN' | string
   viewCount: number
@@ -32,10 +38,18 @@ export interface SkillCard {
   title: string
   summary: string
   modelAdaptationMd: string | null
+  version: string | null
+  changelog: string | null
   tags: string[] | null
   viewCount: number
   likeCount: number
   createdAt: string
+}
+
+/** 旧数据无版本号时的展示兜底 */
+export function skillVersionLabel(version: string | null | undefined): string {
+  const v = version?.trim()
+  return v ? v : '1.0.0'
 }
 
 export function pageSkills(current: number, size: number, tag?: string): Promise<PageResult<SkillCard>> {

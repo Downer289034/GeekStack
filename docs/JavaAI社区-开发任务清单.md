@@ -299,7 +299,7 @@
 **描述**：①发布/编辑表单加版本号（默认 `1.0.0`，SemVer 核心正则与 BE `SemVer` 对齐）+ 变更说明（选填 textarea，≤2000）；②摘要框支持粘贴 `SKILL.md`：纯前端解析 YAML frontmatter 的 `name`/`description` 预填标题与摘要，失败静默降级为手填；③契约对齐 T-SKILL-3-BE：`POST/PUT` 载荷 `version`（必填）+ `changelog`（选填）；旧数据无版本号展示兜底 `1.0.0`；④详情页展示版本号 + 最近变更说明（不做版本历史列表）
 **验收标准**：三绿 + 零硬编码色值 + 三断点截图；粘贴真实 SKILL.md 自动提取演示；契约与 BE 联调通过
 **前置**：T-SKILL-3-BE
-**完成**：`skillMdFrontmatter.ts` + Publish/Detail/`skill.ts`；样例与截图 `docs/assets/t-skill-3-fe/`
+**完成**：`skillMdFrontmatter.ts` + Publish/Detail/`skill.ts`；样例与截图 `docs/assets/t-skill-3-fe/`（三断点 + 粘贴提取 `paste-extract.json` ok）；契约对齐 BE `SkillPayload`/`SemVer` 核心正则；FE 载荷字段与 `SkillVersionIntegrationTest` 一致
 
 ### [ ] 二期预留：评论（target_type 扩展）、Skill 文件包上传（MinIO scene=skill）、评分体系
 

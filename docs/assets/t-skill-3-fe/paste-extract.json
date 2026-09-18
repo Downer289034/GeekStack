@@ -1,0 +1,5 @@
+{
+  "title": "java exception analyzer",
+  "summary": "Analyze Java stack traces, classify root causes, and suggest fix steps. Use when the user pastes an exception log or asks why a JVM error occurs.",
+  "ok": true
+}

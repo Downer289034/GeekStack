@@ -6,18 +6,21 @@ import {
   NForm,
   NFormItem,
   NInput,
+  useMessage,
   type FormInst,
   type FormRules
 } from 'naive-ui'
-import { createSkill, fetchSkill, updateSkill } from '@/api/skill'
+import { createSkill, fetchSkill, skillVersionLabel, updateSkill } from '@/api/skill'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsMdEditor from '@/components/gs/GsMdEditor.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 import { useAuthStore } from '@/stores/auth'
+import { extractFromSkillMdPaste, SEMVER_CORE } from '@/utils/skillMdFrontmatter'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const message = useMessage()
 
 const editId = computed(() => {
   const raw = route.params.id
@@ -33,6 +36,8 @@ const loadingSkill = ref(isEdit.value)
 const model = reactive({
   title: '',
   summary: '',
+  version: '1.0.0',
+  changelog: '',
   contentMd: '',
   modelAdaptationMd: '',
   tags: [] as string[]
@@ -47,6 +52,19 @@ const rules: FormRules = {
     { required: true, message: '请输入摘要' },
     { max: 500, message: '摘要最长 500 字' }
   ],
+  version: [
+    { required: true, message: '请输入版本号' },
+    {
+      validator: (_rule, value: string) => {
+        if (!value || !SEMVER_CORE.test(value.trim())) {
+          return new Error('版本号须为 SemVer，如 1.0.0')
+        }
+        return true
+      },
+      trigger: ['input', 'blur']
+    }
+  ],
+  changelog: [{ max: 2000, message: '变更说明最长 2000 字' }],
   contentMd: [{ required: true, message: '请输入提示词正文（Markdown）' }],
   modelAdaptationMd: [{ max: 1000, message: '模型适配说明最长 1000 字' }]
 }
@@ -57,12 +75,25 @@ async function prefillForEdit() {
     const skill = await fetchSkill(editId.value)
     model.title = skill.title
     model.summary = skill.summary ?? ''
+    model.version = skillVersionLabel(skill.version)
+    model.changelog = skill.changelog ?? ''
     model.contentMd = skill.contentMd
     model.modelAdaptationMd = skill.modelAdaptationMd ?? ''
     model.tags = skill.tags ?? []
   } finally {
     loadingSkill.value = false
   }
+}
+
+/** 摘要框粘贴 SKILL.md：解析 frontmatter 预填标题/摘要；失败则按普通粘贴 */
+function onSummaryPaste(e: ClipboardEvent) {
+  const text = e.clipboardData?.getData('text/plain') ?? ''
+  const extracted = extractFromSkillMdPaste(text)
+  if (!extracted) return
+  e.preventDefault()
+  if (extracted.title) model.title = extracted.title.slice(0, 200)
+  if (extracted.summary) model.summary = extracted.summary.slice(0, 500)
+  message.success('已从 SKILL.md 提取名称与摘要')
 }
 
 async function onSubmit() {
@@ -80,6 +111,8 @@ async function onSubmit() {
     const payload = {
       title: model.title,
       summary: model.summary,
+      version: model.version.trim(),
+      changelog: model.changelog.trim() || undefined,
       contentMd: model.contentMd,
       modelAdaptationMd: model.modelAdaptationMd || undefined,
       tags: model.tags.length > 0 ? model.tags : undefined
@@ -106,12 +139,35 @@ void prefillForEdit()
       <n-form-item label="标题" path="title">
         <n-input v-model:value="model.title" placeholder="例如：Java 异常分析助手" />
       </n-form-item>
-      <n-form-item label="摘要" path="summary">
+      <n-form-item path="summary">
+        <template #label>
+          <span>摘要</span>
+          <span class="field-hint">可粘贴 SKILL.md，自动提取 name / description</span>
+        </template>
         <n-input
           v-model:value="model.summary"
           type="textarea"
           :rows="2"
-          placeholder="一句话说明这个 Skill 能做什么"
+          placeholder="一句话说明这个 Skill 能做什么；或直接粘贴整份 SKILL.md"
+          @paste="onSummaryPaste"
+        />
+      </n-form-item>
+      <n-form-item label="版本号" path="version">
+        <n-input
+          v-model:value="model.version"
+          class="version-input"
+          placeholder="1.0.0"
+          maxlength="32"
+        />
+      </n-form-item>
+      <n-form-item label="变更说明（可选）" path="changelog">
+        <n-input
+          v-model:value="model.changelog"
+          type="textarea"
+          :rows="2"
+          placeholder="本版改了什么（选填）"
+          maxlength="2000"
+          show-count
         />
       </n-form-item>
       <n-form-item label="标签（回车添加，最多 5 个）" path="tags">
@@ -144,5 +200,16 @@ void prefillForEdit()
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-1);
+}
+
+.field-hint {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.version-input {
+  max-width: 12rem;
 }
 </style>

@@ -10,7 +10,7 @@ import {
   useMessage
 } from 'naive-ui'
 import { AlertCircleOutline, FlashOutline } from '@vicons/ionicons5'
-import { fetchSkill, hideSkill, type SkillResponse } from '@/api/skill'
+import { fetchSkill, hideSkill, skillVersionLabel, type SkillResponse } from '@/api/skill'
 import GsBadge from '@/components/gs/GsBadge.vue'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
@@ -113,6 +113,10 @@ onMounted(() => {
 
       <dl class="detail-meta font-mono">
         <div>
+          <dt>版本</dt>
+          <dd>v{{ skillVersionLabel(skill.version) }}</dd>
+        </div>
+        <div>
           <dt>发布时间</dt>
           <dd>{{ formatTime(skill.createdAt) }}</dd>
         </div>
@@ -129,6 +133,11 @@ onMounted(() => {
           </dd>
         </div>
       </dl>
+
+      <section v-if="skill.changelog?.trim()" class="changelog" aria-label="变更说明">
+        <h3 class="changelog__title font-mono">最近变更</h3>
+        <p class="changelog__body">{{ skill.changelog }}</p>
+      </section>
 
       <h3 class="prompt-heading font-display">提示词</h3>
       <pre class="prompt-block font-mono" tabindex="0">{{ skill.contentMd }}</pre>
@@ -187,6 +196,29 @@ onMounted(() => {
 }
 
 .model-notes__body {
+  margin: 0;
+  color: var(--text-1);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.changelog {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface-2);
+}
+
+.changelog__title {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.changelog__body {
   margin: 0;
   color: var(--text-1);
   line-height: 1.6;
