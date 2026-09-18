@@ -151,6 +151,27 @@ class MediaUploadIntegrationTest {
     }
 
     @Test
+    void fakePngWithJpegContentAcceptedAsJpg() throws Exception {
+        // 魔数为王：.png 名 + image/png 声明 + JPEG 内容（常见"另存"名实不符）→ 按 JPEG 收，存 .jpg
+        byte[] jpeg = new byte[64];
+        jpeg[0] = (byte) 0xFF;
+        jpeg[1] = (byte) 0xD8;
+        jpeg[2] = (byte) 0xFF;
+        jpeg[3] = (byte) 0xE0;
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "fake.png", "image/png", jpeg);
+        mockMvc.perform(multipart("/api/v1/media/upload")
+                        .file(file)
+                        .param("scene", "avatar")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.contentType").value("image/jpeg"))
+                .andExpect(jsonPath("$.data.key",
+                        org.hamcrest.Matchers.matchesPattern("media/\\d{4}/\\d{2}/[a-f0-9]{32}\\.jpg")));
+    }
+
+    @Test
     void rejectOversizeForAvatarScene() throws Exception {
         // avatar 上限 2MB：构造略大于 2MB 的假 PNG 头+填充
         byte[] big = new byte[2 * 1024 * 1024 + 64];

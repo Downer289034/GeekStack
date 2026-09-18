@@ -69,8 +69,7 @@ public class MediaUploadService {
 
         byte[] header = new byte[Math.min(12, bytes.length)];
         System.arraycopy(bytes, 0, header, 0, header.length);
-        ImageValidator.ValidatedImage validated =
-                ImageValidator.validate(file.getOriginalFilename(), file.getContentType(), header);
+        ImageValidator.ValidatedImage validated = ImageValidator.validate(header);
 
         String key = buildObjectKey(validated.extension());
         storageService.put(key, new ByteArrayInputStream(bytes), bytes.length, validated.contentType());

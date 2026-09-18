@@ -3,22 +3,16 @@ package com.community.media.service;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 /**
- * 图片三一致校验：扩展名白名单 + Content-Type + 魔数。
+ * 图片魔数校验：以文件头真实格式为准（魔数为王）。
+ *
+ * <p>策略（T-PROFILE-BE 用户反馈修复）：用户文件常出现「扩展名 .png 但内容实为 JPEG」等
+ * 名实不符情况（聊天工具/截图软件另存所致），原「扩展名+Content-Type+魔数三一致」会误拒此类
+ * 完全可显示的图片。现仅信任魔数：真实格式在白名单（jpg/png/gif/webp）内即通过，并按真实格式
+ * 存盘；伪装攻击（EXE/HTML 改名 .png）魔数不在白名单，依旧拒绝——安全性不降。
  */
 public final class ImageValidator {
-
-    private static final Set<String> ALLOWED_EXT = Set.of("jpg", "jpeg", "png", "webp", "gif");
-
-    private static final Map<String, String> EXT_TO_MIME = Map.of(
-            "jpg", "image/jpeg",
-            "jpeg", "image/jpeg",
-            "png", "image/png",
-            "webp", "image/webp",
-            "gif", "image/gif");
 
     private ImageValidator() {
     }
@@ -26,46 +20,24 @@ public final class ImageValidator {
     /**
      * 校验结果。
      *
-     * @param extension   归一化扩展名（jpeg→jpg 存盘用 jpg）
-     * @param contentType 规范化 MIME
+     * @param extension   按魔数识别的真实扩展名（jpeg→jpg 存盘用 jpg）
+     * @param contentType 真实 MIME
      */
     public record ValidatedImage(String extension, String contentType) {
     }
 
     /**
-     * 三一致校验。
+     * 魔数校验。
      *
-     * @param originalFilename 原始文件名（仅取扩展名，不入库）
-     * @param declaredType     客户端 Content-Type
-     * @param header           文件头至少 12 字节
+     * @param header 文件头至少 12 字节（WebP 需要读满 12 字节）
      * @return 校验通过后的扩展名与 MIME
      */
-    public static ValidatedImage validate(String originalFilename, String declaredType, byte[] header) {
-        String ext = extractExtension(originalFilename);
-        if (ext == null || !ALLOWED_EXT.contains(ext)) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "仅支持 jpg/png/webp/gif");
-        }
-        String normalizedExt = "jpeg".equals(ext) ? "jpg" : ext;
-        String expectedMime = EXT_TO_MIME.get(normalizedExt.equals("jpg") ? "jpg" : normalizedExt);
-        // jpeg 扩展名也映射 image/jpeg
-        if ("jpg".equals(normalizedExt)) {
-            expectedMime = "image/jpeg";
-        }
-
-        String mime = declaredType == null ? "" : declaredType.trim().toLowerCase(Locale.ROOT);
-        if (mime.contains(";")) {
-            mime = mime.substring(0, mime.indexOf(';')).trim();
-        }
-        if (!expectedMime.equals(mime)
-                && !(("jpg".equals(normalizedExt) || "jpeg".equals(ext)) && "image/jpeg".equals(mime))) {
-            throw new BusinessException(ErrorCode.PARAM_ERROR, "Content-Type 与扩展名不一致");
-        }
-
+    public static ValidatedImage validate(byte[] header) {
         String magicMime = sniffMagic(header);
-        if (magicMime == null || !magicMime.equals(expectedMime)) {
+        if (magicMime == null) {
             throw new BusinessException(ErrorCode.PARAM_ERROR, "文件内容不是合法图片");
         }
-        return new ValidatedImage(normalizedExt, expectedMime);
+        return new ValidatedImage(mimeToExt(magicMime), magicMime);
     }
 
     /**
@@ -84,26 +56,14 @@ public final class ImageValidator {
         };
     }
 
-    private static String extractExtension(String filename) {
-        if (filename == null || filename.isBlank()) {
-            return null;
-        }
-        String name = filename.trim();
-        // 拒绝路径分隔与双扩展名探测（取最后一段）
-        int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-        if (slash >= 0) {
-            name = name.substring(slash + 1);
-        }
-        int dot = name.lastIndexOf('.');
-        if (dot < 0 || dot == name.length() - 1) {
-            return null;
-        }
-        String ext = name.substring(dot + 1).toLowerCase(Locale.ROOT);
-        // 拒绝 x.jpg.html 一类：扩展名本身再含点已不可能；再查是否含非字母
-        if (!ext.chars().allMatch(Character::isLetter)) {
-            return null;
-        }
-        return ext;
+    private static String mimeToExt(String mime) {
+        return switch (mime) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/gif" -> "gif";
+            case "image/webp" -> "webp";
+            default -> throw new BusinessException(ErrorCode.PARAM_ERROR, "文件内容不是合法图片");
+        };
     }
 
     private static String sniffMagic(byte[] header) {

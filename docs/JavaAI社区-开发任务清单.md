@@ -327,6 +327,18 @@
 **描述**：①粒子浏览器侧走查四项——暗/亮主题切换收敛度（"注意到即失败"）、登录页无粒子、页签切走 CPU 归零（任务管理器截图）、devtools CPU 6x 限速触发降级日志；②T-SEC-1-FE 遗留回归——篡改 pending.state 演练截图 + 正常 Gitee 登录/设置页绑定各一遍（按 `docs/T-SEC-1-FE-OAuth-state-手动演练.md`）；③资产治理：工作区 login-bg.mp4（docs/assets + frontend/src/assets 两处）为 2.6MB 未提交修改——还原或压缩 CRF 28 去音轨后单独提交（HEAD 版本 1.64MB，禁止直接提交变大版本）；双份 mp4 冗余治理（只留 frontend 引用一份）；④设计基线文档入库：`docs/design-report-2026-09-18.md`、`docs/geekstack-particles-bg.html`
 **验收标准**：走查项逐条截图/记录回贴任务清单；mp4 入库后 `git cat-file -s` ≤ 1.7MB（或附新素材说明）；文档入库走 docs commit；全部完成后 M11 关闭
 **前置**：无
-**完成**：证据见 `docs/assets/t-verify-1/`（含 walkthrough/degrade JSON + 四张截图）；资产：脏 2.6MB mp4 还原、删除 docs 副本、设计稿改引 frontend；`git cat-file -s` login-bg = 1719645。Gitee 真登录/绑定仍需人工凭据联调一次。→ **M11 关闭**
+**完成**：证据见 `docs/assets/t-verify-1/`（含 walkthrough/degrade JSON + 四张截图）；资产：脏 2.6MB mp4 还原、删除 docs 副本、设计稿改引 frontend；`git cat-file -s` login-bg = 1719645。Gitee 真登录/绑定仍需人工凭据联调一次。→ **M11 关闭**。PM 验收：b71b65c/f7c40b3 已 push，CI success（run 35304331039）；工作区 mp4 脏文件确认清零、docs/assets 无冗余副本、t-verify-1 证据齐全（degrade.json 实证两级降级链路完整触发：减半至 25 → 停用）；设计文档入库核实。遗留一项不阻塞：Gitee 真登录/绑定由老板本机人工点验（自动化无授权码）
+
+---
+
+# P2-18 头像上传「假 PNG」误拒（2026-09-18 用户反馈，PM 修复）
+
+> 现象：设置页上传头像报「文件内容不是合法图片」。取证：用户上传源文件为标准 PNG 魔数（89 50 4E 47…，112KB），全链路（n-upload 原生 File → FormData → 后端前 12 字节嗅探）无加工——判定为用户侧文件「名实不符」类问题：扩展名 .png / 浏览器声明 image/png，但真实内容为 JPEG 等其他白名单格式（聊天工具/截图软件另存常见）。
+> 原校验为「扩展名+Content-Type+魔数三一致」，名实不符即拒——对用户过于严苛。修复策略：**魔数为王**——文件头真实格式在白名单（jpg/png/gif/webp）内即通过并按真实格式存盘；伪装攻击（EXE/HTML 改名 .png）魔数不在白名单依旧拒绝，安全性不降。
+
+### [x] P2-18：ImageValidator 改「魔数为王」
+**改动**：`ImageValidator.validate` 签名收敛为 `(byte[] header)`，扩展名/Content-Type 不再参与判定；存盘扩展名按魔数真实格式（假 PNG 内容 JPEG → 存 .jpg）；`MediaUploadService` 调用同步。测试：`ImageValidatorTest` 按新语义重写（新增假 PNG 通过、EXE 魔数拒绝、过短 header 拒绝）；`MediaUploadIntegrationTest` 新增 `fakePngWithJpegContentAcceptedAsJpg` 用例。
+**验收**：后端全量测试绿（CI）+ 用户真实文件复传通过。
+**备注**：本地 mvn 执行受审批环境限制未能在沙箱内跑通，验证以 CI 全量测试为准（红则修复重推，按 fix 两次连续绿关闭）。生产/dev 栈需重建后生效。
 
 ---
