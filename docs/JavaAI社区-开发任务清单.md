@@ -381,17 +381,25 @@
 > 硬约束：只索引公开内容（HIDDEN/草稿/封禁用户内容不进语料）；回答必带来源链接（防幻觉兜底）；API Key 全走 .env（零明文红线）；用户级限流（复用频控思路）；一期纯 RAG 问答，不做工具调用 agent/语音/推送。
 > 排期定位：建议**先上线再接 AI**（公测真实语料避免空转调优）；一期开发可与上线准备并行，部署跟随上线。
 
-### [ ] T-AI-0：RAG 链路预研 spike（AI 服务）
-**状态**：已放行（2026-09-18 老板确认 MIMO_API_KEY 已配置于开发环境 .env，仓库零入库正确）
+### [x] T-AI-0：RAG 链路预研 spike（AI 服务）
+**状态**：报告已交 PM 选型复核（2026-09-20）——[`docs/T-AI-0-RAG选型复核报告.md`](./T-AI-0-RAG选型复核报告.md)；四块拍板通过前不放行 T-AI-1
 **描述**：搭最小可跑链路——FastAPI 骨架 + LangGraph 单节点图 + Qdrant（docker 单容器）+ DashScope `text-embedding-v3` embedding（1024 维，Key 需线下配置 `DASHSCOPE_API_KEY`）+ MiMo v2.5 API（`api.xiaomimimo.com/v1`，OpenAI 兼容）；用 10 条真实社区内容走通「分块 → embedding → 入库 → 检索 top-5 → 生成带引用回答」；产出选型复核报告（含分块策略 512token/50overlap 建议、成本估算、延迟实测、**MiMo thinking disabled vs enabled 的延迟/质量对比**）
 **验收标准**：spike 代码入库 `ai-service/`（骨架可复用）；报告落 docs；关键决策（供应商/分块参数/thinking 开关）复核确认
 **双 RAG 线复用性设计（老板拍板的战略要求，报告必备章节）**：~~原五要素~~ **已由管家项目组立场回应（`rag-reuse-position.md`，2026-09-19）对齐并收敛**，预研按已对齐口径执行：①统一 metadata schema 按管家草案骨架（content_id 含来源前缀/source_system/content_type/text_url 不存全文但 **chunk 文本必须入 payload**（否则 RAG 无法工作，需在回函澄清）/author_id 脱敏/created_at/visibility/**embedding_model 版本化字段**/extra open dict）；②治理语料（版规/判例）留管家侧 Milvus 物理隔离，社区内容语料挂极客栈 Qdrant、管家只读接入；③embedding 双方同源 text-embedding-v3（铁律=同源，型号可配置）；④隐私红线按管家需求清单（§五四项：API 拉取不落库/聚合优先/动作 API 幂等+审计/判罚回流只读）双向写死。本章节作为三期谈判技术底稿，回函由 PM 起草
-**前置**：无（LLM API Key 已由老板线下配置；**新增需求：DASHSCOPE_API_KEY 待老板线下配置**）
+**前置**：无（LLM API Key 已由老板线下配置；**DASHSCOPE_API_KEY 已配置**）
+**完成说明（报告侧 2026-09-20）**：BGE-M3 → DashScope text-embedding-v3；spike+bench 实测入 `docs/assets/t-ai-0/bench_metrics.json`；四块均有数据。待 PM 勾选拍板后关闭本任务并放行 T-AI-1。
 
 ### [ ] T-AI-1：语料索引管道（Java 后端）
-**描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 **DashScope text-embedding-v3** → 写极客栈侧 Qdrant 社区内容库（metadata 按统一 schema 草案：content_id 带前缀 `jkz_`/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/embedding_model）；**chunk 文本写入 payload**；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
-**验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；metadata schema 与管家草案逐字段对齐；mvn verify 末行 + CI
+**状态**：✅ **放行（2026-09-20，T-AI-0 复核通过 = embedding 契约定稿）**。定稿四块：分块 512/50（长文复测留本任务）｜thinking disabled｜schema v1.1（统一字段 + chunk_text/chunk_index/parent_content_id + text 入 payload 硬约束 + jkz_ 前缀 + embedding_model 版本化）｜双库并存 + DashScope text-embedding-v3 同源（1024 维）。**附加观测项：e2e P95 实测 11.6s 偏高，T-AI-2 落地后持续采样**
+**描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 **DashScope text-embedding-v3** → 写极客栈侧 Qdrant 社区内容库（metadata 按统一 schema **v1.1**：content_id 带前缀 `jkz_`/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/embedding_model + **chunk_text/chunk_index/parent_content_id 三字段**——2026-09-20 按管家评审采纳）；**chunk 文本写入 payload**；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
+**验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；metadata schema v1.1 与管家草案逐字段对齐；mvn verify 末行 + CI
 **前置**：T-AI-0（embedding 接口契约定稿）
+
+### [ ] T-DATA-1：用户数据 API（管家 R2 调查工具数据源，时钟：约第 3 周前）
+**背景**：管家 roadmap 09-19 拍板 J1 重定义为极客栈 API 适配层，PY2-R2 调查工具（用户历史/判例/社区统计）原依赖 J1 数据源改为**依赖极客栈数据 API**——第 3 周前未到位则 R2 降级 mock。为避免对方降级，本任务提前规划
+**描述**：面向管家（认证后）的只读数据 API：①用户发帖/评论历史（脱敏 ID，分页）；②社区统计（内容量/用户量/判罚量聚合）；③判罚记录回流预留。全部**脱敏 + 只读**，开放范围过隐私口径（聚合优先，明细最小集）
+**验收标准**：三路径测试；脱敏断言（响应不含邮箱/密文类字段）；与管家侧 R2 契约对齐（对齐时点：契约 v2 评审）
+**前置**：T-M4-1（已关闭）；对齐时点等管家 X1 验签完成
 
 ### [ ] T-AI-2：问答链路（AI 服务）
 **描述**：LangGraph 流程：问题改写 → Qdrant 检索 top-5（相似度阈值过滤）→ prompt 组装（系统提示词含"仅基于资料回答，资料不足如实说"）→ LLM 流式生成 → 来源列表（url+标题）；SSE 输出；空检索结果走兜底话术
