@@ -431,5 +431,6 @@
 **验收标准**：三路径测试（ADMIN 成功/USER 403/未登录 401）；封禁后目标用户 login 与 refresh 双双被拒断言（复用 P2-3 口径）；删帖后详情 404 或隐藏口径断言；checkstyle + mvn verify + CI；零明文红线不变
 **前置**：无（与 T-AI-0 并行）
 **完成说明（2026-09-19）**：JWT `role` claim → `ROLE_*` authorities；`/api/v1/admin/**` hasRole(ADMIN)；删帖/禁言端点 + `ADMIN_AUDIT` 结构化日志；`deploy/sql/promote-admin.sql`；`AdminApiIntegrationTest` 6/6；checkstyle 通过。全量 `mvn verify` 本机因 Redis 不可用导致无关限流/OAuth 用例失败，与本任务无关。
+**PM 验收**：`922dbed` 由 PM 隔离提交（排除同工作区 ai-service 进行中文件）并 push，CI 双 job success（run 35438965095，backend 2m37s 全量测试含 AdminApiIntegrationTest——CI 有 Redis 容器，验证了"本机 Redis 不可用"说明属实）。安全审查通过：role claim 旧令牌兜底 USER、status 白名单校验（@Min(0)@Max(1)+服务层双保险）、promote-admin.sql 占位符无真实凭据、ADMIN_AUDIT 结构化审计。**T-M4-1 关闭**——Agent-T18 处置回调前置缺口清零；运维提权后目标用户须重新登录（旧令牌无 role claim 默认 USER，安全兜底）。
 
 ---
