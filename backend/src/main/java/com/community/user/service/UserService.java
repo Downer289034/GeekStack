@@ -169,12 +169,31 @@ public class UserService {
         userMapper.updateById(user);
     }
 
-    /** 为已加载的用户签发令牌对（供 OAuth 等模块复用，带 token_version）。 */
+    /** 为已加载的用户签发令牌对（供 OAuth 等模块复用，带 token_version 与 role）。 */
     public TokenResponse issueTokens(User user) {
         int ver = normalizeVersion(user.getTokenVersion());
+        String role = user.getRole() == null || user.getRole().isBlank() ? "USER" : user.getRole();
         return new TokenResponse(
-                jwtService.generateAccess(user.getUsername(), ver),
-                jwtService.generateRefresh(user.getUsername(), ver));
+                jwtService.generateAccess(user.getUsername(), ver, role),
+                jwtService.generateRefresh(user.getUsername(), ver, role));
+    }
+
+    /**
+     * 管理员更新用户状态：0 正常 / 1 封禁。目标不存在返回 404。
+     *
+     * @return 更新后的用户（供审计落日志）
+     */
+    public User updateStatus(long userId, int status) {
+        if (status != 0 && status != 1) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "status 仅支持 0（正常）或 1（封禁）");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+        }
+        user.setStatus(status);
+        userMapper.updateById(user);
+        return user;
     }
 
     private MeResponse toMeResponse(User user) {

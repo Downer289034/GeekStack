@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * JWT 签发与校验（HS256）。令牌分两种：typ=access（30 分钟）、typ=refresh（7 天）。
  * 含 ver claim（token_version）：改密后旧 refresh 在续期时失败。
+ * 含 role claim（USER/ADMIN）：过滤器写入 authorities，供 /api/v1/admin/** 鉴权。
  * 密钥来自环境变量，缺失或不足 32 字节时拒绝启动。
  */
 @Component
@@ -20,8 +21,10 @@ public class JwtService {
 
     private static final String CLAIM_TYP = "typ";
     private static final String CLAIM_VER = "ver";
+    private static final String CLAIM_ROLE = "role";
     private static final String TYP_ACCESS = "access";
     private static final String TYP_REFRESH = "refresh";
+    private static final String DEFAULT_ROLE = "USER";
 
     private final SecretKey key;
     private final Duration accessTtl;
@@ -39,14 +42,14 @@ public class JwtService {
         this.refreshTtl = Duration.ofDays(refreshTtlDays);
     }
 
-    /** 为指定用户签发访问令牌（带 token_version）。 */
-    public String generateAccess(String username, int tokenVersion) {
-        return generate(username, TYP_ACCESS, accessTtl, tokenVersion);
+    /** 为指定用户签发访问令牌（带 token_version 与 role）。 */
+    public String generateAccess(String username, int tokenVersion, String role) {
+        return generate(username, TYP_ACCESS, accessTtl, tokenVersion, role);
     }
 
-    /** 为指定用户签发刷新令牌（带 token_version）。 */
-    public String generateRefresh(String username, int tokenVersion) {
-        return generate(username, TYP_REFRESH, refreshTtl, tokenVersion);
+    /** 为指定用户签发刷新令牌（带 token_version 与 role）。 */
+    public String generateRefresh(String username, int tokenVersion, String role) {
+        return generate(username, TYP_REFRESH, refreshTtl, tokenVersion, role);
     }
 
     /** 校验并解析令牌；过期/签名不符/格式非法抛 JwtException 系列异常。 */
@@ -72,12 +75,22 @@ public class JwtService {
         return ver == null ? 0 : ver;
     }
 
-    private String generate(String username, String typ, Duration ttl, int tokenVersion) {
+    /**
+     * 读取 role claim；旧令牌无该字段时视为 USER。
+     */
+    public String role(Claims claims) {
+        String role = claims.get(CLAIM_ROLE, String.class);
+        return role == null || role.isBlank() ? DEFAULT_ROLE : role;
+    }
+
+    private String generate(String username, String typ, Duration ttl, int tokenVersion, String role) {
         Date now = new Date();
+        String normalizedRole = role == null || role.isBlank() ? DEFAULT_ROLE : role;
         return Jwts.builder()
                 .subject(username)
                 .claim(CLAIM_TYP, typ)
                 .claim(CLAIM_VER, tokenVersion)
+                .claim(CLAIM_ROLE, normalizedRole)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + ttl.toMillis()))
                 .signWith(key)

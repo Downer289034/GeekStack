@@ -96,6 +96,20 @@ public class PostService {
     }
 
     /**
+     * 管理员删帖（逻辑删除，口径与作者自删一致）。
+     *
+     * @return 被删帖实体（供审计落日志：目标帖/作者）
+     */
+    public Post deleteByAdmin(long id) {
+        Post post = postMapper.selectById(id);
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+        postMapper.deleteById(post.getId());
+        return post;
+    }
+
+    /**
      * 帖子分页：可选分类 slug / 标签过滤；sort=latest（默认）按最新，hot 按最热加权。置顶恒在最前。
      */
     public PageResponse<PostCardResponse> page(long current, long size, String categorySlug, String sort,

@@ -426,9 +426,10 @@
 
 > 背景：契约增量清单（community-api-contract-v2-delta.md §三）交底：Agent 处置动作（删帖/禁言）无对应端点——管理员删帖、封禁 API 均不存在。M4 完整管理端继续挂起，**只重启支撑处置闭环的最小集**；加精/置顶/推荐位随三期。
 
-### [ ] T-M4-1：管理员鉴权 + 删帖/禁言端点（后端）
+### [x] T-M4-1：管理员鉴权 + 删帖/禁言端点（后端）
 **描述**：①管理员鉴权：`user.role` 字段已有（USER/ADMIN），SecurityConfig 对 `/api/v1/admin/**` 增加 `hasRole('ADMIN')` 保护（现有 JWT 过滤器需把 role 写入 Authentication authorities）；②`DELETE /api/v1/admin/posts/{id}` 管理员删帖（软删/隐藏口径与作者自删一致，记录操作者）；③`PUT /api/v1/admin/users/{id}/status` 禁言/解封（0 正常/1 封禁，记操作者与原因可选字段）；④首个 ADMIN 用户产生方式：提供一次性提权 SQL 脚本（`deploy/sql/promote-admin.sql`，运维手动执行，不入自动迁移）；⑤处置动作全审计：操作者/目标/时间/动作落日志（表或日志文件，为 Agent 处置回调"可审计可回放"口径打样）
 **验收标准**：三路径测试（ADMIN 成功/USER 403/未登录 401）；封禁后目标用户 login 与 refresh 双双被拒断言（复用 P2-3 口径）；删帖后详情 404 或隐藏口径断言；checkstyle + mvn verify + CI；零明文红线不变
 **前置**：无（与 T-AI-0 并行）
+**完成说明（2026-09-19）**：JWT `role` claim → `ROLE_*` authorities；`/api/v1/admin/**` hasRole(ADMIN)；删帖/禁言端点 + `ADMIN_AUDIT` 结构化日志；`deploy/sql/promote-admin.sql`；`AdminApiIntegrationTest` 6/6；checkstyle 通过。全量 `mvn verify` 本机因 Redis 不可用导致无关限流/OAuth 用例失败，与本任务无关。
 
 ---

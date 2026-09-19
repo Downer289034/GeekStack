@@ -19,10 +19,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /** 无状态过滤链：放行健康检查与认证接口，其余要求 JWT 认证。 */
+    /** 无状态过滤链：放行健康检查与认证接口，管理端需 ADMIN，其余要求 JWT 认证。 */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter,
-                                                   RestAuthenticationEntryPoint entryPoint) throws Exception {
+                                                   RestAuthenticationEntryPoint entryPoint,
+                                                   RestAccessDeniedHandler accessDeniedHandler)
+            throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -38,8 +40,12 @@ public class SecurityConfig {
                                 "/api/v1/shares/*/comments", "/api/v1/users/*/profile",
                                 "/api/v1/users/*/repos", "/api/v1/hot",
                                 "/api/v1/search", "/api/v1/tags").permitAll()
+                        // T-M4-1：管理端最小集，仅 ADMIN
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
