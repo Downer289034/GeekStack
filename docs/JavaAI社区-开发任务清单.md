@@ -413,6 +413,7 @@
 **验收标准**：三绿 + 零硬编码色值 + 三断点截图；mock 流式渲染无卡顿；未登录点击提示登录；不与现有页面布局冲突（三页抽查）；CI
 **前置**：无（真实接入等 T-AI-3）
 **完成**：`AiChatWidget.vue` + `aiAskMock.ts` + `aiChatHistory.ts`；App 级挂载；证据 `docs/assets/t-ai-4-pre/`
+**PM 验收**：`7c2b54b` 由 PM 隔离提交（严格排除工作区后端 admin/ai-service 进行中改动）并 push，CI 双 job success（run 35438324660，frontend 1m0s/backend 1m55s）；本地三绿（直调 node）同步验证。**T-AI-4-PRE 关闭**，真实 SSE 接入等 T-AI-3
 
 ### [ ] T-AI-5：部署与走查
 **描述**：docker-compose 增 `ai-service` + `qdrant` 服务（dev 栈先行，生产栈跟随上线）；.env.example 增 LLM/embedding/Qdrant 配置项（占位符）；健康检查；部署指引补交接文档；全链路走查清单执行
