@@ -408,9 +408,26 @@
 **验收标准**：三绿 + 零硬编码色值 + 三断点截图；流式无卡顿；来源链接可点；未登录提示登录；CI
 **前置**：T-AI-3
 
+### [x] T-AI-4-PRE：AI 浮窗静态骨架（前端，mock 接口）
+**描述**：`AiChatWidget` 组件——右下角悬浮球 → 展开对话面板（夜栈灯码语言：surface-1 面板、琥珀仅发送按钮）；消息列表 + 输入框 + 发送中态；SSE 渲染层先用 **mock 流**（本地定时器模拟 token 流），真实接口 T-AI-3 后替换；会话历史 localStorage；移动端折叠为全屏底部抽屉；`prefers-reduced-motion` 降级
+**验收标准**：三绿 + 零硬编码色值 + 三断点截图；mock 流式渲染无卡顿；未登录点击提示登录；不与现有页面布局冲突（三页抽查）；CI
+**前置**：无（真实接入等 T-AI-3）
+**完成**：`AiChatWidget.vue` + `aiAskMock.ts` + `aiChatHistory.ts`；App 级挂载；证据 `docs/assets/t-ai-4-pre/`
+
 ### [ ] T-AI-5：部署与走查
 **描述**：docker-compose 增 `ai-service` + `qdrant` 服务（dev 栈先行，生产栈跟随上线）；.env.example 增 LLM/embedding/Qdrant 配置项（占位符）；健康检查；部署指引补交接文档；全链路走查清单执行
 **验收标准**：dev 栈全链路实测（发帖→自动索引→提问命中）；compose up 一键起；走查记录入库
 **前置**：T-AI-4
+
+---
+
+# M4-min 管理端最小集（2026-09-19 重启，老板放行——Agent-T18 处置回调前置依赖）
+
+> 背景：契约增量清单（community-api-contract-v2-delta.md §三）交底：Agent 处置动作（删帖/禁言）无对应端点——管理员删帖、封禁 API 均不存在。M4 完整管理端继续挂起，**只重启支撑处置闭环的最小集**；加精/置顶/推荐位随三期。
+
+### [ ] T-M4-1：管理员鉴权 + 删帖/禁言端点（后端）
+**描述**：①管理员鉴权：`user.role` 字段已有（USER/ADMIN），SecurityConfig 对 `/api/v1/admin/**` 增加 `hasRole('ADMIN')` 保护（现有 JWT 过滤器需把 role 写入 Authentication authorities）；②`DELETE /api/v1/admin/posts/{id}` 管理员删帖（软删/隐藏口径与作者自删一致，记录操作者）；③`PUT /api/v1/admin/users/{id}/status` 禁言/解封（0 正常/1 封禁，记操作者与原因可选字段）；④首个 ADMIN 用户产生方式：提供一次性提权 SQL 脚本（`deploy/sql/promote-admin.sql`，运维手动执行，不入自动迁移）；⑤处置动作全审计：操作者/目标/时间/动作落日志（表或日志文件，为 Agent 处置回调"可审计可回放"口径打样）
+**验收标准**：三路径测试（ADMIN 成功/USER 403/未登录 401）；封禁后目标用户 login 与 refresh 双双被拒断言（复用 P2-3 口径）；删帖后详情 404 或隐藏口径断言；checkstyle + mvn verify + CI；零明文红线不变
+**前置**：无（与 T-AI-0 并行）
 
 ---
