@@ -376,19 +376,21 @@
 # M13 AI 助手（RAG 问答，2026-09-18 立项，老板批准）
 
 > 需求：页面内嵌 AI 助手，基于两类语料回答——①平台知识（使用说明/版规/功能区介绍，需新建）；②社区内容（帖子/分享/文档/Skill，RAG 主体）。回答必须带来源链接。
-> 架构决策（随计划批准，预研 T-AI-0 中复核）：**AI 服务独立部署**（Python 3.12 + FastAPI + LangGraph，与 Java 主站解耦，复用 DownerCode 编排经验）；**向量库 Qdrant**（单容器轻量，量级上来再迁 Milvus，embedding 层屏蔽差异）；**LLM 首选小米 MiMo v2.5**（老板拍板意向；官方 OpenAI 兼容 API `api.xiaomimimo.com/v1`，模型 mimo-v2.5 / mimo-v2.5-pro，支持 SSE 流式与 tool_calls，国内直连合规；注意 thinking 模式默认开启、thinking 下 temperature/top_p 被强制覆盖，RAG 场景对比 disabled/enabled 的延迟与质量后定）；**embedding 走 BGE-M3**（MiMo API 未含 embedding 端点，独立供给）。
+> 架构决策（随计划批准，预研 T-AI-0 中复核）：**AI 服务独立部署**（Python 3.12 + FastAPI + LangGraph，与 Java 主站解耦，复用 DownerCode 编排经验）；**向量库 Qdrant**（单容器轻量，量级上来再迁 Milvus，embedding 层屏蔽差异）；**LLM 首选小米 MiMo v2.5**（老板拍板意向；官方 OpenAI 兼容 API `api.xiaomimimo.com/v1`，模型 mimo-v2.5 / mimo-v2.5-pro，支持 SSE 流式与 tool_calls，国内直连合规；注意 thinking 模式默认开启、thinking 下 temperature/top_p 被强制覆盖，RAG 场景对比 disabled/enabled 的延迟与质量后定）；**embedding 统一为阿里云 DashScope `text-embedding-v3`（1024 维）**——2026-09-19 依据管家项目组立场回应（rag-reuse-position.md §二）修正：管家侧生产实配即 text-embedding-v3，统一到它管家零成本、极客栈接入 DashScope 计费；原 BGE-M3 仅代码兜底从未实配，且本地跑不可行。**验收铁律是"双方同源"**，型号作为可配置项。
+> **双库并存架构（与管家项目组已对齐，rag-reuse-position.md §四）**：治理语料库（版规/判例）留管家侧 Milvus（物理隔离，写权限仅管家）；社区内容语料库挂极客栈侧 Qdrant（T-AI-5 托管），管家 Agent 以**只读凭证**接入；统一 metadata schema（content_id/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/**embedding_model 版本化**/extra open dict）为两边 collection 共同契约——"一次 embedding、一份语料、schema 一致"，引擎不同不影响向量可比性。
 > 硬约束：只索引公开内容（HIDDEN/草稿/封禁用户内容不进语料）；回答必带来源链接（防幻觉兜底）；API Key 全走 .env（零明文红线）；用户级限流（复用频控思路）；一期纯 RAG 问答，不做工具调用 agent/语音/推送。
 > 排期定位：建议**先上线再接 AI**（公测真实语料避免空转调优）；一期开发可与上线准备并行，部署跟随上线。
 
 ### [ ] T-AI-0：RAG 链路预研 spike（AI 服务）
 **状态**：已放行（2026-09-18 老板确认 MIMO_API_KEY 已配置于开发环境 .env，仓库零入库正确）
-**描述**：搭最小可跑链路——FastAPI 骨架 + LangGraph 单节点图 + Qdrant（docker 单容器）+ BGE-M3 embedding + MiMo v2.5 API（`api.xiaomimimo.com/v1`，OpenAI 兼容）；用 10 条真实社区内容走通「分块 → embedding → 入库 → 检索 top-5 → 生成带引用回答」；产出选型复核报告（含分块策略 512token/50overlap 建议、成本估算、延迟实测、**MiMo thinking disabled vs enabled 的延迟/质量对比**）
+**描述**：搭最小可跑链路——FastAPI 骨架 + LangGraph 单节点图 + Qdrant（docker 单容器）+ DashScope `text-embedding-v3` embedding（1024 维，Key 需线下配置 `DASHSCOPE_API_KEY`）+ MiMo v2.5 API（`api.xiaomimimo.com/v1`，OpenAI 兼容）；用 10 条真实社区内容走通「分块 → embedding → 入库 → 检索 top-5 → 生成带引用回答」；产出选型复核报告（含分块策略 512token/50overlap 建议、成本估算、延迟实测、**MiMo thinking disabled vs enabled 的延迟/质量对比**）
 **验收标准**：spike 代码入库 `ai-service/`（骨架可复用）；报告落 docs；关键决策（供应商/分块参数/thinking 开关）复核确认
-**前置**：无（LLM API Key 已由老板线下配置）
+**双 RAG 线复用性设计（老板拍板的战略要求，报告必备章节）**：~~原五要素~~ **已由管家项目组立场回应（`rag-reuse-position.md`，2026-09-19）对齐并收敛**，预研按已对齐口径执行：①统一 metadata schema 按管家草案骨架（content_id 含来源前缀/source_system/content_type/text_url 不存全文但 **chunk 文本必须入 payload**（否则 RAG 无法工作，需在回函澄清）/author_id 脱敏/created_at/visibility/**embedding_model 版本化字段**/extra open dict）；②治理语料（版规/判例）留管家侧 Milvus 物理隔离，社区内容语料挂极客栈 Qdrant、管家只读接入；③embedding 双方同源 text-embedding-v3（铁律=同源，型号可配置）；④隐私红线按管家需求清单（§五四项：API 拉取不落库/聚合优先/动作 API 幂等+审计/判罚回流只读）双向写死。本章节作为三期谈判技术底稿，回函由 PM 起草
+**前置**：无（LLM API Key 已由老板线下配置；**新增需求：DASHSCOPE_API_KEY 待老板线下配置**）
 
 ### [ ] T-AI-1：语料索引管道（Java 后端）
-**描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 embedding API → 写 Qdrant（metadata: contentId/type/url/authorId/时间）；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
-**验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；mvn verify 末行 + CI
+**描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 **DashScope text-embedding-v3** → 写极客栈侧 Qdrant 社区内容库（metadata 按统一 schema 草案：content_id 带前缀 `jkz_`/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/embedding_model）；**chunk 文本写入 payload**；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
+**验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；metadata schema 与管家草案逐字段对齐；mvn verify 末行 + CI
 **前置**：T-AI-0（embedding 接口契约定稿）
 
 ### [ ] T-AI-2：问答链路（AI 服务）
