@@ -437,7 +437,7 @@
 **前置**：T-AI-4
 **完成说明（2026-09-20）**：dev/prod compose 增 `qdrant` + `ai-service`；`ai-service/Dockerfile`；`deploy/dev/sync-ai-stack.sh` + `merge-ai-env.sh`；prod `deploy.sh` 同步 ai-service 并条件重建；`health-check.sh` 对已入栈探活；`.env.example` 对齐 `text-embedding-v3` + `geekstack_community`；CI 增 `ai-service` job；走查 [`docs/T-AI-5-部署走查.md`](./T-AI-5-部署走查.md)。联调实测：开发栈 Up → 发帖 `3106` 索引 points=1 → `/v1/ask` 命中 → 网关 SSE 200（`AiGatewayClient` 强制 HTTP/1.1，规避 uvicorn 对 h2c Upgrade 的 422）。`RagConfig`/`AiConfig` 对根 `.env` HTTP 再对齐（`community.rag.dotenv-qdrant=false` 供单测钉死 memory）。关单复跑：health/readyz 200、collection points=1、ask 命中 `/posts/3106`、unittest 4/4、backend 聚焦测 8/8；证据 `docs/assets/t-ai-5/`。不阻塞项：UI 三断点目视（T-AI-4）、生产栈跟随上线。
 **CI**：https://github.com/Downer289034/GeekStack/actions/runs/35498637125（`bf4b72c`，frontend/backend/ai-service 三 job success）
-**PM 验收**：待 PM 批注（开发关单证据齐：走查 + assets/t-ai-5 + CI 三绿）。
+**PM 验收**：PM 独立核验 CI 三绿 + assets/t-ai-5 + compose/CI 源码确认 → **T-AI-5 关闭（2026-09-20）**。M13 后端侧收官。
 ---
 
 # M4-min 管理端最小集（2026-09-19 重启，老板放行——Agent-T18 处置回调前置依赖）
