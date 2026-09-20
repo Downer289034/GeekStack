@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
- * G2 标签云服务：聚合 PUBLISHED 分享与 Skill 的 tags。
+ * G2 / T-BE-4.2 标签云：聚合可见帖子 + PUBLISHED 分享与 Skill 的 tags（同名合并 count）。
  */
 @Service
 public class TagService {

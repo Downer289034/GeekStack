@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 /**
- * 标签云聚合：PUBLISHED 的项目分享 + Skill（UNION）。
+ * 标签云聚合：可见帖子 + PUBLISHED 项目分享 + PUBLISHED Skill（UNION 后按 name 合并 count）。
  */
 @Mapper
 public interface TagCloudMapper {
@@ -15,6 +15,17 @@ public interface TagCloudMapper {
     @Select("""
             SELECT name, SUM(cnt) AS `count`
             FROM (
+              SELECT jt.tag AS name, COUNT(*) AS cnt
+              FROM post p
+              INNER JOIN JSON_TABLE(
+                  IFNULL(p.tags, '[]'),
+                  '$[*]' COLUMNS (tag VARCHAR(100) PATH '$')
+              ) AS jt
+              WHERE p.deleted = 0
+                AND jt.tag IS NOT NULL
+                AND TRIM(jt.tag) <> ''
+              GROUP BY jt.tag
+              UNION ALL
               SELECT jt.tag AS name, COUNT(*) AS cnt
               FROM project_share s
               INNER JOIN JSON_TABLE(

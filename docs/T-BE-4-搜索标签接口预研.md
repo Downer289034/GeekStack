@@ -72,17 +72,19 @@
 
 | 场景 | 推荐口径 |
 |------|----------|
-| 标签云 `GET /tags` | 全局聚合：每个 tag 的 **内容条数** = 命中该 tag 的 PUBLISHED share 数 + PUBLISHED skill 数（**当前不含 post**）；排序 `count DESC, name ASC` |
+| 标签云 `GET /tags` | 全局聚合：每个 tag 的 **内容条数** = 命中该 tag 的可见帖数 + PUBLISHED share 数 + PUBLISHED skill 数（T-BE-4.2 已含 post）；排序 `count DESC, name ASC` |
 | 标签详情 | **不混搜**：`GET /posts?tag=` / `/shares?tag=` / `/skills?tag=` 分 Tab 分页；`PageResponse.total` = 该类型下精确匹配条数 |
 | 搜索 `GET /search` | 与标签无关；`total` = 该 `type` 下 LIKE 命中条数；**不做 type=all 混合分页**（避免跨类型 cursor 语义） |
 
 **缺口**：标签云未计入 `post.tags`——与「帖子已支持标签」产品预期可能不一致，见第七节疑问。
 
+> **PM 回执（2026-09-20）**：云须含帖 → 已由 **T-BE-4.2** 落地（`TagCloudMapper` UNION post，`deleted=0`）。
+
 ### 3.3 本节结论（推荐）
 
 - **维持 JSON + JSON_TABLE/JSON_CONTAINS**，不急建标签表。  
 - 若产品要求云含帖子：优先 **改 TagCloudMapper UNION 加 post**（小实现单），而非先上关联表。  
-- **触发建表条件**（满足任一再立 T-BE-4.2）：标签云 P95 持续恶化；需要同义词/运营改名；标签成为强导航且过滤 QPS 高。
+- **触发建表条件**（满足任一再立 T-BE-4.3）：标签云 P95 持续恶化；需要同义词/运营改名；标签成为强导航且过滤 QPS 高。
 
 ---
 
@@ -146,6 +148,15 @@
 2. 搜索是否接受「默认不搜正文」以换延迟？（需 FE/产品确认）  
 3. 公测前是否有行数目标（如 post 10 万）作为 LIKE→ES 触发线？  
 4. 助手与搜索入口文案是否已统一「搜索找内容 / 助手问答」？（避免用户把 `/search` 当 Chat）
+
+### PM 回执（2026-09-20）
+
+| # | 裁决 |
+|---|------|
+| 1 | **要计入帖子**。云 count = PUBLISHED share + skill + **可见帖子**（与列表可见性一致）。立刻开 **T-BE-4.2**。 |
+| 2 | **公测前默认仍搜正文**（保持现状契约）。无慢查询证据前不开「默认缩字段」；有证据再开 T-BE-4.1。 |
+| 3 | 软触发线：**单表约 10 万行** 或搜索接口 P95 持续 >800ms → 评估 T-BE-4.4（ES），仍跳过 MySQL FULLTEXT。 |
+| 4 | 文案口径已定：「顶栏搜索 = `/search` 找内容；浮层助手 = `/ai/ask` 问答」。FE 文案不一致另派 B，不挡本单。 |
 
 ---
 

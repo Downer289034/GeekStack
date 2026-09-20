@@ -1,6 +1,7 @@
 package com.community.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,7 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * G2 标签云：计数正确、HIDDEN 不计入、空库场景返回数组（本用例隔离唯一标签）。
+ * G2 / T-BE-4.2 标签云：share/skill/post 合并计数；HIDDEN/已删不计入。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,6 +44,8 @@ class TagCloudIntegrationTest {
     private String token;
     private String tagA;
     private String tagB;
+    private String tagPostOnly;
+    private long categoryId;
 
     @BeforeEach
     void init() throws Exception {
@@ -50,10 +53,16 @@ class TagCloudIntegrationTest {
         token = register(PREFIX + sfx);
         tagA = "TagA" + sfx;
         tagB = "TagB" + sfx;
+        tagPostOnly = "PostOnly" + sfx;
+        categoryId = jdbcTemplate.queryForObject(
+                "SELECT id FROM post_category WHERE slug = ?", Long.class, "java");
     }
 
     @AfterEach
     void cleanup() {
+        jdbcTemplate.update(
+                "DELETE FROM post WHERE user_id IN (SELECT id FROM user WHERE username LIKE ?)",
+                PREFIX + "%");
         jdbcTemplate.update(
                 "DELETE FROM project_share WHERE user_id IN (SELECT id FROM user WHERE username LIKE ?)",
                 PREFIX + "%");
@@ -79,9 +88,51 @@ class TagCloudIntegrationTest {
         assertThat(cloud.get(tagB)).isEqualTo(1L); // 仅 s1
     }
 
+    /** T-BE-4.2：仅有帖子标签时云仍出现该 tag。 */
+    @Test
+    void postOnlyTagAppearsInCloud() throws Exception {
+        createPost("post-only-tag", List.of(tagPostOnly));
+
+        String resp = mockMvc.perform(get("/api/v1/tags"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Map<String, Long> cloud = toMap(resp);
+        assertThat(cloud.get(tagPostOnly)).isEqualTo(1L);
+    }
+
+    /** T-BE-4.2：同名 tag 在 post + share 间合并 count。 */
+    @Test
+    void postAndShareSameTagMergesCount() throws Exception {
+        createPost("post-merge", List.of(tagA));
+        createShare("share-merge", List.of(tagA));
+
+        String resp = mockMvc.perform(get("/api/v1/tags"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Map<String, Long> cloud = toMap(resp);
+        assertThat(cloud.get(tagA)).isEqualTo(2L);
+    }
+
+    /** T-BE-4.2：逻辑删除帖不计入云。 */
+    @Test
+    void deletedPostTagsExcludedFromCloud() throws Exception {
+        long postId = createPost("post-to-delete", List.of(tagPostOnly));
+        mockMvc.perform(delete("/api/v1/posts/" + postId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        String resp = mockMvc.perform(get("/api/v1/tags"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        Map<String, Long> cloud = toMap(resp);
+        assertThat(cloud.containsKey(tagPostOnly)).isFalse();
+    }
+
     @Test
     void anonymousGetsEmptyArrayWhenNoMatchingTagsNeeded() throws Exception {
-        // 不创建数据时接口仍应 200 且 data 为数组（可能含 demo 标签，结构正确即可）
         mockMvc.perform(get("/api/v1/tags"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isArray());
@@ -116,6 +167,20 @@ class TagCloudIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        return objectMapper.readTree(resp).path("data").path("id").asLong();
+    }
+
+    private long createPost(String title, List<String> tags) throws Exception {
+        String resp = mockMvc.perform(post("/api/v1/posts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "categoryId", categoryId,
+                                "title", title,
+                                "contentMd", "body " + title,
+                                "tags", tags))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return objectMapper.readTree(resp).path("data").path("id").asLong();

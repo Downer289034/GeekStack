@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * G2 标签云：公开；仅聚合 PUBLISHED 分享标签。
+ * G2 / T-BE-4.2 标签云：公开；聚合可见帖子 + PUBLISHED 分享/Skill。
  */
 @RestController
 @RequestMapping("/api/v1/tags")
