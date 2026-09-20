@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-20T10:30:00.855Z",
+  "role": "开发B-前端",
+  "marker": "AD2LIVEFE1789900200621",
+  "postId": 3119,
+  "user": "ad2fe_dc74hjzf",
+  "title": "AD2LIVEFE1789900200621 用户侧抽检帖",
+  "detailPath": "/forum/posts/3119",
+  "tokenRedacted": true,
+  "createdVisible": true,
+  "createdUrl": "http://127.0.0.1:5173/forum/posts/3119",
+  "createdPageTitle": "帖子详情 · 极客栈 GeekStack",
+  "apiDetailAfterCreate": {
+    "http": 200,
+    "code": 0,
+    "message": "ok"
+  },
+  "disposeCheck": {
+    "at": "2026-09-20T10:32:44.407Z",
+    "verifiedPostId": 3118,
+    "note": "验 A 侧 steward_bot 已删样例 post 3118（非本抽检帖 3119）",
+    "apiHttp": 404,
+    "apiCode": 40400,
+    "apiMessage": "帖子不存在",
+    "goneByApi": true,
+    "pageUrl": "http://127.0.0.1:5173/forum/posts/3118",
+    "pageTitle": "帖子详情 · 极客栈 GeekStack",
+    "pageBodySnippet": "极 极客栈 GEEKSTACK 首页 项目广场 Skill 技术论坛 搜索 Ctrl K 写文章 登录 帖子不存在，可能已被作者删除 返回论坛 © 2026 极客栈 GeekStack · 代码江湖的落脚点 关于 API RSS 帖子不存在",
+    "pageIndicatesMissing": true,
+    "controlPostId": 3119,
+    "controlStillOk": true,
+    "verdict": "disposed_user_side_gone"
+  }
+}
