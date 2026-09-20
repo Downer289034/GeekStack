@@ -5,6 +5,7 @@ import { NAvatar, NEmpty, NIcon, useMessage } from 'naive-ui'
 import { CubeOutline, CreateOutline, PersonOutline } from '@vicons/ionicons5'
 import { fetchProfile, type ProfileAggregate } from '@/api/profile'
 import { fetchRepos, toggleRepoHide, type UserRepo } from '@/api/repo'
+import { resolveMediaUrl } from '@/api/media'
 import GsBadge from '@/components/gs/GsBadge.vue'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsCodeChip from '@/components/gs/GsCodeChip.vue'
@@ -23,6 +24,11 @@ const failed = ref(false)
 
 const username = computed(() => String(route.params.username ?? ''))
 const isOwner = computed(() => auth.isLoggedIn && auth.user?.username === username.value)
+
+const profileAvatarSrc = computed(() => resolveMediaUrl(profile.value?.profile.avatarUrl))
+const profileAvatarLetter = computed(
+  () => profile.value?.profile.nickname?.charAt(0) || profile.value?.profile.username?.charAt(0) || '?'
+)
 
 async function loadData() {
   loading.value = true
@@ -78,8 +84,16 @@ onMounted(() => {
 
   <div v-else class="profile">
     <header class="profile-head">
-      <n-avatar round :size="64" class="profile-avatar">
-        {{ profile?.profile.nickname?.charAt(0) ?? '?' }}
+      <n-avatar
+        v-if="profileAvatarSrc"
+        :key="profileAvatarSrc"
+        round
+        :size="64"
+        :src="profileAvatarSrc"
+        class="profile-avatar"
+      />
+      <n-avatar v-else round :size="64" class="profile-avatar">
+        {{ profileAvatarLetter }}
       </n-avatar>
       <div class="profile-info">
         <div class="profile-name-row">
@@ -176,6 +190,7 @@ onMounted(() => {
   color: var(--accent-text);
   font-size: 24px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .profile-name-row {
