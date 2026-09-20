@@ -391,6 +391,7 @@
 
 ### [x] T-AI-1：语料索引管道（Java 后端）
 **状态**：✅ **实现完成（2026-09-20）**。定稿四块已落地：分块 512/50｜thinking disabled（问答侧）｜schema v1.1｜双库并存 + text-embedding-v3。`RagIndexIntegrationTest` + `MarkdownChunkerTest` 通过；checkstyle 通过。**附加观测项：e2e P95 11.6s，T-AI-2 落地后持续采样**
+**PM 验收**：PM 隔离提交三个 commit——`68b6fb9`（T-AI-1 本体：rag 包 15 类 + Post/Share/Skill 事件触发点 + 帮助语料 + 集成测试）、`d9617f6`（**ai-service spike 代码补入库**——T-AI-0 验收时遗漏，.venv 已 ignore）、`c46c9b9`（T-M4-1 提权后 403 预期行为注释补强），push 后 CI 双 job success（run 35479597577，backend 1m59s 全量含 RagIndexIntegrationTest + MarkdownChunkerTest）。实现逐项核验：512/50 默认、DashScope 客户端 + 无 Key 确定性伪向量降级（测试不打真实接口）、jkz_ 前缀、chunk_text/text 同值硬约束、parent_content_id 幂等删除、QDRANT_URL=memory 测试默认、失败 WARN 不阻塞、HIDDEN/封禁兜底删向量——定稿口径全项落地。→ **T-AI-1 关闭，M13 主链滚动至 T-AI-2/T-AI-3**
 **描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 **DashScope text-embedding-v3** → 写极客栈侧 Qdrant 社区内容库（metadata 按统一 schema **v1.1**：content_id 带前缀 `jkz_`/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/embedding_model + **chunk_text/chunk_index/parent_content_id 三字段**——2026-09-20 按管家评审采纳）；**chunk 文本写入 payload**；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
 **验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；metadata schema v1.1 与管家草案逐字段对齐；mvn verify 末行 + CI
 **前置**：T-AI-0（embedding 接口契约定稿）
