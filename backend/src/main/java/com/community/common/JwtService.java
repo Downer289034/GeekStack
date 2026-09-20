@@ -76,7 +76,9 @@ public class JwtService {
     }
 
     /**
-     * 读取 role claim；旧令牌无该字段时视为 USER。
+     * 读取 role claim；旧令牌无该字段时视为 USER（安全兜底）。
+     * promote-admin.sql 只改库、不吊销旧 token——提权后须重新登录/refresh 换发带
+     * role=ADMIN 的新令牌才有管理端权限；此期间 403 是预期行为，非 bug。
      */
     public String role(Claims claims) {
         String role = claims.get(CLAIM_ROLE, String.class);

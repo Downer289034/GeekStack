@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 管理端最小集（T-M4-1）：删帖 / 禁言解封。路径保护见 SecurityConfig hasRole('ADMIN')。
+ * 运维执行 promote-admin.sql 后，目标用户须重新登录（或 refresh）换发带 role 的 JWT；
+ * 旧令牌无 ADMIN → 403 为预期，勿当 bug。
  */
 @RestController
 @RequestMapping("/api/v1/admin")
