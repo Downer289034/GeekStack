@@ -3,16 +3,20 @@
   "role": "dev-A",
   "agent_webhook_url": "http://172.25.41.137:18000/api/v1/events",
   "secret_configured_local": true,
-  "secret_configured_steward": false,
-  "blocker": "webhook_secret_not_configured",
-  "creates": [
-    { "event": "post.created", "contentId": "post_3114", "status": 503, "trace_id": null },
-    { "event": "comment.created", "contentId": "comment_1308", "status": 503, "trace_id": null },
-    { "event": "share.created", "contentId": "share_2351", "status": 503, "trace_id": null }
-  ],
+  "secret_configured_steward": true,
+  "blocker": null,
   "direct_probe": [
-    { "mode": "good_hmac", "status": 503, "error": "webhook_secret_not_configured" },
-    { "mode": "bad_hmac", "status": 503, "error": "webhook_secret_not_configured", "note": "验签路径未达，坏签名拒签待 C 配齐后复验" }
+    { "mode": "good_hmac", "status": 202, "trace_id": "wf-20260920-57826e" },
+    { "mode": "bad_hmac", "status": 401, "error": "signature_invalid" }
   ],
-  "log_excerpt": "Webhook HTTP 错误(不阻塞): contentId=post_3114|comment_1308|share_2351, status=503, ... webhook_secret_not_configured"
+  "creates": [
+    { "event": "post.created", "contentId": "post_3116", "status": 202, "trace_id": "wf-20260920-32e90a", "localTrace": "wf-b265c83e5e5f" },
+    { "event": "comment.created", "contentId": "comment_1309", "status": 202, "trace_id": "wf-20260920-cdaa28", "localTrace": "wf-7fc855dc5c95" },
+    { "event": "share.created", "contentId": "share_2352", "status": 202, "trace_id": "wf-20260920-a6f791", "localTrace": "wf-3af76836663a" }
+  ],
+  "fixes_applied": [
+    "EventPayload JSON → snake_case（契约 content_id/event_time）",
+    "ad2-webhook-smoke.py HMAC 密钥改为 secret UTF-8（对齐 Java HmacSigner，勿 hex decode）"
+  ],
+  "note": "no secret/body plaintext in evidence"
 }

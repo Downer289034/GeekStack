@@ -16,11 +16,13 @@ class EventPayloadSerializationTest {
                 EventPayload.Metadata.created("post", false));
 
         String json = objectMapper.writeValueAsString(payload);
-        assertThat(json).contains("\"contentId\":\"post_101\"");
-        assertThat(json).contains("\"contentType\":\"post\"");
-        assertThat(json).contains("\"contentText\":\"测试内容\"");
-        assertThat(json).contains("\"authorId\":\"user_55\"");
+        assertThat(json).contains("\"content_id\":\"post_101\"");
+        assertThat(json).contains("\"content_type\":\"post\"");
+        assertThat(json).contains("\"content_text\":\"测试内容\"");
+        assertThat(json).contains("\"author_id\":\"user_55\"");
         assertThat(json).contains("\"source\":\"jikezhan\"");
+        assertThat(json).contains("\"event_time\"");
+        assertThat(json).doesNotContain("\"contentId\"");
 
         // 反序列化验证往返
         EventPayload parsed = objectMapper.readValue(json, EventPayload.class);
