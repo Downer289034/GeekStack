@@ -402,7 +402,8 @@
 **描述**：面向管家（认证后）的只读数据 API：①用户发帖/评论历史（脱敏 ID，分页）；②社区统计（内容量/用户量/判罚量聚合）；③判罚记录回流预留。全部**脱敏 + 只读**，开放范围过隐私口径（聚合优先，明细最小集）
 **验收标准**：三路径测试；脱敏断言（响应不含邮箱/密文类字段）；与管家侧 R2 契约对齐（对齐时点：契约 v2 评审）
 **前置**：T-M4-1（已关闭）；对齐时点等管家 X1 验签完成
-**完成说明（2026-09-20，一期可联调）**：草案 [`docs/T-DATA-1-一期草案.md`](./T-DATA-1-一期草案.md)。端点 `GET /api/v1/admin/data/users/{userKey}/posts|comments`、`/stats`、`/penalties`（占位空列表）；鉴权复用 ADMIN（steward_bot）。脱敏 ID 前缀 `user_/post_/comment_/share_`；响应无 email/Token/密文。`StewardDataApiIntegrationTest` 3/3（成功/401/403 + 脱敏断言）；checkstyle 0 violation。待 CI 绿后 PM 验收关单。
+**完成说明（2026-09-20，一期可联调）**：草案 [`docs/T-DATA-1-一期草案.md`](./T-DATA-1-一期草案.md)。端点 `GET /api/v1/admin/data/users/{userKey}/posts|comments`、`/stats`、`/penalties`（占位空列表）；鉴权复用 ADMIN（steward_bot）。脱敏 ID 前缀 `user_/post_/comment_/share_`；响应无 email/Token/密文。`StewardDataApiIntegrationTest` 3/3（成功/401/403 + 脱敏断言）；checkstyle 0 violation。CI run 35500370263（`2965484`）三 job success。
+**PM 验收**：四端点与 ADMIN 鉴权符合规格；判罚 `placeholder=true` 口径正确；脱敏前缀 + 测试禁 email/token/密文；CI 三绿核实；草案 Q1–Q3 不阻塞一期，记为跨组待确认（Skill/Share 历史、截断 500 vs 5000、判罚字段表）。→ **T-DATA-1 关闭（2026-09-20）**。管家侧 AD3（R2 切真数据源）可据此对接。
 ---
 ### [x] T-AI-2：问答链路（AI 服务）
 **描述**：LangGraph 流程：问题改写 → Qdrant 检索 top-5（相似度阈值过滤）→ prompt 组装（系统提示词含"仅基于资料回答，资料不足如实说"）→ LLM 流式生成 → 来源列表（url+标题）；SSE 输出；空检索结果走兜底话术
