@@ -1,4 +1,4 @@
-import type { AiSourceRef } from '@/api/aiAskMock'
+import type { AiSourceRef } from '@/api/aiAsk'
 
 export interface AiChatMessage {
   id: string

@@ -1,18 +1,17 @@
 <script setup lang="ts">
 /**
- * T-AI-4-PRE：AI 浮窗静态骨架（mock SSE）。
- * 真实 /api/v1/ai/ask 接入见 T-AI-4（前置 T-AI-3）。
+ * T-AI-4：AI 浮窗。SSE 走 POST /api/v1/ai/ask（fetch + ReadableStream）。
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { NIcon } from 'naive-ui'
+import { NEmpty, NIcon } from 'naive-ui'
 import {
   ChatbubbleEllipsesOutline,
   CloseOutline,
   SendOutline,
   TrashOutline
 } from '@vicons/ionicons5'
-import { mockAskStream, type AiSourceRef } from '@/api/aiAskMock'
+import { AiAskError, AI_RATE_LIMIT, AI_UNAVAILABLE, askStream, type AiSourceRef } from '@/api/aiAsk'
 import GsButton from '@/components/gs/GsButton.vue'
 import { useAuthStore } from '@/stores/auth'
 import {
@@ -35,6 +34,7 @@ const open = ref(false)
 const input = ref('')
 const sending = ref(false)
 const loginHint = ref(false)
+const panelError = ref<'down' | 'limit' | null>(null)
 const messages = ref<AiChatMessage[]>([])
 const listRef = ref<HTMLElement | null>(null)
 const isMobile = ref(false)
@@ -92,6 +92,7 @@ function clearChat() {
   messages.value = []
   clearAiChatHistory()
   loginHint.value = false
+  panelError.value = null
 }
 
 function htmlOf(content: string): string {
@@ -105,6 +106,7 @@ async function onSend() {
     return
   }
   loginHint.value = false
+  panelError.value = null
   const text = input.value.trim()
   if (!text || sending.value) return
 
@@ -131,7 +133,7 @@ async function onSend() {
   abortCtrl = new AbortController()
 
   try {
-    await mockAskStream(
+    await askStream(
       text,
       (ev) => {
         const last = messages.value[messages.value.length - 1]
@@ -146,9 +148,16 @@ async function onSend() {
       abortCtrl.signal
     )
   } catch (e) {
-    if (!(e instanceof DOMException && e.name === 'AbortError')) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      // 离开页面：保留已收到的片段
+    } else if (e instanceof AiAskError && (e.status === 503 || e.status === 429 || e.status === 401)) {
+      messages.value = messages.value.filter((m) => m.id !== assistant.id)
+      if (e.status === 503) panelError.value = 'down'
+      else if (e.status === 429) panelError.value = 'limit'
+      else loginHint.value = true
+    } else {
       assistant.content =
-        assistant.content || '（mock 流中断）请稍后重试。真实接口接入后将显示服务端错误信息。'
+        assistant.content || (e instanceof Error ? e.message : '请求失败，请稍后再试')
     }
   } finally {
     sending.value = false
@@ -220,7 +229,7 @@ onUnmounted(() => {
       <header class="ai-panel__head">
         <div class="ai-panel__titles">
           <span class="ai-panel__title font-display">AI 助手</span>
-          <span class="ai-panel__sub">mock 流 · 正式接口待 T-AI-3</span>
+          <span class="ai-panel__sub">社区内容问答</span>
         </div>
         <div class="ai-panel__actions">
           <button
@@ -244,33 +253,45 @@ onUnmounted(() => {
       </div>
 
       <div ref="listRef" class="ai-list" aria-live="polite">
-        <p v-if="messages.length === 0 && !(loginHint && !auth.isLoggedIn)" class="ai-empty">
-          问问社区里的帖子、Skill 或版规——当前为本地 mock 流。
-        </p>
-        <div
-          v-for="m in messages"
-          :key="m.id"
-          class="ai-msg"
-          :class="m.role === 'user' ? 'ai-msg--user' : 'ai-msg--bot'"
-        >
-          <div v-if="m.role === 'user'" class="ai-msg__bubble">{{ m.content }}</div>
-          <template v-else>
-            <!-- eslint-disable vue/no-v-html -- 经 utils/markdown.ts DOMPurify 消毒（全站唯一出口） -->
-            <div
-              class="ai-msg__md"
-              :class="{ 'is-streaming': sending && m.id === messages[messages.length - 1]?.id }"
-              v-html="htmlOf(m.content || (sending ? '…' : ''))"
-            ></div>
-            <!-- eslint-enable vue/no-v-html -->
-            <ul v-if="m.sources?.length" class="ai-sources">
-              <li v-for="(s, i) in m.sources" :key="i">
-                <button type="button" class="ai-source" @click="onSourceClick(s)">
-                  {{ s.title }}
-                </button>
-              </li>
-            </ul>
-          </template>
-        </div>
+        <n-empty
+          v-if="panelError === 'down'"
+          class="ai-state"
+          :description="AI_UNAVAILABLE"
+        />
+        <n-empty
+          v-else-if="panelError === 'limit'"
+          class="ai-state"
+          :description="AI_RATE_LIMIT"
+        />
+        <template v-else>
+          <p v-if="messages.length === 0 && !(loginHint && !auth.isLoggedIn)" class="ai-empty">
+            问问社区里的帖子、Skill 或版规。
+          </p>
+          <div
+            v-for="m in messages"
+            :key="m.id"
+            class="ai-msg"
+            :class="m.role === 'user' ? 'ai-msg--user' : 'ai-msg--bot'"
+          >
+            <div v-if="m.role === 'user'" class="ai-msg__bubble">{{ m.content }}</div>
+            <template v-else>
+              <!-- eslint-disable vue/no-v-html -- 经 utils/markdown.ts DOMPurify 消毒（全站唯一出口） -->
+              <div
+                class="ai-msg__md"
+                :class="{ 'is-streaming': sending && m.id === messages[messages.length - 1]?.id }"
+                v-html="htmlOf(m.content || (sending ? '…' : ''))"
+              ></div>
+              <!-- eslint-enable vue/no-v-html -->
+              <ul v-if="m.sources?.length" class="ai-sources">
+                <li v-for="(s, i) in m.sources" :key="i">
+                  <button type="button" class="ai-source" @click="onSourceClick(s)">
+                    {{ s.title }}
+                  </button>
+                </li>
+              </ul>
+            </template>
+          </div>
+        </template>
       </div>
 
       <footer class="ai-panel__foot">
@@ -278,7 +299,7 @@ onUnmounted(() => {
           v-model="input"
           class="ai-input"
           rows="2"
-          maxlength="1000"
+          maxlength="2000"
           :disabled="sending || !auth.isLoggedIn"
           placeholder="输入问题，Enter 发送"
           @keydown="onKeydown"
@@ -483,6 +504,11 @@ onUnmounted(() => {
   color: var(--text-3);
   line-height: 1.5;
   max-width: 28ch;
+  align-self: center;
+}
+
+.ai-state {
+  margin: auto 0;
   align-self: center;
 }
 
