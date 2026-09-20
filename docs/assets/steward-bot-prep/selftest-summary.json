@@ -1,0 +1,13 @@
+﻿{
+    "register_bot":  "ok code=0",
+    "bot_cred_file":  "\u003cDESKTOP\u003e/geekstack-steward-bot-creds-OFFLINE.txt (gitignore/offline only)",
+    "promote":  "mysql: [Warning] Using a password on the command line interface can be insecure. | 7133\tsteward_bot\tADMIN\t0",
+    "login":  "ok code=0 me_user=steward_bot me_role=ADMIN",
+    "create_post":  "postId=3110 author=walk_author_70202 categoryId=1",
+    "admin_delete":  "code=0 msg=ok",
+    "admin_ban":  "http=200 code=0 targetId=7135 targetUser=walk_target_4184",
+    "target_login_after_ban":  "rejected: 远程服务器返回错误: (403) 已禁止。",
+    "webhook_url":  "http://172.25.41.137:18000/api/v1/events",
+    "secret_handoff":  "secret 已线下交接（桌面 handoff 文件，未入库）",
+    "note":  "tokens/passwords redacted; operator expected=steward_bot in ADMIN_AUDIT"
+}
