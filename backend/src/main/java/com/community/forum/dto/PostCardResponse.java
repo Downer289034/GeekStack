@@ -18,6 +18,7 @@ public record PostCardResponse(
         Long replyCount,
         LocalDateTime lastReplyAt,
         Integer isPinned,
+        Integer isFeatured,
         Integer isHot,
         LocalDateTime createdAt
 ) {
@@ -26,6 +27,7 @@ public record PostCardResponse(
         List<String> tags = post.getTags() == null ? List.of() : List.copyOf(post.getTags());
         return new PostCardResponse(post.getId(), post.getUserId(), post.getCategoryId(),
                 post.getTitle(), tags, post.getViewCount(), post.getReplyCount(),
-                post.getLastReplyAt(), post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
+                post.getLastReplyAt(), post.getIsPinned(), post.getIsFeatured(), post.getIsHot(),
+                post.getCreatedAt());
     }
 }

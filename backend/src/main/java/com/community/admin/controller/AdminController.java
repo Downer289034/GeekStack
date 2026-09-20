@@ -1,5 +1,7 @@
 package com.community.admin.controller;
 
+import com.community.admin.dto.UpdatePostFeaturedRequest;
+import com.community.admin.dto.UpdatePostPinnedRequest;
 import com.community.admin.dto.UpdateUserStatusRequest;
 import com.community.admin.service.AdminService;
 import com.community.common.Result;
@@ -13,9 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 管理端最小集（T-M4-1）：删帖 / 禁言解封。路径保护见 SecurityConfig hasRole('ADMIN')。
- * 运维执行 promote-admin.sql 后，目标用户须重新登录（或 refresh）换发带 role 的 JWT；
- * 旧令牌无 ADMIN → 403 为预期，勿当 bug。
+ * 管理端（T-M4-1 + T-ADMIN-FEATURE）：删帖 / 禁言 / 加精 / 置顶。
+ * 路径保护见 SecurityConfig hasRole('ADMIN')（含 steward_bot）。
+ * 运维提权后目标用户须重新登录换发带 role 的 JWT；旧令牌无 ADMIN → 403 为预期。
  */
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -31,6 +33,24 @@ public class AdminController {
     @DeleteMapping("/posts/{id}")
     public Result<Void> deletePost(@PathVariable long id, Authentication authentication) {
         adminService.deletePost(id, authentication.getName());
+        return Result.ok();
+    }
+
+    /** 加精/取消：featured=1 加精，0 取消（幂等）。 */
+    @PutMapping("/posts/{id}/featured")
+    public Result<Void> updatePostFeatured(@PathVariable long id,
+                                           @Valid @RequestBody UpdatePostFeaturedRequest request,
+                                           Authentication authentication) {
+        adminService.updatePostFeatured(id, request, authentication.getName());
+        return Result.ok();
+    }
+
+    /** 置顶/取消：pinned=1 置顶，0 取消（幂等）。 */
+    @PutMapping("/posts/{id}/pinned")
+    public Result<Void> updatePostPinned(@PathVariable long id,
+                                         @Valid @RequestBody UpdatePostPinnedRequest request,
+                                         Authentication authentication) {
+        adminService.updatePostPinned(id, request, authentication.getName());
         return Result.ok();
     }
 

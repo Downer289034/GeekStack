@@ -17,6 +17,7 @@ public record PostDetailResponse(
         Long replyCount,
         LocalDateTime lastReplyAt,
         Integer isPinned,
+        Integer isFeatured,
         Integer isHot,
         LocalDateTime createdAt
 ) {

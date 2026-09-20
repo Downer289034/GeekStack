@@ -112,8 +112,9 @@ class HotPostServiceTest {
         long otherId = jdbcTemplate.queryForObject("SELECT id FROM user WHERE username = ?",
                 Long.class, TEST_USER_PREFIX + "other");
         jdbcTemplate.update("INSERT INTO post (user_id, category_id, title, content_md, view_count, reply_count, like_count) "
-                + "VALUES (?, ?, 'OtherPosts', 'x', 500, 0, 0)", otherId, testCategoryId);
+                + "VALUES (?, ?, 'OtherPosts', 'x', 500000, 0, 0)", otherId, testCategoryId);
 
+        // 共享 community-dev 有大量演示帖：给本帖超高分，保证进入 top10
         List<Post> result = dbHotPosts(10);
         assertThat(result.stream().anyMatch(p -> "OtherPosts".equals(p.getTitle()))).isTrue();
     }

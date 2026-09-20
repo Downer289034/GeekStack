@@ -45,6 +45,9 @@ public class Post {
     /** 置顶：0 否 1 是。 */
     private Integer isPinned;
 
+    /** 加精：0 否 1 是（T-ADMIN-FEATURE）。 */
+    private Integer isFeatured;
+
     /** 热门：0 否 1 是。 */
     private Integer isHot;
 

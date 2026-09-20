@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * T-M4-1：管理端删帖/禁言三路径（ADMIN 成功 / USER 403 / 未登录 401）
  * + 封禁后 login/refresh 双拒 + 删帖后详情 404。
+ * T-ADMIN-FEATURE：加精/置顶成功·幂等·详情可见 + 403/401。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -169,6 +170,103 @@ class AdminApiIntegrationTest {
                                 "password", targetPassword))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isNotEmpty());
+    }
+
+    // ---------- T-ADMIN-FEATURE：加精 / 置顶 ----------
+
+    @Test
+    void adminFeatureAndPinSucceedAndReflectOnDetail() throws Exception {
+        long postId = createPost(userToken, "admin-feature-pin");
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/featured")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 1))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/pinned")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("pinned", 1))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+
+        mockMvc.perform(get("/api/v1/posts/" + postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.isFeatured").value(1))
+                .andExpect(jsonPath("$.data.isPinned").value(1));
+
+        // 幂等：重复加精/置顶不炸
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/featured")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 1))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0));
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/pinned")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("pinned", 1))))
+                .andExpect(status().isOk());
+
+        // 取消
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/featured")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 0))))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/pinned")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("pinned", 0))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/posts/" + postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.isFeatured").value(0))
+                .andExpect(jsonPath("$.data.isPinned").value(0));
+    }
+
+    @Test
+    void userFeatureForbiddenAndAnonymousUnauthorized() throws Exception {
+        long postId = createPost(userToken, "user-cannot-feature");
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/featured")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 1))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/pinned")
+                        .header("Authorization", "Bearer " + userToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("pinned", 1))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(40300));
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/featured")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 1))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40100));
+
+        mockMvc.perform(put("/api/v1/admin/posts/" + postId + "/pinned")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("pinned", 1))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(40100));
+    }
+
+    @Test
+    void featureMissingPostReturns404() throws Exception {
+        mockMvc.perform(put("/api/v1/admin/posts/999999991/featured")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("featured", 1))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(40400));
     }
 
     private long createPost(String token, String title) throws Exception {

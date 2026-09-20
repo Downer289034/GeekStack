@@ -69,6 +69,7 @@ public class PostService {
         post.setViewCount(0L);
         post.setReplyCount(0L);
         post.setIsPinned(0);
+        post.setIsFeatured(0);
         post.setIsHot(0);
         postMapper.insert(post);
         // T14.6：发布 post.created 事件（content_text = 正文全文，截断由 Listener 处理）
@@ -111,6 +112,34 @@ public class PostService {
         }
         postMapper.deleteById(post.getId());
         eventPublisher.publishEvent(RagContentChangedEvent.delete(this, "post", id));
+        return post;
+    }
+
+    /**
+     * 管理员设置加精（0/1，幂等）。
+     *
+     * @return 更新后的帖子（供审计）
+     */
+    public Post setFeaturedByAdmin(long id, int featured) {
+        Post post = requireExisting(id);
+        postMapper.update(null, Wrappers.<Post>lambdaUpdate()
+                .eq(Post::getId, id)
+                .set(Post::getIsFeatured, featured));
+        post.setIsFeatured(featured);
+        return post;
+    }
+
+    /**
+     * 管理员设置置顶（0/1，幂等）。
+     *
+     * @return 更新后的帖子（供审计）
+     */
+    public Post setPinnedByAdmin(long id, int pinned) {
+        Post post = requireExisting(id);
+        postMapper.update(null, Wrappers.<Post>lambdaUpdate()
+                .eq(Post::getId, id)
+                .set(Post::getIsPinned, pinned));
+        post.setIsPinned(pinned);
         return post;
     }
 
@@ -194,7 +223,15 @@ public class PostService {
         List<String> tags = post.getTags() == null ? List.of() : List.copyOf(post.getTags());
         return new PostDetailResponse(post.getId(), post.getUserId(), post.getCategoryId(), post.getTitle(),
                 post.getContentMd(), tags, post.getViewCount(), post.getReplyCount(), post.getLastReplyAt(),
-                post.getIsPinned(), post.getIsHot(), post.getCreatedAt());
+                post.getIsPinned(), post.getIsFeatured(), post.getIsHot(), post.getCreatedAt());
+    }
+
+    private Post requireExisting(long id) {
+        Post post = postMapper.selectById(id);
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+        return post;
     }
 
     private Post requireOwned(long id, String username) {
