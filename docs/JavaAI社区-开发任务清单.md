@@ -410,11 +410,12 @@
 **完成说明（2026-09-20）**：`/v1/ask` + `/v1/ask/stream`；三分支单测 4 passed；10 问评测 [`docs/assets/t-ai-2/eval.json`](./assets/t-ai-2/eval.json)（10/10 ok+URL，wall P95 **9736ms**）；交付说明 [`docs/T-AI-2-问答链路交付.md`](./T-AI-2-问答链路交付.md)。交 PM 独立复跑。
 **PM 验收**：`5bccc02` 由 PM 隔离提交（backend 行尾假修改未混入）并 push，CI 双 job success（run 35484547755）。独立复跑：**unittest 4/4 通过（本机 .venv 直跑）**；eval.json 抽查——回答与来源强相关且内容与真实实现一致（429 规则/2MB 限制/HIDDEN 口径），诚实标注问 6/7 次要噪声。**T-AI-2 关闭**。治理备注：ai-service（Python）单测目前不在 CI 覆盖内（CI 仅 frontend/backend job），建议 CI 增 ai-service job（unittest 4 用例秒级）——待 T-AI-5 部署任务一并处理
 
-### [ ] T-AI-3：网关与安全（Java 后端）
+### [x] T-AI-3：网关与安全（Java 后端）
 **描述**：`/api/v1/ai/ask`（POST，SSE 透传）：JWT 鉴权 → 用户级限流（如 10 问/小时，Redis）→ 请求体清洗（长度上限）→ 转发 ai-service（内网地址走 .env）→ 敏感词/无关问题前置过滤可选；成本日志（token 用量按用户记录）
 **验收标准**：未登录 401、超限 429、ai-service 宕机 503 降级话术；三路径测试；CI
 **前置**：T-AI-2
 **完成说明（2026-09-20）**：`POST /api/v1/ai/ask` 对齐 §5：先连 `{AI_SERVICE_URL}/v1/ask/stream`，成功后再写 SSE；未连上或非 2xx 返回 JSON 503「AI 助手暂时不可用，请稍后再试」。JWT 走现有 `anyRequest().authenticated()`。限流默认 Redis `ai:ask:{username}` 10 次/小时，Redis 故障 WARN 放行（与认证频控同口径）；`question` ≤2000，`thinking` 非 `enabled` 一律 `disabled`。`event: done` 的 `usage` 记 `AI_COST` 日志。敏感词过滤按「可选」未做。`AiAskGatewayIntegrationTest` 3/3（401/429/503，quota=memory、上游 127.0.0.1:9）；checkstyle 通过。全量 CI 待提交后由 PM 复跑。待 PM 验收，未关闭。
+**PM 验收**：实现审查通过（先连后写时序正确、限流降级双口径、AI_COST 结构化日志、thinking 白名单）；`5e95730` 因我方 push 遭遇网络 502 三连失败，由后端代推（bf3a727..5e95730），**CI success（run 35485974853，frontend 39s/backend 2m0s 全量含 AiAskGatewayIntegrationTest）**——GitHub API 核实远程 main=5e95730。→ **T-AI-3 关闭**，M13 滚动至 T-AI-4（前端 mock 换真实 SSE）
 
 ### [ ] T-AI-4：前端浮窗
 **描述**：右下角悬浮球 → 展开对话面板（夜栈灯码组件语言：面板 surface-1、琥珀仅用于发送按钮）；SSE 流式渲染 Markdown（复用渲染唯一出口防 XSS）；来源链接卡片（favicon+标题，新窗打开）；会话历史 localStorage 本地保留；移动端折叠为全屏底部抽屉
