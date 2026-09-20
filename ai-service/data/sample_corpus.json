@@ -1,0 +1,92 @@
+[
+  {
+    "content_id": "jkz_help_welcome",
+    "content_type": "help",
+    "title": "极客栈使用说明",
+    "url": "https://geekstack.local/help/welcome",
+    "author_id": 0,
+    "body_md": "# 欢迎来到极客栈 GeekStack\n\n极客栈是面向 Java 与 AI 开发者的社区。你可以：\n\n1. 在**论坛**发帖讨论技术问题（分类：Java / AI / 问答 / 资源）\n2. 在**项目广场**发布开源项目分享（支持 GitHub/Gitee 导入）\n3. 在**Skill 专区**发布可复用的提示词与 Agent 技能包\n4. 使用标签筛选、搜索、点赞与站内通知\n\n注册后即可发帖。个人主页可编辑昵称、简介与头像。OAuth 支持 GitHub / Gitee 绑定。",
+    "created_at": "2026-09-01T00:00:00"
+  },
+  {
+    "content_id": "jkz_help_rules",
+    "content_type": "help",
+    "title": "社区版规摘要",
+    "url": "https://geekstack.local/help/rules",
+    "author_id": 0,
+    "body_md": "# 版规\n\n- 禁止人身攻击、广告刷屏与敏感违规内容\n- 分享项目请标注开源协议与复现步骤\n- Skill 请写清模型适配说明与版本号（SemVer）\n- 下架内容（HIDDEN）仅作者可见，不会出现在广场与搜索\n- 管理员保留处理违规账号的权利",
+    "created_at": "2026-09-01T00:00:00"
+  },
+  {
+    "content_id": "jkz_post_1001",
+    "content_type": "post",
+    "title": "Spring Boot 3 集成 Flyway 的实践踩坑",
+    "url": "https://geekstack.local/posts/1001",
+    "author_id": 11,
+    "body_md": "## 背景\n我们在 GeekStack 后端用 Flyway 管理 schema。\n\n## 要点\n1. 版本号必须顺延，禁止写死冲突编号\n2. 幂等 DDL 用 information_schema 判断列是否存在\n3. MySQL `utf8mb4` + JDBC `characterEncoding=UTF-8`\n\n## 示例\n```sql\nALTER TABLE skill ADD COLUMN version VARCHAR(32) NOT NULL DEFAULT '1.0.0';\n```\n\n并发注册要用唯一索引兜底 DuplicateKeyException → 409。",
+    "created_at": "2026-09-10T10:00:00"
+  },
+  {
+    "content_id": "jkz_post_1002",
+    "content_type": "post",
+    "title": "JWT token_version 改密失效口径",
+    "url": "https://geekstack.local/posts/1002",
+    "author_id": 12,
+    "body_md": "改密或 OAuth 首设密码时 `user.token_version++`，JWT 带 `ver` claim。\n\n- 旧 **refresh** 在 `/auth/refresh` 立即 401\n- 旧 **access** 最长活到 access-ttl（默认 30 分钟）\n\n过滤器不做每请求 DB 查版本，避免性能问题。",
+    "created_at": "2026-09-17T12:00:00"
+  },
+  {
+    "content_id": "jkz_post_1003",
+    "content_type": "post",
+    "title": "OAuth state 防 CSRF 怎么做",
+    "url": "https://geekstack.local/posts/1003",
+    "author_id": 13,
+    "body_md": "发起登录时生成 ≥128bit state 存 Redis（5 分钟 TTL），回调转交 code 时必带 state。\n\n缺失/篡改/过期/重放一律 401；校验使用 GETDEL 原子消费。\n\n前端可预先 crypto.getRandomValues 生成 hex 并 sessionStorage 比对。",
+    "created_at": "2026-09-17T18:00:00"
+  },
+  {
+    "content_id": "jkz_share_2001",
+    "content_type": "share",
+    "title": "开源：轻量 Markdown 消毒渲染",
+    "url": "https://geekstack.local/shares/2001",
+    "author_id": 21,
+    "body_md": "项目提供 markdown-it + DOMPurify 的统一渲染出口，关闭 raw HTML，过滤 script/onerror。\n\n适合社区详情页防 XSS。仓库地址示例：https://github.com/example/md-safe-render\n\n标签：#xss #markdown #vue",
+    "created_at": "2026-09-08T09:00:00"
+  },
+  {
+    "content_id": "jkz_share_2002",
+    "content_type": "share",
+    "title": "MinIO 图片上传场景划分",
+    "url": "https://geekstack.local/shares/2002",
+    "author_id": 22,
+    "body_md": "GeekStack media API 支持 scene=editor|cover|avatar。\n\n- avatar 限 2MB\n- cover 限 5MB\n- 魔数校验优先于扩展名，避免假 PNG 绕过\n\n公网读图走 nginx `/media/`（9080），不要让浏览器直连 MinIO 9000。",
+    "created_at": "2026-09-12T15:00:00"
+  },
+  {
+    "content_id": "jkz_skill_3001",
+    "content_type": "skill",
+    "title": "Java 异常分析助手",
+    "url": "https://geekstack.local/skills/3001",
+    "author_id": 31,
+    "body_md": "## 提示词\n你是资深 Java 工程师。用户会粘贴异常栈，请：\n1. 定位根因类与行号\n2. 给出可能原因（空指针/类型转换/依赖冲突）\n3. 给出可执行的排查步骤\n\n## 模型适配\nGPT-4 / Claude / MiMo v2.5\n\n版本 1.2.0：补充 Spring Boot 3 异常处理建议。",
+    "created_at": "2026-09-14T11:00:00"
+  },
+  {
+    "content_id": "jkz_skill_3002",
+    "content_type": "skill",
+    "title": "SQL 慢查询改写助手",
+    "url": "https://geekstack.local/skills/3002",
+    "author_id": 32,
+    "body_md": "根据用户给出的慢 SQL 与 EXPLAIN，建议索引与改写。\n注意：避免 SELECT *；关注 where 可索引列；提醒分页深翻页问题。\n适配 MySQL 8。",
+    "created_at": "2026-09-15T11:00:00"
+  },
+  {
+    "content_id": "jkz_post_1004",
+    "content_type": "post",
+    "title": "登录频控：15 分钟 5 次失败锁定",
+    "url": "https://geekstack.local/posts/1004",
+    "author_id": 14,
+    "body_md": "`/api/v1/auth/login|register|refresh` 按 IP+用户名计数。\n\n15 分钟内失败 5 次后，第 6 次返回 429。成功登录清零。\n\nRedis 宕机时**放行并打 WARN**（降级），避免拖垮登录入口。",
+    "created_at": "2026-09-17T20:00:00"
+  }
+]

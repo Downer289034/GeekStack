@@ -1,0 +1,13 @@
+# T-AI-0 / T-AI-2 AI 服务依赖（Python 3.12）
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+openai==1.58.1
+langgraph==0.2.60
+langchain-core==0.3.28
+qdrant-client==1.12.1
+httpx==0.28.1
+tiktoken==0.8.0
+sse-starlette==2.2.1
