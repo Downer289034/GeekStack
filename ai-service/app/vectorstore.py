@@ -40,7 +40,8 @@ class VectorStore:
         for chunk, vec in zip(chunks, vectors):
             # 统一 metadata schema（对齐管家草案 + chunk 文本入 payload）
             payload = {
-                "content_id": chunk.content_id,
+                "content_id": chunk.chunk_id,
+                "parent_content_id": chunk.content_id,
                 "source_system": chunk.source_system or self.settings.source_system,
                 "content_type": chunk.content_type,
                 "text_url": chunk.url,
@@ -51,7 +52,8 @@ class VectorStore:
                 "chunk_id": chunk.chunk_id,
                 "chunk_index": chunk.chunk_index,
                 "title": chunk.title,
-                "text": chunk.text,  # RAG 必需：chunk 全文入 payload
+                "chunk_text": chunk.text,
+                "text": chunk.text,  # 与 chunk_text 同值（schema v1.1 硬约束）
                 "extra": {},
             }
             points.append(
@@ -74,17 +76,17 @@ class VectorStore:
         best: dict[str, tuple[SourceRef, str]] = {}
         for hit in hits:
             payload = hit.payload or {}
-            cid = str(payload.get("content_id", ""))
+            parent = str(payload.get("parent_content_id") or payload.get("content_id") or "")
             ref = SourceRef(
-                content_id=cid,
+                content_id=parent,
                 title=str(payload.get("title", "")),
                 url=str(payload.get("text_url") or payload.get("url", "")),
                 score=float(hit.score or 0.0),
             )
-            text = str(payload.get("text", ""))
-            prev = best.get(cid)
+            text = str(payload.get("chunk_text") or payload.get("text") or "")
+            prev = best.get(parent)
             if prev is None or ref.score > prev[0].score:
-                best[cid] = (ref, text)
+                best[parent] = (ref, text)
         return sorted(best.values(), key=lambda x: x[0].score, reverse=True)
 
 

@@ -1,0 +1,241 @@
+{
+  "run_at": "2026-09-20T10:32:31+0800",
+  "n": 10,
+  "threshold": 0.35,
+  "thinking": "disabled",
+  "rewrite": "skipped_for_eval",
+  "p95_wall_ms": 9735.7,
+  "avg_wall_ms": 6701.7,
+  "rows": [
+    {
+      "question": "改密码后旧 refresh 是否立即失效？",
+      "branch": "ok",
+      "wall_ms": 8448.3,
+      "llm_ms": 6070.3,
+      "has_url": true,
+      "source_titles": [
+        "JWT token_version 改密失效口径",
+        "OAuth state 防 CSRF 怎么做",
+        "登录频控：15 分钟 5 次失败锁定",
+        "社区版规摘要",
+        "SQL 慢查询改写助手"
+      ],
+      "source_urls": [
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1004",
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/skills/3002"
+      ],
+      "answer_preview": "是的，改密后旧 refresh token **立即失效**。\n\n具体机制如下：\n\n- **改密或 OAuth 首设密码时**，JWT 会携带 `token_version` claim。\n- **旧 refresh token 立即返回 401**，不再可用。\n- **旧 access token** 则最长存活到其 TTL 到期（默认 30 分钟）后自然失效。\n- 过滤器**不做每请求 DB 查版本**，以避免性能问题。\n\n> 来源：[JWT token_version 改密失效口径](https://geekstack.local/posts/10",
+      "is_fallback": false
+    },
+    {
+      "question": "Java 异常分析助手能做什么？",
+      "branch": "ok",
+      "wall_ms": 9735.7,
+      "llm_ms": 8196.5,
+      "has_url": true,
+      "source_titles": [
+        "Java 异常分析助手",
+        "极客栈使用说明",
+        "Spring Boot 3 集成 Flyway 的实践踩坑",
+        "开源：轻量 Markdown 消毒渲染",
+        "MinIO 图片上传场景划分"
+      ],
+      "source_urls": [
+        "https://geekstack.local/skills/3001",
+        "https://geekstack.local/help/welcome",
+        "https://geekstack.local/posts/1001",
+        "https://geekstack.local/shares/2001",
+        "https://geekstack.local/shares/2002"
+      ],
+      "answer_preview": "## Java 异常分析助手的功能\n\nJava 异常分析助手是一个面向 Java 开发者的 **Skill（技能包）**，主要帮助你快速定位和排查 Java 异常问题。具体能力包括：\n\n1. **定位根因** — 根据你粘贴的异常栈，定位到引发问题的类与行号。\n2. **分析可能原因** — 判断异常属于空指针、类型转换、依赖冲突等常见类型。\n3. **给出排查步骤** — 提供可执行的排查方案，帮助你快速解决问题。\n4. **Spring Boot 3 支持** — v1.2.0 版本补充了 Spring Boot 3 相关的异常处理建议。\n\n**使用",
+      "is_fallback": false
+    },
+    {
+      "question": "登录失败多少次会返回 429？",
+      "branch": "ok",
+      "wall_ms": 5404.0,
+      "llm_ms": 4370.6,
+      "has_url": true,
+      "source_titles": [
+        "登录频控：15 分钟 5 次失败锁定",
+        "OAuth state 防 CSRF 怎么做",
+        "JWT token_version 改密失效口径",
+        "Java 异常分析助手",
+        "Spring Boot 3 集成 Flyway 的实践踩坑"
+      ],
+      "source_urls": [
+        "https://geekstack.local/posts/1004",
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/skills/3001",
+        "https://geekstack.local/posts/1001"
+      ],
+      "answer_preview": "根据现有资料，**15 分钟内登录失败 5 次后，第 6 次请求会返回 429**。\n\n具体规则如下：\n\n- **计数维度**：按 IP + 用户名计数\n- **锁定条件**：15 分钟窗口内累计失败 5 次\n- **触发结果**：第 6 次登录请求直接返回 HTTP 429\n- **重置方式**：成功登录后计数清零\n- **降级策略**：Redis 宕机时放行并打 WARN 日志，避免拖垮登录入口\n\n引用来源：\n- [登录频控：15 分钟 5 次失败锁定](https://geekstack.local/posts/1004)",
+      "is_fallback": false
+    },
+    {
+      "question": "头像上传有多大限制？",
+      "branch": "ok",
+      "wall_ms": 7425.1,
+      "llm_ms": 4670.7,
+      "has_url": true,
+      "source_titles": [
+        "MinIO 图片上传场景划分",
+        "社区版规摘要",
+        "JWT token_version 改密失效口径",
+        "登录频控：15 分钟 5 次失败锁定",
+        "OAuth state 防 CSRF 怎么做"
+      ],
+      "source_urls": [
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/posts/1004",
+        "https://geekstack.local/posts/1003"
+      ],
+      "answer_preview": "根据现有资料，头像（avatar）上传限制为 **2MB**。\n\n此外，上传时会进行魔数校验（优先于扩展名），以避免假 PNG 绕过。\n\n---\n\n**引用来源：**\n- [MinIO 图片上传场景划分](https://geekstack.local/shares/2002)",
+      "is_fallback": false
+    },
+    {
+      "question": "版规禁止哪些行为？",
+      "branch": "ok",
+      "wall_ms": 6325.0,
+      "llm_ms": 4994.7,
+      "has_url": true,
+      "source_titles": [
+        "社区版规摘要",
+        "MinIO 图片上传场景划分",
+        "Java 异常分析助手",
+        "开源：轻量 Markdown 消毒渲染",
+        "Spring Boot 3 集成 Flyway 的实践踩坑"
+      ],
+      "source_urls": [
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/skills/3001",
+        "https://geekstack.local/shares/2001",
+        "https://geekstack.local/posts/1001"
+      ],
+      "answer_preview": "根据现有资料，GeekStack 社区版规禁止以下行为：\n\n1. **人身攻击**\n2. **广告刷屏**\n3. **敏感违规内容**\n\n此外，版规还要求：\n- 分享项目需标注**开源协议与复现步骤**\n- Skill 需写清**模型适配说明与版本号**（SemVer）\n- 管理员保留处理违规账号的权利\n\n下架内容（HIDDEN）仅作者可见，不会出现在广场与搜索中。\n\n---\n\n**引用来源：**\n- [社区版规摘要](https://geekstack.local/help/rules)",
+      "is_fallback": false
+    },
+    {
+      "question": "如何用 GitHub 登录？",
+      "branch": "ok",
+      "wall_ms": 6565.4,
+      "llm_ms": 6203.4,
+      "has_url": true,
+      "source_titles": [
+        "极客栈使用说明",
+        "OAuth state 防 CSRF 怎么做",
+        "登录频控：15 分钟 5 次失败锁定",
+        "JWT token_version 改密失效口径",
+        "MinIO 图片上传场景划分"
+      ],
+      "source_urls": [
+        "https://geekstack.local/help/welcome",
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1004",
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/shares/2002"
+      ],
+      "answer_preview": "## 使用 GitHub 登录极客栈\n\n极客栈支持 OAuth 方式绑定和登录 GitHub 账号，具体步骤如下：\n\n1. **注册/登录页面**：在极客栈的登录界面，选择 **GitHub** 作为 OAuth 登录方式。\n2. **授权跳转**：系统会跳转到 GitHub 授权页面，确认后 GitHub 会将授权码（code）和 state 参数回调给极客栈。\n3. **完成绑定**：首次通过 GitHub 登录时，系统会自动创建账号并完成 OAuth 绑定。之后可直接使用 GitHub 一键登录。\n\n> **安全说明**：极客栈在 OAuth 流程",
+      "is_fallback": false
+    },
+    {
+      "question": "token_version 的作用是什么？",
+      "branch": "ok",
+      "wall_ms": 6734.0,
+      "llm_ms": 6430.6,
+      "has_url": true,
+      "source_titles": [
+        "OAuth state 防 CSRF 怎么做",
+        "JWT token_version 改密失效口径",
+        "社区版规摘要",
+        "MinIO 图片上传场景划分",
+        "开源：轻量 Markdown 消毒渲染"
+      ],
+      "source_urls": [
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/shares/2001"
+      ],
+      "answer_preview": "根据现有资料，`token_version` 的主要作用是**实现改密或 OAuth 首设密码时的即时失效机制**。\n\n具体来说：\n\n- 当用户**修改密码**或 **OAuth 首次设置密码**时，JWT 中会携带 `token_version` claim。\n- 旧的 refresh token 会**立即 401 失效**，旧的 access token 最长存活到其 TTL 过期（默认 30 分钟）。\n- 过滤器**不做每请求 DB 查版本**，以避免性能问题。\n\n简单来说，`token_version` 是一种轻量级的 token 失效策略，用",
+      "is_fallback": false
+    },
+    {
+      "question": "项目分享如何防止 XSS？",
+      "branch": "ok",
+      "wall_ms": 5451.9,
+      "llm_ms": 5029.2,
+      "has_url": true,
+      "source_titles": [
+        "开源：轻量 Markdown 消毒渲染",
+        "社区版规摘要",
+        "MinIO 图片上传场景划分",
+        "OAuth state 防 CSRF 怎么做",
+        "Spring Boot 3 集成 Flyway 的实践踩坑"
+      ],
+      "source_urls": [
+        "https://geekstack.local/shares/2001",
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1001"
+      ],
+      "answer_preview": "根据现有资料，GeekStack 社区在项目分享中防止 XSS 的做法如下：\n\n## Markdown 渲染防 XSS\n\n项目提供 **markdown-it + DOMPurify** 的统一渲染出口，具体措施包括：\n\n1. **关闭 raw HTML** — 不允许用户输入的原始 HTML 直接渲染\n2. **过滤危险属性** — 对 `script`、`onerror` 等事件属性进行过滤消毒\n\n这套方案适合社区详情页等场景，能有效防止 XSS 攻击。\n\n> 仓库地址示例：https://github.com/example/md-safe-ren",
+      "is_fallback": false
+    },
+    {
+      "question": "Flyway 版本号有什么要求？",
+      "branch": "ok",
+      "wall_ms": 6128.9,
+      "llm_ms": 5718.5,
+      "has_url": true,
+      "source_titles": [
+        "Spring Boot 3 集成 Flyway 的实践踩坑",
+        "JWT token_version 改密失效口径",
+        "社区版规摘要",
+        "MinIO 图片上传场景划分",
+        "Java 异常分析助手"
+      ],
+      "source_urls": [
+        "https://geekstack.local/posts/1001",
+        "https://geekstack.local/posts/1002",
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/skills/3001"
+      ],
+      "answer_preview": "根据现有资料，Flyway 版本号有以下要求：\n\n1. **版本号必须顺延**，禁止写死冲突编号。\n2. **幂等 DDL** 应通过 `information schema` 判断列是否存在，确保脚本可重复执行。\n\n此外，GeekStack 后端使用 Flyway 管理 schema，采用 MySQL + JDBC 方案。\n\n---\n\n**引用来源：**\n- [Spring Boot 3 集成 Flyway 的实践踩坑](https://geekstack.local/posts/1001)",
+      "is_fallback": false
+    },
+    {
+      "question": "HIDDEN 内容谁能看到？",
+      "branch": "ok",
+      "wall_ms": 4799.2,
+      "llm_ms": 2886.5,
+      "has_url": true,
+      "source_titles": [
+        "社区版规摘要",
+        "MinIO 图片上传场景划分",
+        "开源：轻量 Markdown 消毒渲染",
+        "OAuth state 防 CSRF 怎么做",
+        "JWT token_version 改密失效口径"
+      ],
+      "source_urls": [
+        "https://geekstack.local/help/rules",
+        "https://geekstack.local/shares/2002",
+        "https://geekstack.local/shares/2001",
+        "https://geekstack.local/posts/1003",
+        "https://geekstack.local/posts/1002"
+      ],
+      "answer_preview": "根据现有资料，**下架内容（HIDDEN）仅作者可见**，不会出现在广场与搜索中。\n\n也就是说，只有发布该内容的作者本人能够查看，其他用户无法看到。\n\n> 引用来源：[社区版规摘要](https://geekstack.local/help/rules)",
+      "is_fallback": false
+    }
+  ]
+}

@@ -46,3 +46,4 @@ class AskResponse(BaseModel):
     latency_ms: float
     usage: dict[str, Any] = Field(default_factory=dict)
     thinking: str = "disabled"
+    retrieval: str = "ok"  # empty | below_threshold | ok

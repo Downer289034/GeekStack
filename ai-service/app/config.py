@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     chunk_size_tokens: int = 512
     chunk_overlap_tokens: int = 50
     retrieve_top_k: int = 5
+    # Cosine 相似度下限；低于此视为未命中（超阈值分支）
+    retrieve_score_threshold: float = 0.35
 
     source_system: str = "geekstack"
 
