@@ -239,6 +239,7 @@
 **描述**：输出方案建议文档——帖子/分享关键字搜索（MySQL FULLTEXT ngram vs LIKE 成本对比，8.0 中文支持现状）、标签聚合（V1 的 JSON_CONTAINS 现状 vs 建标签表）、分页口径；给出推荐与工作量估算
 **验收标准**：方案文档（docs/T-BE-4-搜索标签接口预研.md）含对比表 + 推荐 + 理由；**不写实现代码**——T-FE-1 缺口单到位后合并成正式实现任务
 **前置**：T-BE-2
+**完成说明（2026-09-20，开发 A）**：产出 [`docs/T-BE-4-搜索标签接口预研.md`](./T-BE-4-搜索标签接口预研.md)——LIKE 续用 / 不上 FULLTEXT、JSON 标签续用、与 RAG 边界、拆 T-BE-4.1～4.4 人天；待 PM 验收勾选。
 
 ---
 
@@ -453,5 +454,6 @@
 **前置**：无（与 T-AI-0 并行）
 **完成说明（2026-09-19）**：JWT `role` claim → `ROLE_*` authorities；`/api/v1/admin/**` hasRole(ADMIN)；删帖/禁言端点 + `ADMIN_AUDIT` 结构化日志；`deploy/sql/promote-admin.sql`；`AdminApiIntegrationTest` 6/6；checkstyle 通过。全量 `mvn verify` 本机因 Redis 不可用导致无关限流/OAuth 用例失败，与本任务无关。
 **PM 验收**：`922dbed` 由 PM 隔离提交（排除同工作区 ai-service 进行中文件）并 push，CI 双 job success（run 35438965095，backend 2m37s 全量测试含 AdminApiIntegrationTest——CI 有 Redis 容器，验证了"本机 Redis 不可用"说明属实）。安全审查通过：role claim 旧令牌兜底 USER、status 白名单校验（@Min(0)@Max(1)+服务层双保险）、promote-admin.sql 占位符无真实凭据、ADMIN_AUDIT 结构化审计。**T-M4-1 关闭**——Agent-T18 处置回调前置缺口清零；运维提权后目标用户须重新登录（旧令牌无 role claim 默认 USER，安全兜底）。
+**镜像固化（2026-09-20）**：AD2 联调曾 `docker cp` 热更 jar；已将含 `AdminController` 的构建打入 `geekstack/backend:latest`（`DEPLOY_COMMIT=1b38f2f`，镜像 `97bd13f4e57b`），`DELETE /api/v1/admin/posts/{id}` 未登录→401；`deploy/prod/deploy.sh` + compose +《交接指引-新后端》补「禁止热更 jar」纪律。
 
 ---
