@@ -1,7 +1,8 @@
+# 本地单独起 Qdrant（可选）。联调优先：bash deploy/dev/sync-ai-stack.sh
 services:
   qdrant:
     image: qdrant/qdrant:v1.12.5
-    container_name: geekstack-qdrant
+    container_name: geekstack-qdrant-local
     ports:
       - "6333:6333"
       - "6334:6334"

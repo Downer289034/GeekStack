@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # ":memory:" = 本地内存库（无 Docker 时 spike/bench）；否则 HTTP URL
     qdrant_url: str = ":memory:"
-    qdrant_collection: str = "geekstack_rag_spike"
+    qdrant_collection: str = "geekstack_community"
 
     dashscope_api_key: str = ""
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"

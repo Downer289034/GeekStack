@@ -80,7 +80,7 @@ community:
     embedding-dim: 1024
     dashscope-api-key: ${DASHSCOPE_API_KEY:}
     dashscope-base-url: ${DASHSCOPE_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
-    # memory = 进程内（本地/测试）；联调改为 http://127.0.0.1:6333
+    # memory = 进程内（本地/测试）；联调 .env 的 QDRANT_URL 由 RagConfig 再读一次
     qdrant-url: ${QDRANT_URL:memory}
     qdrant-collection: ${QDRANT_COLLECTION:geekstack_community}
     public-base-url: ${RAG_PUBLIC_BASE_URL:http://localhost:5173}
@@ -88,6 +88,14 @@ community:
     read-timeout-ms: ${RAG_READ_TIMEOUT_MS:5000}
     max-retries: 2
     seed-help-on-startup: ${RAG_SEED_HELP:false}
+  ai:
+    # T-AI-3：网关转发 ai-service。同文档 import 的 .env 占位符会提前落成默认值，AiConfig 再读 AI_SERVICE_URL。
+    base-url: ${AI_SERVICE_URL:http://127.0.0.1:8090}
+    connect-timeout-ms: ${AI_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${AI_READ_TIMEOUT_MS:120000}
+    rate-limit-per-hour: ${AI_RATE_LIMIT_PER_HOUR:10}
+    # redis：生产；memory：单测（不依赖 Redis）
+    quota: ${AI_QUOTA:redis}
 
 management:
   endpoints:

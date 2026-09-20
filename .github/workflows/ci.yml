@@ -75,3 +75,25 @@ jobs:
       - name: Type check & Build
         working-directory: frontend
         run: npm run build
+
+  # T-AI-5：ai-service 检索三分支单测（无 Key、秒级）
+  ai-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ai-service/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m unittest tests.test_retrieve -v
+        env:
+          QDRANT_URL: ":memory:"
+          QDRANT_COLLECTION: geekstack_community
+          MIMO_THINKING: disabled

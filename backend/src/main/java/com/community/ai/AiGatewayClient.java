@@ -37,7 +37,9 @@ public class AiGatewayClient {
     public AiGatewayClient(AiProperties properties, ObjectMapper objectMapper) {
         this.properties = properties;
         this.objectMapper = objectMapper;
+        // uvicorn 不接受 Java HttpClient 默认的 h2c Upgrade，会回 422。
         this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofMillis(Math.max(200, properties.getConnectTimeoutMs())))
                 .build();
     }

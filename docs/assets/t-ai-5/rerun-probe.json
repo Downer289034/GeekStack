@@ -1,0 +1,43 @@
+﻿{
+    "deferred":  [
+                     "UI 三断点目视（前端 T-AI-4 已关）",
+                     "生产栈 compose 显式同步跟随上线"
+                 ],
+    "ask":  {
+                "note":  "answer redacted; no API keys in evidence",
+                "sources_count":  1,
+                "source_score":  0.72360694,
+                "retrieval":  "ok",
+                "source_url_contains":  "/posts/3106",
+                "endpoint":  "POST http://172.25.41.137:8090/v1/ask",
+                "status":  200
+            },
+    "local_tests":  {
+                        "ai_service_unittest":  "4/4 OK",
+                        "backend_focused":  "AiAskGatewayIntegrationTest+RagIndexIntegrationTest+MarkdownChunkerTest = 8/8 BUILD SUCCESS"
+                    },
+    "health":  {
+                   "collection":  {
+                                      "name":  "geekstack_community",
+                                      "points_count":  1,
+                                      "vector_size":  1024,
+                                      "distance":  "Cosine"
+                                  },
+                   "qdrant_readyz":  {
+                                         "url":  "http://172.25.41.137:6333/readyz",
+                                         "status":  200
+                                     },
+                   "ai_service":  {
+                                      "body":  "{\"status\":\"UP\",\"service\":\"ai-service\",\"phase\":\"T-AI-5\"}",
+                                      "status":  200,
+                                      "url":  "http://172.25.41.137:8090/health"
+                                  }
+               },
+    "ci_workflow":  "ai-service job present in .github/workflows/ci.yml",
+    "re_run":  "closeout",
+    "date":  "2026-09-20",
+    "compose":  {
+                    "prod":  "deploy/prod/docker-compose.yml services qdrant+ai-service (geekstack-*)",
+                    "dev":  "deploy/dev/docker-compose.yml services qdrant+ai-service (community-*)"
+                }
+}

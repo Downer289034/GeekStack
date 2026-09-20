@@ -23,7 +23,11 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * T-AI-1：发布/编辑/删除三路径 + HIDDEN 不进库 + schema v1.1（mock embedding=无 Key 伪向量）。
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "community.rag.qdrant-url=memory",
+        "community.rag.dotenv-qdrant=false",
+        "community.rag.dashscope-api-key="
+})
 @AutoConfigureMockMvc
 class RagIndexIntegrationTest {
 

@@ -29,7 +29,9 @@ import org.springframework.test.web.servlet.MockMvc;
         "community.ai.connect-timeout-ms=800",
         "community.ai.read-timeout-ms=1500",
         "community.ai.quota=memory",
-        "community.ai.rate-limit-per-hour=2"
+        "community.ai.rate-limit-per-hour=2",
+        "community.rag.dotenv-qdrant=false",
+        "community.rag.qdrant-url=memory"
 })
 class AiAskGatewayIntegrationTest {
 

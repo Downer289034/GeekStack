@@ -40,7 +40,7 @@ app = FastAPI(title="GeekStack AI Service", version="0.2.0", lifespan=lifespan)
 
 @app.get("/health")
 def health():
-    return {"status": "UP", "service": "ai-service", "phase": "T-AI-2"}
+    return {"status": "UP", "service": "ai-service", "phase": "T-AI-5"}
 
 
 @app.post("/v1/index")

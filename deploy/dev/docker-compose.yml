@@ -1,6 +1,7 @@
-# 开发基础设施：MySQL 8 + Redis 7 + MinIO
+# 开发基础设施：MySQL 8 + Redis 7 + MinIO + Qdrant + ai-service（T-AI-5）
 # 部署位置：服务器 /opt/community-dev/docker-compose.yml（开发栈；生产栈见 deploy/prod）
 # 凭据来自同目录 .env（服务器上 chmod 600，不入 git）
+# 本机 Java/前端连：172.25.41.137 的 3306/6379/9000/9080/6333/8090
 services:
   mysql:
     image: mysql:8.0
@@ -97,6 +98,50 @@ services:
       minio:
         condition: service_healthy
 
+  # T-AI-5：社区向量库（Java 写、ai-service 读；collection 默认 geekstack_community）
+  qdrant:
+    image: qdrant/qdrant:v1.12.5
+    container_name: community-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  # T-AI-5：问答服务。部署时把仓库 ai-service/ 同步到本目录下的 ai-service/（见 sync-ai-stack.sh）
+  ai-service:
+    image: geekstack/ai-service:latest
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: community-ai-service
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    environment:
+      MIMO_API_KEY: ${MIMO_API_KEY:-}
+      MIMO_BASE_URL: ${MIMO_BASE_URL:-https://api.xiaomimimo.com/v1}
+      MIMO_MODEL: ${MIMO_MODEL:-mimo-v2.5}
+      MIMO_THINKING: ${MIMO_THINKING:-disabled}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v3}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-geekstack_community}
+      RETRIEVE_TOP_K: ${RETRIEVE_TOP_K:-5}
+      RETRIEVE_SCORE_THRESHOLD: ${RETRIEVE_SCORE_THRESHOLD:-0.35}
+      TZ: Asia/Shanghai
+    depends_on:
+      - qdrant
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+
 volumes:
   # 钉死历史卷名，避免 compose project 解析变化时新建空卷冲掉开发数据
   mysql-data:
@@ -104,3 +149,5 @@ volumes:
   redis-data:
     name: community-dev_redis-data-dev
   minio-data:
+  qdrant-data:
+    name: community-dev_qdrant-data-dev

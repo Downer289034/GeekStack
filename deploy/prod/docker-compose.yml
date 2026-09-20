@@ -46,6 +46,15 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET:-geekstack}
       MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
+      # T-AI-5：RAG 写 Qdrant + 网关转 ai-service（同 compose 内网）
+      AI_SERVICE_URL: http://ai-service:8090
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-geekstack_community}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      RAG_PUBLIC_BASE_URL: ${RAG_PUBLIC_BASE_URL:-https://geekstack.local}
+      RAG_SEED_HELP: ${RAG_SEED_HELP:-false}
+      AI_RATE_LIMIT_PER_HOUR: ${AI_RATE_LIMIT_PER_HOUR:-10}
       TZ: Asia/Shanghai
     volumes:
       - ./logs/backend:/app/logs
@@ -56,6 +65,50 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      # ai-service 故意不硬依赖：宕机时网关返回 503，不阻塞主站启动
+
+  # T-AI-5：社区向量库（不对外暴露）
+  qdrant:
+    image: qdrant/qdrant:v1.12.5
+    container_name: geekstack-qdrant
+    restart: unless-stopped
+    expose:
+      - "6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+  # T-AI-5：问答服务（仅容器网；backend 经 AI_SERVICE_URL 访问）
+  ai-service:
+    image: geekstack/ai-service:latest
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: geekstack-ai-service
+    restart: unless-stopped
+    expose:
+      - "8090"
+    environment:
+      MIMO_API_KEY: ${MIMO_API_KEY:-}
+      MIMO_BASE_URL: ${MIMO_BASE_URL:-https://api.xiaomimimo.com/v1}
+      MIMO_MODEL: ${MIMO_MODEL:-mimo-v2.5}
+      MIMO_THINKING: ${MIMO_THINKING:-disabled}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-v3}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-geekstack_community}
+      RETRIEVE_TOP_K: ${RETRIEVE_TOP_K:-5}
+      RETRIEVE_SCORE_THRESHOLD: ${RETRIEVE_SCORE_THRESHOLD:-0.35}
+      TZ: Asia/Shanghai
+    depends_on:
+      - qdrant
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
 
   mysql:
     image: mysql:8.0
@@ -143,3 +196,4 @@ volumes:
   mysql-data:
   redis-data:
   minio-data:
+  qdrant-data:
