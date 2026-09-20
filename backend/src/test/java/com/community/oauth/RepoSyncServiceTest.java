@@ -19,10 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * 验收标准（Task 16）：
- * - 登录/绑定成功后触发同步，写 user_repo 快照
- * - 平台 API 挂了不阻塞登录（失败保留旧快照）
- * - provider 隔离：Gitee 数据不能串进 GitHub
+ * 异步路径验收（Task 16 + T-REPO-1）：API 失败保留旧快照须真正 await @Async。
  */
 @SpringBootTest
 class RepoSyncServiceTest {
@@ -55,7 +52,6 @@ class RepoSyncServiceTest {
 
     @AfterEach
     void cleanTestUsers() {
-        // 外键约束：先删子表再删 user
         jdbcTemplate.update("DELETE FROM user_repo WHERE user_id IN (SELECT id FROM (SELECT id FROM user WHERE username LIKE ?) t)", TEST_USER_PREFIX + "%");
         jdbcTemplate.update("DELETE FROM user_oauth_binding WHERE user_id IN (SELECT id FROM (SELECT id FROM user WHERE username LIKE ?) t)", TEST_USER_PREFIX + "%");
         jdbcTemplate.update("DELETE FROM user WHERE username LIKE ?", TEST_USER_PREFIX + "%");
@@ -71,17 +67,48 @@ class RepoSyncServiceTest {
         bindingMapper.insert(binding);
     }
 
-    @Test
-    void syncReposDoesNotThrowOnApiFailure() {
-        createBinding("GITHUB");
-        // GitHubRepoProvider 对 mock token 返回空（真实 API 无法访问），但不应抛异常
-        repoSyncService.syncRepos(userId, "GITHUB");
+    private List<UserRepo> visibleRepos(String provider) {
+        return repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
+                .eq(UserRepo::getUserId, userId)
+                .eq(UserRepo::getProvider, provider));
+    }
+
+    /**
+     * T-REPO-1 / F5：失败路径无正向落库信号时，在窗口内持续断言旧快照仍在
+     * （若被误清成空列表会立刻失败）。
+     */
+    private void awaitOldSnapshotPreserved(String provider, String fullName) throws InterruptedException {
+        for (int i = 0; i < 30; i++) {
+            List<UserRepo> after = visibleRepos(provider);
+            assertThat(after)
+                    .as("async round %d: 旧快照不得被清掉", i)
+                    .hasSize(1);
+            assertThat(after.get(0).getRepoFullName()).isEqualTo(fullName);
+            Thread.sleep(300);
+        }
+    }
+
+    private void awaitNoVisibleAndNoGhost() throws InterruptedException {
+        for (int i = 0; i < 20; i++) {
+            assertThat(visibleRepos("GITHUB")).isEmpty();
+            Integer deleted = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM user_repo WHERE user_id = ? AND deleted = 1",
+                    Integer.class, userId);
+            assertThat(deleted).isZero();
+            Thread.sleep(200);
+        }
     }
 
     @Test
-    void apiFailurePreservesOldSnapshot() {
+    void syncReposDoesNotThrowOnApiFailure() throws InterruptedException {
         createBinding("GITHUB");
-        // 插入一条假快照
+        repoSyncService.syncRepos(userId, "GITHUB");
+        awaitNoVisibleAndNoGhost();
+    }
+
+    @Test
+    void apiFailurePreservesOldSnapshot() throws InterruptedException {
+        createBinding("GITHUB");
         UserRepo old = new UserRepo();
         old.setUserId(userId);
         old.setProvider("GITHUB");
@@ -90,73 +117,45 @@ class RepoSyncServiceTest {
         old.setStars(0L);
         old.setSyncedAt(LocalDateTime.now());
         repoMapper.insert(old);
-        assertThat(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId).eq(UserRepo::getProvider, "GITHUB"))).hasSize(1);
+        assertThat(visibleRepos("GITHUB")).hasSize(1);
 
-        // mock token 无效→API 失败→旧快照保留
         repoSyncService.syncRepos(userId, "GITHUB");
-        List<UserRepo> after = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId).eq(UserRepo::getProvider, "GITHUB"));
-        assertThat(after).hasSize(1);
-        assertThat(after.get(0).getRepoFullName()).isEqualTo("fake/old-repo");
+        awaitOldSnapshotPreserved("GITHUB", "fake/old-repo");
     }
 
     @Test
-    void providerIsolationGitHubNotMixedWithGitee() {
+    void providerIsolationGitHubNotMixedWithGitee() throws InterruptedException {
         createBinding("GITHUB");
-        // GitHub sync
         repoSyncService.syncRepos(userId, "GITHUB");
+        awaitNoVisibleAndNoGhost();
 
-        // Gitee 快照不应受影响（无 binding → 空）
-        List<UserRepo> giteeRepos = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId).eq(UserRepo::getProvider, "GITEE"));
-        assertThat(giteeRepos).isEmpty();
-
-        // GitHub 快照独立存在
-        List<UserRepo> githubRepos = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId).eq(UserRepo::getProvider, "GITHUB"));
-        assertThat(githubRepos).isNotNull();
+        assertThat(visibleRepos("GITEE")).isEmpty();
+        assertThat(visibleRepos("GITHUB")).isEmpty();
     }
 
     @Test
     void missingBindingReturnsEarly() {
-        // 未建 binding → syncRepos 应静默返回，不抛异常
         repoSyncService.syncRepos(userId, "GITHUB");
         assertThat(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
                 .eq(UserRepo::getUserId, userId))).isEmpty();
     }
 
-    /** F1 验收：隐藏仓库 → 重新同步 → 隐藏偏好保留（不被抹掉）。 */
     @Test
-    void hiddenPreferencePreservedAfterResync() {
+    void hiddenPreferencePreservedAfterResync() throws InterruptedException {
         createBinding("GITHUB");
 
-        // 1. 先做一次同步（mock token → 空列表，不抛异常）
-        repoSyncService.syncRepos(userId, "GITHUB");
-
-        // 2. 直接插入一条快照（模拟用户手动隐藏了某个仓库）
         UserRepo repo = new UserRepo();
         repo.setUserId(userId);
         repo.setProvider("GITHUB");
         repo.setRepoFullName("user/my-hidden-repo");
         repo.setRepoUrl("https://github.com/user/my-hidden-repo");
         repo.setStars(50L);
-        repo.setHidden(1); // 用户隐藏了这个仓库
+        repo.setHidden(1);
         repo.setSyncedAt(LocalDateTime.now());
         repoMapper.insert(repo);
-        assertThat(repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId)
-                .eq(UserRepo::getProvider, "GITHUB")
-                .eq(UserRepo::getHidden, 1))).hasSize(1);
 
-        // 3. 再次同步（mock token → 空列表，但 hidden 偏好应保留）
         repoSyncService.syncRepos(userId, "GITHUB");
-
-        // mock API 失败 → 旧快照保留 → hidden=1 的记录仍在
-        List<UserRepo> after = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId)
-                .eq(UserRepo::getProvider, "GITHUB"));
-        assertThat(after).hasSize(1);
-        assertThat(after.get(0).getHidden()).isEqualTo(1);
+        awaitOldSnapshotPreserved("GITHUB", "user/my-hidden-repo");
+        assertThat(visibleRepos("GITHUB").get(0).getHidden()).isEqualTo(1);
     }
 }

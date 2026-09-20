@@ -52,8 +52,8 @@ public class GitHubRepoProvider implements RepoProvider {
             }
             return result;
         } catch (Exception e) {
-            // 降级：异常由上层捕获，返回空列表
-            return List.of();
+            // T-REPO-1：禁止吞异常返回空列表（会被当成成功 0 仓清快照）
+            throw new IllegalStateException("GitHub fetchPublicRepos failed: " + e.getMessage(), e);
         }
     }
 }

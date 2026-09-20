@@ -59,7 +59,8 @@ public class GiteeRepoProvider implements RepoProvider {
             }
             return result;
         } catch (Exception e) {
-            return List.of();
+            // T-REPO-1：禁止吞异常返回空列表（会被当成成功 0 仓清快照）
+            throw new IllegalStateException("Gitee fetchPublicRepos failed: " + e.getMessage(), e);
         }
     }
 }

@@ -19,13 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 仓库快照同步服务（T16 + P2-11 修复）：
+ * 仓库快照同步服务（T16 + P2-11 + T-REPO-1）：
  * - 登录/绑定成功后异步触发，拉取用户公开仓库写入 user_repo 快照
- * - 平台 API 失败时保留旧快照（不阻塞登录）
+ * - 平台 API 失败时保留旧快照（不阻塞登录、不写库）
  * - provider 隔离：每个 (userId, provider) 独立同步
- * - DELETE+INSERT 在编程式事务中执行，中途失败安全回滚，不会丢旧快照
+ * - 成功同步：物理 DELETE + INSERT（禁止逻辑删占唯一键）
  *
- * 验收标准：断网/限流时主页仍能展示上次快照；不同平台数据不串。
+ * 验收标准：断网/限流时主页仍能展示上次快照；不同平台数据不串；二次 sync 列表仍可见。
  */
 @Service
 public class RepoSyncService {
@@ -74,9 +74,9 @@ public class RepoSyncService {
                 log.warn("syncRepos: 未找到 {} RepoProvider", provider);
                 return;
             }
+            // Provider 失败必须抛异常；禁止吞成空列表后当成「成功 0 仓」清快照（T-REPO-1）
             List<RepoProvider.RemoteRepo> remoteRepos = repoProvider.fetchPublicRepos(accessToken);
 
-            // P2-11 修复：用编程式事务保证 DELETE+INSERT 原子性
             transactionTemplate.executeWithoutResult(status -> syncSnapshot(userId, provider, remoteRepos));
             log.info("syncRepos 完成: userId={}, provider={}, count={}", userId, provider, remoteRepos.size());
         } catch (Exception e) {
@@ -86,23 +86,20 @@ public class RepoSyncService {
     }
 
     /**
-     * 全量替换快照（在事务中执行，DELETE 失败则回滚，不会丢旧快照）。
-     * - DELETE：仅删该 (user_id, provider) 下所有旧快照，不跨 provider
+     * 全量替换快照（在事务中执行，物理 DELETE 失败则回滚，不会丢旧快照）。
+     * - 物理 DELETE：仅删该 (user_id, provider) 下所有旧快照，不跨 provider
      * - INSERT：按 fullName 回填用户已有的隐藏偏好；新仓库默认 hidden=0
-     * - 唯一键 (user_id, provider, repo_full_name) 兜底防止重复
      */
     void syncSnapshot(long userId, String provider, List<RepoProvider.RemoteRepo> remoteRepos) {
-        // 删除前先查出用户的隐藏偏好（fullName → hidden 映射），P2-11 注释：重新同步不丢隐藏偏好
         Map<String, Integer> hiddenPrefs = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
                 .eq(UserRepo::getUserId, userId)
                 .eq(UserRepo::getProvider, provider))
                 .stream()
                 .filter(r -> r.getHidden() != null && r.getHidden() == 1)
-                .collect(Collectors.toMap(UserRepo::getRepoFullName, r -> 1));
+                .collect(Collectors.toMap(UserRepo::getRepoFullName, r -> 1, (a, b) -> a));
 
-        repoMapper.delete(Wrappers.<UserRepo>lambdaQuery()
-                .eq(UserRepo::getUserId, userId)
-                .eq(UserRepo::getProvider, provider));
+        // T-REPO-1：必须物理删，避免 deleted=1 行占唯一键导致 insert 撞键跳过 → 永久空列表
+        repoMapper.physicalDeleteByUserAndProvider(userId, provider);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -114,15 +111,9 @@ public class RepoSyncService {
             record.setRepoUrl(repo.url());
             record.setDescription(repo.description());
             record.setStars(repo.stars());
-            // 回填用户已有的隐藏偏好；新仓库默认 0（显示）
             record.setHidden(hiddenPrefs.getOrDefault(repo.fullName(), 0));
             record.setSyncedAt(now);
-            try {
-                repoMapper.insert(record);
-            } catch (org.springframework.dao.DuplicateKeyException e) {
-                log.debug("syncSnapshot: 跳过重复记录 userId={}, provider={}, fullName={}",
-                        userId, provider, repo.fullName());
-            }
+            repoMapper.insert(record);
         }
     }
 
