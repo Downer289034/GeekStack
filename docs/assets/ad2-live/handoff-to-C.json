@@ -1,0 +1,58 @@
+﻿{
+    "date":  "2026-09-20 18:22:32",
+    "tag":  "AD2LIVE_182227",
+    "probe":  {
+                  "good_status":  202,
+                  "bad_status":  401
+              },
+    "events":  [
+                   {
+                       "contentId":  "post_3117",
+                       "agentTraceId":  "wf-20260920-f415d8",
+                       "localTrace":  "wf-d39d20801ea9",
+                       "ok":  true
+                   },
+                   {
+                       "contentId":  "comment_1310",
+                       "agentTraceId":  "wf-20260920-882f17",
+                       "localTrace":  "wf-8e066ff5939f",
+                       "ok":  true
+                   },
+                   {
+                       "contentId":  "share_2353",
+                       "agentTraceId":  "wf-20260920-e95f85",
+                       "localTrace":  "wf-5a832c591b8e",
+                       "ok":  true
+                   }
+               ],
+    "dispose_fixtures":  {
+                             "steward_bot":  {
+                                                 "username":  "steward_bot",
+                                                 "id":  7133,
+                                                 "role":  "ADMIN"
+                                             },
+                             "target_post":  {
+                                                 "contentId":  "post_3118",
+                                                 "id":  3118,
+                                                 "note":  "for steward_bot DELETE /api/v1/admin/posts/{id}"
+                                             },
+                             "target_user":  {
+                                                 "username":  "ad2tgt_3268",
+                                                 "id":  7150,
+                                                 "note":  "password offline only; for steward_bot ban test"
+                                             }
+                         },
+    "dispose_sample":  {
+                           "delete_post":  {
+                                               "operator":  "steward_bot",
+                                               "code":  0,
+                                               "id":  3118
+                                           },
+                           "ban_then_unban":  {
+                                                  "operator":  "steward_bot",
+                                                  "ban_code":  0,
+                                                  "userId":  7150,
+                                                  "unban_code":  0
+                                              }
+                       }
+}
