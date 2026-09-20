@@ -13,7 +13,7 @@ import {
   useMessage
 } from 'naive-ui'
 import { updateMe, updatePassword, type UserProfile } from '@/api/auth'
-import { uploadMedia } from '@/api/media'
+import { probeImageUrl, resolveMediaUrl, uploadMedia } from '@/api/media'
 import { beginOAuth, unbindOAuth, type OAuthProvider } from '@/api/oauth'
 import GsButton from '@/components/gs/GsButton.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
@@ -78,6 +78,10 @@ const bindings = computed(() => ({
   gitee: me.value?.oauthBindings?.gitee === true
 }))
 
+/** 有值时只显示图，不渲染字母 fallback */
+const avatarPreviewSrc = computed(() => resolveMediaUrl(profileModel.avatarUrl))
+const avatarLetter = computed(() => profileModel.nickname?.charAt(0) || '?')
+
 function syncFromUser(user: UserProfile) {
   profileModel.nickname = user.nickname ?? ''
   profileModel.bio = user.bio ?? ''
@@ -113,6 +117,8 @@ async function onSaveProfile() {
     })
     auth.user = updated
     syncFromUser(updated)
+    await auth.fetchCurrentUser()
+    if (auth.user) syncFromUser(auth.user)
     message.success('资料已保存')
   } catch {
     // interceptor toast
@@ -163,7 +169,19 @@ async function customAvatarUpload(options: UploadCustomRequestOptions) {
   uploadingAvatar.value = true
   try {
     const result = await uploadMedia(file, 'avatar')
-    profileModel.avatarUrl = result.url
+    const displayUrl = resolveMediaUrl(result.url)
+    if (!displayUrl) {
+      message.error('上传成功但返回地址无效，请重试')
+      options.onError()
+      return
+    }
+    const ok = await probeImageUrl(displayUrl)
+    if (!ok) {
+      message.error('头像地址无法加载，请检查媒体服务后重试')
+      options.onError()
+      return
+    }
+    profileModel.avatarUrl = displayUrl
     options.onFinish()
     message.success('头像已上传，请点击保存资料')
   } catch {
@@ -198,8 +216,16 @@ onMounted(() => {
       <section class="settings-section" aria-labelledby="profile-heading">
         <h3 id="profile-heading" class="section-title font-display">资料</h3>
         <div class="avatar-row">
-          <n-avatar round :size="72" :src="profileModel.avatarUrl || undefined" class="avatar">
-            {{ profileModel.nickname?.charAt(0) || '?' }}
+          <n-avatar
+            v-if="avatarPreviewSrc"
+            :key="avatarPreviewSrc"
+            round
+            :size="72"
+            :src="avatarPreviewSrc"
+            class="avatar"
+          />
+          <n-avatar v-else round :size="72" class="avatar">
+            {{ avatarLetter }}
           </n-avatar>
           <n-upload
             :custom-request="customAvatarUpload"

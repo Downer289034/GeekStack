@@ -1,0 +1,26 @@
+{
+  "user": "avaprev_mu9sui2y",
+  "demoMediaPath": "/media/avatar-preview/mu9sui2y.png",
+  "results": [
+    {
+      "id": "before-upload",
+      "status": "pass",
+      "detail": "previewImgCount=0（上传前应无图、字母 fallback）"
+    },
+    {
+      "id": "after-upload-preview",
+      "status": "pass",
+      "detail": "toast=1; img=1; src=/media/avatar-preview/mu9sui2y.png"
+    },
+    {
+      "id": "after-save-topbar",
+      "status": "pass",
+      "detail": "saveToast=1; navImg=1; navSrc=/media/avatar-preview/mu9sui2y.png; savedAvatar=/media/avatar-preview/mu9sui2y.png"
+    },
+    {
+      "id": "after-reload",
+      "status": "pass",
+      "detail": "navImg=1"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import {
 } from '@vicons/ionicons5'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { resolveMediaUrl } from '@/api/media'
 import { useThemeStore } from '@/stores/theme'
 import GsButton from '@/components/gs/GsButton.vue'
 
@@ -65,6 +66,9 @@ const avatarLetter = computed(() => {
   const name = auth.user?.nickname ?? auth.user?.username ?? ''
   return name ? name.slice(0, 1).toUpperCase() : '栈'
 })
+
+/** 有 avatarUrl 时顶栏显示图片，否则回退字母 */
+const navAvatarSrc = computed(() => resolveMediaUrl(auth.user?.avatarUrl))
 
 const contentWidth = computed(() => {
   const w = route.meta.containerWidth as string | undefined
@@ -173,7 +177,14 @@ function logout() {
               :to="`/users/${auth.user?.username ?? ''}`"
               :aria-label="`个人主页 ${auth.user?.nickname ?? auth.user?.username ?? ''}`"
             >
-              {{ avatarLetter }}
+              <img
+                v-if="navAvatarSrc"
+                :key="navAvatarSrc"
+                class="gs-avatar__img"
+                :src="navAvatarSrc"
+                alt=""
+              />
+              <template v-else>{{ avatarLetter }}</template>
             </RouterLink>
             <RouterLink class="gs-text-btn" to="/settings">设置</RouterLink>
             <button type="button" class="gs-text-btn" @click="logout">退出</button>
@@ -457,6 +468,14 @@ function logout() {
   color: var(--text-1);
   text-decoration: none;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.gs-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .gs-text-btn {

@@ -23,6 +23,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      /** 相对路径头像/封面 `/media/...` → 开发栈 nginx:9080（见 M7-2） */
+      '/media': {
+        target: 'http://172.25.41.137:9080',
+        changeOrigin: true
       }
     }
   }
