@@ -169,6 +169,22 @@ public class PostService {
         return postMapper.selectList(wrapper).stream().map(this::toCard).toList();
     }
 
+    /** T-DATA-1：某用户发帖分页（未逻辑删除；供管家只读历史）。 */
+    public PageResponse<Post> pageByUser(long userId, long current, long size) {
+        Page<Post> page = postMapper.selectPage(
+                Page.of(current, size),
+                Wrappers.<Post>lambdaQuery()
+                        .eq(Post::getUserId, userId)
+                        .orderByDesc(Post::getCreatedAt)
+                        .orderByDesc(Post::getId));
+        return PageResponse.from(page);
+    }
+
+    /** T-DATA-1：全站帖子量（未逻辑删除）。 */
+    public long countAll() {
+        return postMapper.selectCount(Wrappers.lambdaQuery());
+    }
+
     /** T21.1：委托 PostCardResponse.from 统一入口。 */
     private PostCardResponse toCard(Post post) {
         return PostCardResponse.from(post);

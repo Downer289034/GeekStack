@@ -38,6 +38,11 @@ public class ShareService {
         this.eventPublisher = eventPublisher;
     }
 
+    /** T-DATA-1：全站分享量（未逻辑删除）。 */
+    public long countAll() {
+        return shareMapper.selectCount(Wrappers.lambdaQuery());
+    }
+
     /** 发布项目分享。 */
     public ShareResponse create(String username, SharePayload payload) {
         long userId = requireUserId(username);

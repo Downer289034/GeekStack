@@ -196,6 +196,25 @@ public class UserService {
         return user;
     }
 
+    /** T-DATA-1：按 ID 取用户（供管家历史查询）；不存在 404。 */
+    public User requireById(long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+        }
+        return user;
+    }
+
+    /** T-DATA-1：用户总量（未逻辑删除）。 */
+    public long countAll() {
+        return userMapper.selectCount(Wrappers.lambdaQuery());
+    }
+
+    /** T-DATA-1：封禁用户量（status=1）。 */
+    public long countBanned() {
+        return userMapper.selectCount(Wrappers.<User>lambdaQuery().eq(User::getStatus, 1));
+    }
+
     private MeResponse toMeResponse(User user) {
         boolean hasPassword = user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
         boolean github = bindingMapper.selectCount(Wrappers.<UserOauthBinding>lambdaQuery()

@@ -40,6 +40,11 @@ public class SkillService {
         this.eventPublisher = eventPublisher;
     }
 
+    /** T-DATA-1：全站 Skill 量（未逻辑删除）。 */
+    public long countAll() {
+        return skillMapper.selectCount(Wrappers.lambdaQuery());
+    }
+
     /** 发布 Skill。 */
     public SkillResponse create(String username, SkillPayload payload) {
         long userId = requireUserId(username);

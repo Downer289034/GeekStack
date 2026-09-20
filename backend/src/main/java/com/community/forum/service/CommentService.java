@@ -1,8 +1,10 @@
 package com.community.forum.service;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
+import com.community.common.PageResponse;
 import com.community.event.ContentCreatedEvent;
 import com.community.event.ContentRepliedEvent;
 import com.community.forum.dto.CommentResponse;
@@ -146,6 +148,22 @@ public class CommentService {
                 : children.stream().map(c -> toResponse(c, null)).toList();
         return new CommentResponse(comment.getId(), comment.getUserId(), comment.getParentId(),
                 comment.getContentMd(), comment.getLikeCount(), comment.getCreatedAt(), childResponses);
+    }
+
+    /** T-DATA-1：某用户评论分页（未逻辑删除；供管家只读历史）。 */
+    public PageResponse<Comment> pageByUser(long userId, long current, long size) {
+        Page<Comment> page = commentMapper.selectPage(
+                Page.of(current, size),
+                Wrappers.<Comment>lambdaQuery()
+                        .eq(Comment::getUserId, userId)
+                        .orderByDesc(Comment::getCreatedAt)
+                        .orderByDesc(Comment::getId));
+        return PageResponse.from(page);
+    }
+
+    /** T-DATA-1：全站评论量（未逻辑删除）。 */
+    public long countAll() {
+        return commentMapper.selectCount(Wrappers.lambdaQuery());
     }
 
     private void requireTargetType(String targetType) {

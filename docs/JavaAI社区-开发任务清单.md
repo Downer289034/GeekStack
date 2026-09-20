@@ -397,12 +397,13 @@
 **前置**：T-AI-0（embedding 接口契约定稿）
 **完成说明**：`com.community.rag`——`RagContentChangedEvent` 驱动 post/share/skill 的 UPSERT/DELETE；公开内容（作者未封禁；share/skill 非 HIDDEN）才入索引；schema v1.1（`text`≡`chunk_text` + chunk 三字段 + `jkz_`）；默认 `QDRANT_URL=memory`，联调改 Qdrant HTTP；无 Key 时确定性伪向量；帮助语料 `classpath:rag/help-corpus.json` + `deploy/rag/`。
 
-### [ ] T-DATA-1：用户数据 API（管家 R2 调查工具数据源，时钟：约第 3 周前）
+### [x] T-DATA-1：用户数据 API（管家 R2 调查工具数据源，时钟：约第 3 周前）
 **背景**：管家 roadmap 09-19 拍板 J1 重定义为极客栈 API 适配层，PY2-R2 调查工具（用户历史/判例/社区统计）原依赖 J1 数据源改为**依赖极客栈数据 API**——第 3 周前未到位则 R2 降级 mock。为避免对方降级，本任务提前规划
 **描述**：面向管家（认证后）的只读数据 API：①用户发帖/评论历史（脱敏 ID，分页）；②社区统计（内容量/用户量/判罚量聚合）；③判罚记录回流预留。全部**脱敏 + 只读**，开放范围过隐私口径（聚合优先，明细最小集）
 **验收标准**：三路径测试；脱敏断言（响应不含邮箱/密文类字段）；与管家侧 R2 契约对齐（对齐时点：契约 v2 评审）
 **前置**：T-M4-1（已关闭）；对齐时点等管家 X1 验签完成
-
+**完成说明（2026-09-20，一期可联调）**：草案 [`docs/T-DATA-1-一期草案.md`](./T-DATA-1-一期草案.md)。端点 `GET /api/v1/admin/data/users/{userKey}/posts|comments`、`/stats`、`/penalties`（占位空列表）；鉴权复用 ADMIN（steward_bot）。脱敏 ID 前缀 `user_/post_/comment_/share_`；响应无 email/Token/密文。`StewardDataApiIntegrationTest` 3/3（成功/401/403 + 脱敏断言）；checkstyle 0 violation。待 CI 绿后 PM 验收关单。
+---
 ### [x] T-AI-2：问答链路（AI 服务）
 **描述**：LangGraph 流程：问题改写 → Qdrant 检索 top-5（相似度阈值过滤）→ prompt 组装（系统提示词含"仅基于资料回答，资料不足如实说"）→ LLM 流式生成 → 来源列表（url+标题）；SSE 输出；空检索结果走兜底话术
 **验收标准**：单测（检索为空/正常/超阈值三分支）；真实问答 10 问人工评测（相关性+引用正确性记录 docs）；延迟 P95 记录
@@ -435,9 +436,10 @@
 **描述**：docker-compose 增 `ai-service` + `qdrant` 服务（dev 栈先行，生产栈跟随上线）；.env.example 增 LLM/embedding/Qdrant 配置项（占位符）；健康检查；部署指引补交接文档；全链路走查清单执行
 **验收标准**：dev 栈全链路实测（发帖→自动索引→提问命中）；compose up 一键起；走查记录入库
 **前置**：T-AI-4
-**完成说明（2026-09-20）**：dev/prod compose 增 `qdrant` + `ai-service`；`ai-service/Dockerfile`；`deploy/dev/sync-ai-stack.sh` + `merge-ai-env.sh`；prod `deploy.sh` 同步 ai-service 并条件重建；`health-check.sh` 对已入栈探活；`.env.example` 对齐 `text-embedding-v3` + `geekstack_community`；CI 增 `ai-service` job；走查 [`docs/T-AI-5-部署走查.md`](./T-AI-5-部署走查.md)。联调实测：开发栈 Up → 发帖 `3106` 索引 points=1 → `/v1/ask` 命中 → 网关 SSE 200（`AiGatewayClient` 强制 HTTP/1.1，规避 uvicorn 对 h2c Upgrade 的 422）。`RagConfig`/`AiConfig` 对根 `.env` HTTP 再对齐（`community.rag.dotenv-qdrant=false` 供单测钉死 memory）。关单复跑：health/readyz 200、collection points=1、ask 命中 `/posts/3106`、unittest 4/4、backend 聚焦测 8/8；证据 `docs/assets/t-ai-5/`。不阻塞项：UI 三断点目视（T-AI-4）、生产栈跟随上线。
+**完成说明（2026-09-20）**：dev/prod compose 增 `qdrant` + `ai-service`；`ai-service/Dockerfile`；`deploy/dev/sync-ai-stack.sh` + `merge-ai-env.sh`；prod `deploy.sh` 同步 ai-service 并条件重建；`health-check.sh` 对已入栈探活；`.env.example` 对齐 `text-embedding-v3` + `geekstack_community`；CI 增 `ai-service` job；走查 [`docs/T-AI-5-部署走查.md`](./T-AI-5-部署走查.md)。联调实测：开发栈 Up → 发帖 `3106` 索引 points=1 → `/v1/ask` 命中 → 网关 SSE 200（`AiGatewayClient` 强制 HTTP/1.1，规避 uvicorn 对 h2c Upgrade 的 422）。`RagConfig`/`AiConfig` 对根 `.env` HTTP 再对齐（`community.rag.dotenv-qdrant=false` 供单测钉死 memory）。关单复跑：health/readyz 200、collection points=1、ask 命中 `/posts/3106`、unittest 4/4、backend 聚焦测 8/8；证据 `docs/assets/t-ai-5/`。不阻塞项：生产栈跟随上线。
+**前端浮窗全链（开发 B，2026-09-20）**：真实浮窗五路径截图入库（发帖标记 `3109`→命中来源 / 未登录引导 / 停 ai-service→503 / 超限→429）；阻塞修复：`aiAsk.ts` `Accept: text/event-stream, application/json`（仅 SSE 时 Spring 无法协商 503/429 JSON）。重跑脚本 `frontend/scripts/t-ai-5-walk-capture.mjs`。
 **CI**：https://github.com/Downer289034/GeekStack/actions/runs/35498637125（`bf4b72c`，frontend/backend/ai-service 三 job success）
-**PM 验收**：PM 独立核验 CI 三绿 + assets/t-ai-5 + compose/CI 源码确认 → **T-AI-5 关闭（2026-09-20）**。M13 后端侧收官。
+**PM 验收**：PM 独立核验 CI 三绿 + assets/t-ai-5 + compose/CI 源码确认 → **T-AI-5 关闭（2026-09-20）**。M13 后端侧收官。前端浮窗证据由开发 B 补齐（见上）。
 ---
 
 # M4-min 管理端最小集（2026-09-19 重启，老板放行——Agent-T18 处置回调前置依赖）
