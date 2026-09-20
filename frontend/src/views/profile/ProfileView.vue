@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { NAvatar, NEmpty, NIcon, useMessage } from 'naive-ui'
-import { CubeOutline, CreateOutline, PersonOutline } from '@vicons/ionicons5'
+import { CubeOutline, CreateOutline, LogoGithub, PersonOutline } from '@vicons/ionicons5'
 import { fetchProfile, type ProfileAggregate } from '@/api/profile'
 import { fetchRepos, toggleRepoHide, type UserRepo } from '@/api/repo'
 import { resolveMediaUrl } from '@/api/media'
@@ -21,6 +21,8 @@ const profile = ref<ProfileAggregate | null>(null)
 const repos = ref<UserRepo[]>([])
 const loading = ref(true)
 const failed = ref(false)
+/** repos 接口失败：不影响资料页，仅空态提示 */
+const reposFailed = ref(false)
 
 const username = computed(() => String(route.params.username ?? ''))
 const isOwner = computed(() => auth.isLoggedIn && auth.user?.username === username.value)
@@ -30,14 +32,55 @@ const profileAvatarLetter = computed(
   () => profile.value?.profile.nickname?.charAt(0) || profile.value?.profile.username?.charAt(0) || '?'
 )
 
+/** 与设置页同源：任一 OAuth 已绑定 */
+const hasOauthBound = computed(() => {
+  const b = auth.user?.oauthBindings
+  return b?.github === true || b?.gitee === true
+})
+
+/**
+ * 仓库空态：
+ * - unbound：owner 未绑 GitHub/Gitee → 去绑定
+ * - bound-empty：已绑定但无可见仓
+ * - visitor：访客看到空列表
+ * - error：repos 拉取失败（资料仍展示）
+ */
+const repoEmptyKind = computed(() => {
+  if (loading.value || repos.value.length > 0) return null
+  if (reposFailed.value) return 'error' as const
+  if (!isOwner.value) return 'visitor' as const
+  if (!hasOauthBound.value) return 'unbound' as const
+  return 'bound-empty' as const
+})
+
 async function loadData() {
   loading.value = true
   failed.value = false
+  reposFailed.value = false
   try {
     profile.value = await fetchProfile(username.value)
-    repos.value = await fetchRepos(username.value)
   } catch {
     failed.value = true
+    profile.value = null
+    repos.value = []
+    loading.value = false
+    return
+  }
+
+  // owner 刷新 /me，保证 oauthBindings 与设置页一致
+  if (auth.isLoggedIn && auth.user?.username === username.value) {
+    try {
+      await auth.fetchCurrentUser()
+    } catch {
+      // 忽略，沿用已有 auth.user
+    }
+  }
+
+  try {
+    repos.value = await fetchRepos(username.value)
+  } catch {
+    reposFailed.value = true
+    repos.value = []
   } finally {
     loading.value = false
   }
@@ -115,7 +158,50 @@ onMounted(() => {
 
     <section class="profile-section">
       <h3 class="section-title font-display">我的仓库</h3>
-      <n-empty v-if="!loading && repos.length === 0" description="未绑定仓库或同步失败" size="small" />
+
+      <n-empty
+        v-if="repoEmptyKind === 'unbound'"
+        description="尚未绑定 GitHub / Gitee，绑定后可同步展示公开仓库"
+        size="small"
+      >
+        <template #icon>
+          <n-icon :component="LogoGithub" :size="36" />
+        </template>
+        <template #extra>
+          <GsButton variant="primary" to="/settings">去绑定</GsButton>
+        </template>
+      </n-empty>
+
+      <n-empty
+        v-else-if="repoEmptyKind === 'bound-empty'"
+        description="暂无公开仓库（可能全部隐藏或账号下暂无公开仓）"
+        size="small"
+      >
+        <template #icon>
+          <n-icon :component="CubeOutline" :size="36" />
+        </template>
+      </n-empty>
+
+      <n-empty
+        v-else-if="repoEmptyKind === 'visitor'"
+        description="暂无展示的仓库"
+        size="small"
+      >
+        <template #icon>
+          <n-icon :component="CubeOutline" :size="36" />
+        </template>
+      </n-empty>
+
+      <n-empty
+        v-else-if="repoEmptyKind === 'error'"
+        description="仓库列表暂时无法加载，请稍后再试"
+        size="small"
+      >
+        <template #icon>
+          <n-icon :component="CubeOutline" :size="36" />
+        </template>
+      </n-empty>
+
       <article v-for="repo in repos" :key="repo.id" class="repo-card">
         <div class="repo-card-head">
           <a :href="repo.repoUrl" target="_blank" rel="noopener noreferrer" class="repo-name font-mono">
