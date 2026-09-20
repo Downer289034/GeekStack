@@ -408,6 +408,7 @@
 **验收标准**：单测（检索为空/正常/超阈值三分支）；真实问答 10 问人工评测（相关性+引用正确性记录 docs）；延迟 P95 记录
 **前置**：T-AI-0、T-AI-1
 **完成说明（2026-09-20）**：`/v1/ask` + `/v1/ask/stream`；三分支单测 4 passed；10 问评测 [`docs/assets/t-ai-2/eval.json`](./assets/t-ai-2/eval.json)（10/10 ok+URL，wall P95 **9736ms**）；交付说明 [`docs/T-AI-2-问答链路交付.md`](./T-AI-2-问答链路交付.md)。交 PM 独立复跑。
+**PM 验收**：`5bccc02` 由 PM 隔离提交（backend 行尾假修改未混入）并 push，CI 双 job success（run 35484547755）。独立复跑：**unittest 4/4 通过（本机 .venv 直跑）**；eval.json 抽查——回答与来源强相关且内容与真实实现一致（429 规则/2MB 限制/HIDDEN 口径），诚实标注问 6/7 次要噪声。**T-AI-2 关闭**。治理备注：ai-service（Python）单测目前不在 CI 覆盖内（CI 仅 frontend/backend job），建议 CI 增 ai-service job（unittest 4 用例秒级）——待 T-AI-5 部署任务一并处理
 
 ### [ ] T-AI-3：网关与安全（Java 后端）
 **描述**：`/api/v1/ai/ask`（POST，SSE 透传）：JWT 鉴权 → 用户级限流（如 10 问/小时，Redis）→ 请求体清洗（长度上限）→ 转发 ai-service（内网地址走 .env）→ 敏感词/无关问题前置过滤可选；成本日志（token 用量按用户记录）
