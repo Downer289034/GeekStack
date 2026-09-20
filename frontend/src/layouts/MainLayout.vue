@@ -160,24 +160,26 @@ function logout() {
           <n-icon :component="theme === 'dark' ? SunnyOutline : MoonOutline" :size="16" />
         </button>
 
-        <GsButton v-if="auth.isLoggedIn" variant="primary" to="/forum/new">
-          <n-icon :component="CreateOutline" :size="16" />
-          写文章
-        </GsButton>
-        <GsButton v-else variant="primary" to="/login">写文章</GsButton>
+        <div class="gs-nav__actions">
+          <GsButton v-if="auth.isLoggedIn" variant="primary" to="/forum/new">
+            <n-icon :component="CreateOutline" :size="16" />
+            写文章
+          </GsButton>
+          <GsButton v-else variant="primary" to="/login">写文章</GsButton>
 
-        <template v-if="auth.isLoggedIn">
-          <RouterLink
-            class="gs-avatar"
-            :to="`/users/${auth.user?.username ?? ''}`"
-            :aria-label="`个人主页 ${auth.user?.nickname ?? auth.user?.username ?? ''}`"
-          >
-            {{ avatarLetter }}
-          </RouterLink>
-          <RouterLink class="gs-text-btn" to="/settings">设置</RouterLink>
-          <button type="button" class="gs-text-btn" @click="logout">退出</button>
-        </template>
-        <RouterLink v-else class="gs-text-btn" to="/login">登录</RouterLink>
+          <template v-if="auth.isLoggedIn">
+            <RouterLink
+              class="gs-avatar"
+              :to="`/users/${auth.user?.username ?? ''}`"
+              :aria-label="`个人主页 ${auth.user?.nickname ?? auth.user?.username ?? ''}`"
+            >
+              {{ avatarLetter }}
+            </RouterLink>
+            <RouterLink class="gs-text-btn" to="/settings">设置</RouterLink>
+            <button type="button" class="gs-text-btn" @click="logout">退出</button>
+          </template>
+          <RouterLink v-else class="gs-text-btn" to="/login">登录</RouterLink>
+        </div>
       </div>
     </header>
 
@@ -428,6 +430,20 @@ function logout() {
   height: 16px;
 }
 
+/* 右侧操作区整体不收缩，避免「写文章/设置/退出」竖排积压 */
+.gs-nav__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gs-nav__actions :deep(.gs-btn) {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .gs-avatar {
   width: 44px;
   height: 44px;
@@ -457,6 +473,8 @@ function logout() {
   align-items: center;
   justify-content: center;
   font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .gs-text-btn:hover {

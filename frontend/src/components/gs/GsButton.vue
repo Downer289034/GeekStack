@@ -61,6 +61,8 @@ const isLink = computed(() => Boolean(props.to) && !props.disabled)
   line-height: 1.3;
   text-decoration: none;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
     color 0.15s var(--ease-out),
     background 0.15s var(--ease-out),

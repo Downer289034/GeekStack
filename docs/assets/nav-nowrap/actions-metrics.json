@@ -1,0 +1,218 @@
+{
+  "home-1280": {
+    "actions": {
+      "kids": [
+        {
+          "text": "写文章",
+          "w": 100,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "设置",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "退出",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        }
+      ]
+    },
+    "links": [
+      {
+        "text": "首页",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "项目广场",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "Skill",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "技术论坛",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "搜索",
+        "h": 44,
+        "scrollH": 44
+      }
+    ]
+  },
+  "search-1280": {
+    "actions": {
+      "kids": [
+        {
+          "text": "写文章",
+          "w": 100,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "设置",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "退出",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        }
+      ]
+    },
+    "links": [
+      {
+        "text": "首页",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "项目广场",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "Skill",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "技术论坛",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "搜索",
+        "h": 44,
+        "scrollH": 44
+      }
+    ]
+  },
+  "home-1024": {
+    "actions": {
+      "kids": [
+        {
+          "text": "写文章",
+          "w": 100,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "设置",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "退出",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        }
+      ]
+    },
+    "links": [
+      {
+        "text": "首页",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "项目广场",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "Skill",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "技术论坛",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "搜索",
+        "h": 44,
+        "scrollH": 44
+      }
+    ]
+  },
+  "search-1024": {
+    "actions": {
+      "kids": [
+        {
+          "text": "写文章",
+          "w": 100,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "设置",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        },
+        {
+          "text": "退出",
+          "w": 51,
+          "h": 44,
+          "scrollH": 44,
+          "whiteSpace": "nowrap"
+        }
+      ]
+    },
+    "links": [
+      {
+        "text": "首页",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "项目广场",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "Skill",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "技术论坛",
+        "h": 44,
+        "scrollH": 44
+      },
+      {
+        "text": "搜索",
+        "h": 44,
+        "scrollH": 44
+      }
+    ]
+  }
+}
