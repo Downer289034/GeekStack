@@ -15,4 +15,5 @@
 - 生产栈 `deploy.sh`：跟随上线决策
 
 ## CI
-（push 后回填 run 链接：frontend / backend / ai-service）
+- Run：https://github.com/Downer289034/GeekStack/actions/runs/35498637125（`bf4b72c`）
+- Jobs：frontend ✓ 52s · backend ✓ 2m7s · ai-service ✓ 27s

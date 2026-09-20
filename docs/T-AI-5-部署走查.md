@@ -93,6 +93,7 @@ curl -sf http://172.25.41.137:6333/readyz
 | ai-service unittest | 4/4 |
 | backend 聚焦测 | `AiAskGateway`+`RagIndex`+`MarkdownChunker` 8/8 BUILD SUCCESS |
 | 证据目录 | `docs/assets/t-ai-5/`（脱敏，无 Key） |
+| CI | [run 35498637125](https://github.com/Downer289034/GeekStack/actions/runs/35498637125) frontend/backend/ai-service 三 job success |
 
 ## 7. 交接补丁（摘录）
 
