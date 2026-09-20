@@ -414,6 +414,7 @@
 **描述**：`/api/v1/ai/ask`（POST，SSE 透传）：JWT 鉴权 → 用户级限流（如 10 问/小时，Redis）→ 请求体清洗（长度上限）→ 转发 ai-service（内网地址走 .env）→ 敏感词/无关问题前置过滤可选；成本日志（token 用量按用户记录）
 **验收标准**：未登录 401、超限 429、ai-service 宕机 503 降级话术；三路径测试；CI
 **前置**：T-AI-2
+**完成说明（2026-09-20）**：`POST /api/v1/ai/ask` 对齐 §5：先连 `{AI_SERVICE_URL}/v1/ask/stream`，成功后再写 SSE；未连上或非 2xx 返回 JSON 503「AI 助手暂时不可用，请稍后再试」。JWT 走现有 `anyRequest().authenticated()`。限流默认 Redis `ai:ask:{username}` 10 次/小时，Redis 故障 WARN 放行（与认证频控同口径）；`question` ≤2000，`thinking` 非 `enabled` 一律 `disabled`。`event: done` 的 `usage` 记 `AI_COST` 日志。敏感词过滤按「可选」未做。`AiAskGatewayIntegrationTest` 3/3（401/429/503，quota=memory、上游 127.0.0.1:9）；checkstyle 通过。全量 CI 待提交后由 PM 复跑。待 PM 验收，未关闭。
 
 ### [ ] T-AI-4：前端浮窗
 **描述**：右下角悬浮球 → 展开对话面板（夜栈灯码组件语言：面板 surface-1、琥珀仅用于发送按钮）；SSE 流式渲染 Markdown（复用渲染唯一出口防 XSS）；来源链接卡片（favicon+标题，新窗打开）；会话历史 localStorage 本地保留；移动端折叠为全屏底部抽屉
