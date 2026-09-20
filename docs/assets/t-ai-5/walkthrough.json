@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-20",
+  "marker": "M13WALKFE1789892183978",
+  "postId": 3109,
+  "paths": {
+    "hit": {
+      "sourceCount": 2,
+      "sourceText": "M13WALKFE1789892183978 浮窗全链走查专用帖",
+      "contentId": "jkz_post_3109"
+    },
+    "unlogged": {
+      "hint": "登录后即可使用 AI 助手。"
+    },
+    "down503": {
+      "downText": "AI 助手暂时不可用，请稍后再试"
+    },
+    "limit429": {
+      "limitText": "提问过于频繁，请稍后再试"
+    }
+  },
+  "frontendFix": "Accept: text/event-stream, application/json"
+}

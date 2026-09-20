@@ -140,7 +140,8 @@ async function postAsk(question: string, token: string, signal?: AbortSignal): P
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
+      // 兼收 JSON：上游宕机/限流走 BusinessException JSON；仅 SSE 时 Spring 无法协商 503/429 体
+      Accept: 'text/event-stream, application/json',
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ question }),

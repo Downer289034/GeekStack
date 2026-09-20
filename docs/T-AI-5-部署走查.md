@@ -79,7 +79,7 @@ curl -sf http://172.25.41.137:6333/readyz
 - [x] 本机 backend 写 Qdrant（日志 `RAG vector store=http://172.25.41.137:6333`），发帖 `jkz_post_3106` 后 `points_count=1`
 - [x] 直连 `POST :8090/v1/ask` retrieval=ok，来源含 `/posts/3106`
 - [x] 网关 `POST :8081/api/v1/ai/ask` HTTP 200，SSE 含 `token`/`sources`/`done` 且命中 `/posts/3106`
-- [ ] 浮窗 UI 三断点目视（前端配合，依赖已关闭的 T-AI-4）
+- [x] 浮窗全链走查（开发 B）：发帖标记 `M13WALKFE…`/`3109` → 命中来源 → 未登录引导 → 停 ai-service 503 → 超限 429；证据 `docs/assets/t-ai-5/01…05*.png`；修复 `Accept` 兼收 JSON（否则 503/429 体协商失败）
 - [ ] 生产栈显式同步 compose 后 `deploy.sh`（跟随上线，不阻塞本任务关闭）
 
 ### 关单复跑（2026-09-20 16:00，开发 A）

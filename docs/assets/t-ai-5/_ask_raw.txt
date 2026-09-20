@@ -1,0 +1,207 @@
+event: token
+data: {"delta": "根据"}
+
+event: token
+data: {"delta": "现有资料，"}
+
+event: token
+data: {"delta": "帖子 **"}
+
+event: token
+data: {"delta": "M13"}
+
+event: token
+data: {"delta": "WALKFE"}
+
+event: token
+data: {"delta": "178"}
+
+event: token
+data: {"delta": "989"}
+
+event: token
+data: {"delta": "218"}
+
+event: token
+data: {"delta": "397"}
+
+event: token
+data: {"delta": "8** 是"}
+
+event: token
+data: {"delta": "一个**浮"}
+
+event: token
+data: {"delta": "窗全链"}
+
+event: token
+data: {"delta": "走查专用"}
+
+event: token
+data: {"delta": "帖**，"}
+
+event: token
+data: {"delta": "用于验证浮"}
+
+event: token
+data: {"delta": "窗功能"}
+
+event: token
+data: {"delta": "的全链"}
+
+event: token
+data: {"delta": "路走查"}
+
+event: token
+data: {"delta": "。"}
+
+event: token
+data: {"delta": "帖"}
+
+event: token
+data: {"delta": "中包含"}
+
+event: token
+data: {"delta": "唯一标记词"}
+
+event: token
+data: {"delta": " `M1"}
+
+event: token
+data: {"delta": "3WALK"}
+
+event: token
+data: {"delta": "FE17"}
+
+event: token
+data: {"delta": "898"}
+
+event: token
+data: {"delta": "921"}
+
+event: token
+data: {"delta": "839"}
+
+event: token
+data: {"delta": "78`"}
+
+event: token
+data: {"delta": "，以及可"}
+
+event: token
+data: {"delta": "检索句"}
+
+event: token
+data: {"delta": "：\""}
+
+event: token
+data: {"delta": "M13"}
+
+event: token
+data: {"delta": "WALKFE"}
+
+event: token
+data: {"delta": "178"}
+
+event: token
+data: {"delta": "989"}
+
+event: token
+data: {"delta": "218"}
+
+event: token
+data: {"delta": "397"}
+
+event: token
+data: {"delta": "8 浮"}
+
+event: token
+data: {"delta": "窗全链"}
+
+event: token
+data: {"delta": "验证句\""}
+
+event: token
+data: {"delta": "。\n\n该"}
+
+event: token
+data: {"delta": "帖的主要"}
+
+event: token
+data: {"delta": "目的是"}
+
+event: token
+data: {"delta": "验证发"}
+
+event: token
+data: {"delta": "帖后能"}
+
+event: token
+data: {"delta": "被 RAG"}
+
+event: token
+data: {"delta": " 索"}
+
+event: token
+data: {"delta": "引并成功"}
+
+event: token
+data: {"delta": "检索到。\n\n"}
+
+event: token
+data: {"delta": "**来源"}
+
+event: token
+data: {"delta": "：**\n-"}
+
+event: token
+data: {"delta": " [M1"}
+
+event: token
+data: {"delta": "3WALK"}
+
+event: token
+data: {"delta": "FE17"}
+
+event: token
+data: {"delta": "898"}
+
+event: token
+data: {"delta": "921"}
+
+event: token
+data: {"delta": "839"}
+
+event: token
+data: {"delta": "78 "}
+
+event: token
+data: {"delta": "浮窗全"}
+
+event: token
+data: {"delta": "链走查"}
+
+event: token
+data: {"delta": "专用帖]("}
+
+event: token
+data: {"delta": "http://localhost"}
+
+event: token
+data: {"delta": ":51"}
+
+event: token
+data: {"delta": "73/posts"}
+
+event: token
+data: {"delta": "/31"}
+
+event: token
+data: {"delta": "09)"}
+
+event: sources
+data: {"sources": [{"content_id": "jkz_post_3109", "title": "M13WALKFE1789892183978 浮窗全链走查专用帖", "url": "http://localhost:5173/posts/3109", "score": 0.7194421}, {"content_id": "jkz_post_3106", "title": "走查 M13WALK614546", "url": "http://localhost:5173/posts/3106", "score": 0.6455656}]}
+
+event: done
+data: {"branch": "ok", "latency_ms": 6492.8161059979175, "usage": {"prompt_tokens": 387, "completion_tokens": 184, "total_tokens": 571}, "thinking": "disabled"}
+
