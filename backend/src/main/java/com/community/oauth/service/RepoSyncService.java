@@ -19,36 +19,37 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * 仓库快照同步服务（T16 + P2-11 + T-REPO-1）：
+ * 仓库快照同步服务（T16 + P2-11 + T-REPO-1 + T-OAUTH-GITEE-REFRESH）：
  * - 登录/绑定成功后异步触发，拉取用户公开仓库写入 user_repo 快照
- * - 平台 API 失败时保留旧快照（不阻塞登录、不写库）
- * - provider 隔离：每个 (userId, provider) 独立同步
- * - 成功同步：物理 DELETE + INSERT（禁止逻辑删占唯一键）
- *
- * 验收标准：断网/限流时主页仍能展示上次快照；不同平台数据不串；二次 sync 列表仍可见。
+ * - Gitee：expires_at 临近/已过期时用 refresh_token 静默续期并回写
+ * - 平台 API / refresh 失败时保留旧快照（不阻塞登录、不写空快照）
+ * - 成功同步：物理 DELETE + INSERT
  */
 @Service
 public class RepoSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(RepoSyncService.class);
 
+    /** 提前刷新缓冲，避免边界时刻同步踩过期。 */
+    static final long REFRESH_SKEW_SECONDS = 60;
+
     private final UserRepoMapper repoMapper;
     private final UserOauthBindingMapper bindingMapper;
     private final AesGcmCipher cipher;
     private final TransactionTemplate transactionTemplate;
-
-    /** 按 provider 索引的 RepoProvider 实现。 */
-    private final Map<String, RepoProvider> providers;
+    private final GiteeOAuthService giteeOAuthService;
+    private final List<RepoProvider> providerList;
 
     public RepoSyncService(UserRepoMapper repoMapper, UserOauthBindingMapper bindingMapper,
                             AesGcmCipher cipher, TransactionTemplate transactionTemplate,
+                            GiteeOAuthService giteeOAuthService,
                             List<RepoProvider> providerList) {
         this.repoMapper = repoMapper;
         this.bindingMapper = bindingMapper;
         this.cipher = cipher;
         this.transactionTemplate = transactionTemplate;
-        this.providers = providerList.stream()
-                .collect(Collectors.toMap(RepoProvider::provider, p -> p));
+        this.giteeOAuthService = giteeOAuthService;
+        this.providerList = List.copyOf(providerList);
     }
 
     /**
@@ -67,14 +68,14 @@ public class RepoSyncService {
                 log.warn("syncRepos: 未找到 {} 绑定记录 userId={}", provider, userId);
                 return;
             }
-            String accessToken = cipher.decrypt(binding.getAccessTokenEnc());
 
-            RepoProvider repoProvider = providers.get(provider);
+            RepoProvider repoProvider = findProvider(provider);
             if (repoProvider == null) {
                 log.warn("syncRepos: 未找到 {} RepoProvider", provider);
                 return;
             }
-            // Provider 失败必须抛异常；禁止吞成空列表后当成「成功 0 仓」清快照（T-REPO-1）
+
+            String accessToken = resolveAccessToken(binding, provider);
             List<RepoProvider.RemoteRepo> remoteRepos = repoProvider.fetchPublicRepos(accessToken);
 
             transactionTemplate.executeWithoutResult(status -> syncSnapshot(userId, provider, remoteRepos));
@@ -85,10 +86,56 @@ public class RepoSyncService {
         }
     }
 
+    private RepoProvider findProvider(String provider) {
+        return providerList.stream()
+                .filter(p -> provider.equals(p.provider()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * 解密可用 access_token；Gitee 临近过期则 refresh 并 AES 回写（不打日志明文）。
+     */
+    String resolveAccessToken(UserOauthBinding binding, String provider) {
+        if ("GITEE".equals(provider) && needsGiteeRefresh(binding)) {
+            return refreshGiteeAccessToken(binding);
+        }
+        return cipher.decrypt(binding.getAccessTokenEnc());
+    }
+
+    static boolean needsGiteeRefresh(UserOauthBinding binding) {
+        LocalDateTime expiresAt = binding.getExpiresAt();
+        if (expiresAt == null) {
+            return false;
+        }
+        return !expiresAt.isAfter(LocalDateTime.now().plusSeconds(REFRESH_SKEW_SECONDS));
+    }
+
+    private String refreshGiteeAccessToken(UserOauthBinding binding) {
+        String refreshEnc = binding.getRefreshToken();
+        if (refreshEnc == null || refreshEnc.isBlank()) {
+            throw new IllegalStateException("Gitee token expired but refresh_token missing");
+        }
+        String refreshPlain = cipher.decrypt(refreshEnc);
+        try {
+            GiteeOAuthService.TokenExchangeResult result = giteeOAuthService.refreshAccessToken(refreshPlain);
+            binding.setAccessTokenEnc(cipher.encrypt(result.accessToken()));
+            if (result.refreshToken() != null && !result.refreshToken().isBlank()) {
+                binding.setRefreshToken(cipher.encrypt(result.refreshToken()));
+            }
+            binding.setExpiresAt(result.expiresAt());
+            bindingMapper.updateById(binding);
+            log.info("Gitee token refreshed: userId={}, bindingId={}", binding.getUserId(), binding.getId());
+            return result.accessToken();
+        } catch (Exception e) {
+            log.warn("Gitee token refresh failed: userId={}, bindingId={}, error={}",
+                    binding.getUserId(), binding.getId(), e.getMessage());
+            throw new IllegalStateException("Gitee token refresh failed: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * 全量替换快照（在事务中执行，物理 DELETE 失败则回滚，不会丢旧快照）。
-     * - 物理 DELETE：仅删该 (user_id, provider) 下所有旧快照，不跨 provider
-     * - INSERT：按 fullName 回填用户已有的隐藏偏好；新仓库默认 hidden=0
      */
     void syncSnapshot(long userId, String provider, List<RepoProvider.RemoteRepo> remoteRepos) {
         Map<String, Integer> hiddenPrefs = repoMapper.selectList(Wrappers.<UserRepo>lambdaQuery()
@@ -98,7 +145,6 @@ public class RepoSyncService {
                 .filter(r -> r.getHidden() != null && r.getHidden() == 1)
                 .collect(Collectors.toMap(UserRepo::getRepoFullName, r -> 1, (a, b) -> a));
 
-        // T-REPO-1：必须物理删，避免 deleted=1 行占唯一键导致 insert 撞键跳过 → 永久空列表
         repoMapper.physicalDeleteByUserAndProvider(userId, provider);
 
         LocalDateTime now = LocalDateTime.now();

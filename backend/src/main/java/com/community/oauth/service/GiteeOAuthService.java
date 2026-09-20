@@ -15,12 +15,11 @@ import org.springframework.web.client.RestClient;
 
 /**
  * Gitee OAuth 授权码换 Token + 拉用户信息（scope 最小化：user_info projects）。
- * Gitee token 有过期时间（expires_in 秒），refresh_token 由入库保存（T16 刷新用）。
+ * Gitee token 有过期时间（expires_in 秒），refresh_token 入库；同步前可静默 refresh（T-OAUTH-GITEE-REFRESH）。
  */
 @Service
 public class GiteeOAuthService {
 
-    private static final String TOKEN_URL = "https://gitee.com/oauth/token";
     private static final String USER_URL = "https://gitee.com/api/v5/user";
 
     private final String clientId;
@@ -38,7 +37,6 @@ public class GiteeOAuthService {
     }
 
     /** 用授权码换 access token；返回 access token，并传出刷新信息。 */
-    @SuppressWarnings("unchecked")
     public TokenExchangeResult exchangeCode(String code) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("client_id", clientId);
@@ -46,6 +44,24 @@ public class GiteeOAuthService {
         form.add("code", code);
         form.add("grant_type", "authorization_code");
         form.add("redirect_uri", redirectUri);
+        return postToken(form, "Gitee 授权失败");
+    }
+
+    /**
+     * 用 refresh_token 续期（T-OAUTH-GITEE-REFRESH）。
+     * 失败抛异常；调用方不得把失败当成成功空仓。
+     */
+    public TokenExchangeResult refreshAccessToken(String refreshToken) {
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "refresh_token");
+        form.add("refresh_token", refreshToken);
+        form.add("client_id", clientId);
+        form.add("client_secret", clientSecret);
+        return postToken(form, "Gitee token 刷新失败");
+    }
+
+    @SuppressWarnings("unchecked")
+    private TokenExchangeResult postToken(MultiValueMap<String, String> form, String failMessage) {
         Map<String, Object> body = restClient.post()
                 .uri(uriBuilder -> uriBuilder.scheme("https").host("gitee.com").path("/oauth/token").build())
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -54,7 +70,7 @@ public class GiteeOAuthService {
                 .retrieve()
                 .body(Map.class);
         if (body == null || body.get("access_token") == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Gitee 授权失败");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, failMessage);
         }
         LocalDateTime expiresAt = body.get("expires_in") == null
                 ? null
