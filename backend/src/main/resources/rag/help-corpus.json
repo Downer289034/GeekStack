@@ -1,0 +1,20 @@
+[
+  {
+    "content_id": "jkz_help_welcome",
+    "content_type": "help",
+    "title": "极客栈使用说明",
+    "url": "https://geekstack.local/help/welcome",
+    "author_id": 0,
+    "body_md": "# 欢迎来到极客栈 GeekStack\n\n极客栈是面向 Java 与 AI 开发者的社区。你可以在论坛发帖、项目广场分享开源项目、Skill 专区发布可复用技能包。注册后即可发帖。",
+    "created_at": "2026-09-01T00:00:00"
+  },
+  {
+    "content_id": "jkz_help_rules",
+    "content_type": "help",
+    "title": "社区版规摘要",
+    "url": "https://geekstack.local/help/rules",
+    "author_id": 0,
+    "body_md": "# 版规\n\n- 禁止人身攻击、广告刷屏与敏感违规内容\n- 分享项目请标注开源协议与复现步骤\n- Skill 请写清模型适配说明与版本号（SemVer）\n- 下架内容（HIDDEN）仅作者可见，不会出现在广场与搜索",
+    "created_at": "2026-09-01T00:00:00"
+  }
+]

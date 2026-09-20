@@ -382,18 +382,19 @@
 > 排期定位：建议**先上线再接 AI**（公测真实语料避免空转调优）；一期开发可与上线准备并行，部署跟随上线。
 
 ### [x] T-AI-0：RAG 链路预研 spike（AI 服务）
-**状态**：报告已交 PM 选型复核（2026-09-20）——[`docs/T-AI-0-RAG选型复核报告.md`](./T-AI-0-RAG选型复核报告.md)；四块拍板通过前不放行 T-AI-1
+**状态**：✅ **关闭（2026-09-20 PM 选型复核通过）**——四块拍板生效，embedding 契约定稿，已放行 T-AI-1
 **描述**：搭最小可跑链路——FastAPI 骨架 + LangGraph 单节点图 + Qdrant（docker 单容器）+ DashScope `text-embedding-v3` embedding（1024 维，Key 需线下配置 `DASHSCOPE_API_KEY`）+ MiMo v2.5 API（`api.xiaomimimo.com/v1`，OpenAI 兼容）；用 10 条真实社区内容走通「分块 → embedding → 入库 → 检索 top-5 → 生成带引用回答」；产出选型复核报告（含分块策略 512token/50overlap 建议、成本估算、延迟实测、**MiMo thinking disabled vs enabled 的延迟/质量对比**）
 **验收标准**：spike 代码入库 `ai-service/`（骨架可复用）；报告落 docs；关键决策（供应商/分块参数/thinking 开关）复核确认
 **双 RAG 线复用性设计（老板拍板的战略要求，报告必备章节）**：~~原五要素~~ **已由管家项目组立场回应（`rag-reuse-position.md`，2026-09-19）对齐并收敛**，预研按已对齐口径执行：①统一 metadata schema 按管家草案骨架（content_id 含来源前缀/source_system/content_type/text_url 不存全文但 **chunk 文本必须入 payload**（否则 RAG 无法工作，需在回函澄清）/author_id 脱敏/created_at/visibility/**embedding_model 版本化字段**/extra open dict）；②治理语料（版规/判例）留管家侧 Milvus 物理隔离，社区内容语料挂极客栈 Qdrant、管家只读接入；③embedding 双方同源 text-embedding-v3（铁律=同源，型号可配置）；④隐私红线按管家需求清单（§五四项：API 拉取不落库/聚合优先/动作 API 幂等+审计/判罚回流只读）双向写死。本章节作为三期谈判技术底稿，回函由 PM 起草
 **前置**：无（LLM API Key 已由老板线下配置；**DASHSCOPE_API_KEY 已配置**）
-**完成说明（报告侧 2026-09-20）**：BGE-M3 → DashScope text-embedding-v3；spike+bench 实测入 `docs/assets/t-ai-0/bench_metrics.json`；四块均有数据。待 PM 勾选拍板后关闭本任务并放行 T-AI-1。
+**完成说明（2026-09-20）**：报告 [`docs/T-AI-0-RAG选型复核报告.md`](./T-AI-0-RAG选型复核报告.md) + `docs/assets/t-ai-0/bench_metrics.json`；PM 四块拍板已生效。附加观测：e2e P95 11.6s，T-AI-2 持续采样。
 
-### [ ] T-AI-1：语料索引管道（Java 后端）
-**状态**：✅ **放行（2026-09-20，T-AI-0 复核通过 = embedding 契约定稿）**。定稿四块：分块 512/50（长文复测留本任务）｜thinking disabled｜schema v1.1（统一字段 + chunk_text/chunk_index/parent_content_id + text 入 payload 硬约束 + jkz_ 前缀 + embedding_model 版本化）｜双库并存 + DashScope text-embedding-v3 同源（1024 维）。**附加观测项：e2e P95 实测 11.6s 偏高，T-AI-2 落地后持续采样**
+### [x] T-AI-1：语料索引管道（Java 后端）
+**状态**：✅ **实现完成（2026-09-20）**。定稿四块已落地：分块 512/50｜thinking disabled（问答侧）｜schema v1.1｜双库并存 + text-embedding-v3。`RagIndexIntegrationTest` + `MarkdownChunkerTest` 通过；checkstyle 通过。**附加观测项：e2e P95 11.6s，T-AI-2 落地后持续采样**
 **描述**：事件总线新增 RAG 索引消费者——订阅 ContentCreated/Replied/Updated 事件，过滤公开内容（status=0 且作者未封禁）→ Markdown 去标记分块（512token/50overlap）→ 调 **DashScope text-embedding-v3** → 写极客栈侧 Qdrant 社区内容库（metadata 按统一 schema **v1.1**：content_id 带前缀 `jkz_`/source_system/content_type/text_url/author_id 脱敏/created_at/visibility/embedding_model + **chunk_text/chunk_index/parent_content_id 三字段**——2026-09-20 按管家评审采纳）；**chunk 文本写入 payload**；删除/下架内容同步删向量；附平台帮助语料初始化脚本（使用说明 JSON 一次性灌库）；HTTP 回调失败重试 + 降级日志（参照 Webhook 教训：RestTemplate 必须带超时）
 **验收标准**：发布/编辑/删除三路径测试（mock embedding）；HIDDEN 内容不进库断言；metadata schema v1.1 与管家草案逐字段对齐；mvn verify 末行 + CI
 **前置**：T-AI-0（embedding 接口契约定稿）
+**完成说明**：`com.community.rag`——`RagContentChangedEvent` 驱动 post/share/skill 的 UPSERT/DELETE；公开内容（作者未封禁；share/skill 非 HIDDEN）才入索引；schema v1.1（`text`≡`chunk_text` + chunk 三字段 + `jkz_`）；默认 `QDRANT_URL=memory`，联调改 Qdrant HTTP；无 Key 时确定性伪向量；帮助语料 `classpath:rag/help-corpus.json` + `deploy/rag/`。
 
 ### [ ] T-DATA-1：用户数据 API（管家 R2 调查工具数据源，时钟：约第 3 周前）
 **背景**：管家 roadmap 09-19 拍板 J1 重定义为极客栈 API 适配层，PY2-R2 调查工具（用户历史/判例/社区统计）原依赖 J1 数据源改为**依赖极客栈数据 API**——第 3 周前未到位则 R2 降级 mock。为避免对方降级，本任务提前规划

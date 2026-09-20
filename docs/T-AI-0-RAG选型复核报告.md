@@ -150,4 +150,4 @@ T-AI-1 按上表落库；**`text` 入 payload 为硬约束**（回函管家时�
 
 **复核附加观测项（随 T-AI-1/T-AI-2 落地持续关注，非打回项）**：e2e 端到端 P95 11635ms 偏高（8 问小样本，含 retrieve+embed+LLM 全链）——T-AI-4 流式渲染掩盖感知延迟 + T-AI-2 上线后持续采样，若 P95 持续 >10s 需查 Qdrant 部署形态（:memory: → Docker 的差异）与 MiMo 网络抖动。
 
-拍板结论转发执行侧后，**按定稿直接开工 T-AI-1，不再二次确认**。
+拍板已转发并生效。**T-AI-1 已按定稿落地**（`com.community.rag`，schema v1.1）。

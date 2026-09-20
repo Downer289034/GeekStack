@@ -8,3 +8,8 @@ community:
     webhook-secret: ci-only-webhook-secret-for-testing-0123456789ab
     connect-timeout-ms: 2000
     read-timeout-ms: 3000
+  rag:
+    enabled: true
+    qdrant-url: memory
+    dashscope-api-key: ""
+    seed-help-on-startup: false

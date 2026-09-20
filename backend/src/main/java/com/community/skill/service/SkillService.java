@@ -8,6 +8,7 @@ import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
 import com.community.common.SemVer;
 import com.community.common.TagNormalizer;
+import com.community.rag.event.RagContentChangedEvent;
 import com.community.skill.dto.SkillCardResponse;
 import com.community.skill.dto.SkillPayload;
 import com.community.skill.dto.SkillResponse;
@@ -16,6 +17,7 @@ import com.community.skill.mapper.SkillMapper;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,10 +31,13 @@ public class SkillService {
 
     private final SkillMapper skillMapper;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public SkillService(SkillMapper skillMapper, UserService userService) {
+    public SkillService(SkillMapper skillMapper, UserService userService,
+                        ApplicationEventPublisher eventPublisher) {
         this.skillMapper = skillMapper;
         this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     /** 发布 Skill。 */
@@ -45,6 +50,7 @@ public class SkillService {
         skill.setViewCount(0L);
         skill.setLikeCount(0L);
         skillMapper.insert(skill);
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "skill", skill.getId()));
         return toResponse(skill);
     }
 
@@ -53,6 +59,7 @@ public class SkillService {
         Skill skill = requireOwned(id, username);
         applyPayload(skill, payload);
         skillMapper.updateById(skill);
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "skill", skill.getId()));
         return toResponse(skill);
     }
 
@@ -61,6 +68,7 @@ public class SkillService {
         Skill skill = requireOwned(id, username);
         skill.setStatus("HIDDEN");
         skillMapper.updateById(skill);
+        eventPublisher.publishEvent(RagContentChangedEvent.delete(this, "skill", skill.getId()));
         return toResponse(skill);
     }
 

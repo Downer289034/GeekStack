@@ -8,6 +8,7 @@ import com.community.common.BusinessException;
 import com.community.common.ErrorCode;
 import com.community.common.PageResponse;
 import com.community.event.ContentCreatedEvent;
+import com.community.rag.event.RagContentChangedEvent;
 import com.community.share.dto.ShareCardResponse;
 import com.community.share.dto.SharePayload;
 import com.community.share.dto.ShareResponse;
@@ -48,6 +49,7 @@ public class ShareService {
         // T14.6：发布 share.created 事件（content_text = 标题+摘要，截断由 Listener 处理）
         String text = share.getTitle() + "\n" + share.getSummary();
         eventPublisher.publishEvent(new ContentCreatedEvent.ShareCreated(this, share.getId(), text, userId));
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "share", share.getId()));
         return toResponse(share);
     }
 
@@ -56,6 +58,7 @@ public class ShareService {
         ProjectShare share = requireOwned(id, username);
         applyPayload(share, payload);
         shareMapper.updateById(share);
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "share", share.getId()));
         return toResponse(share);
     }
 
@@ -64,6 +67,7 @@ public class ShareService {
         ProjectShare share = requireOwned(id, username);
         share.setStatus("HIDDEN");
         shareMapper.updateById(share);
+        eventPublisher.publishEvent(RagContentChangedEvent.delete(this, "share", share.getId()));
         return toResponse(share);
     }
 

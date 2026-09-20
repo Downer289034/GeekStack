@@ -17,6 +17,7 @@ import com.community.forum.entity.Post;
 import com.community.forum.entity.PostCategory;
 import com.community.forum.mapper.PostCategoryMapper;
 import com.community.forum.mapper.PostMapper;
+import com.community.rag.event.RagContentChangedEvent;
 import com.community.user.dto.UserResponse;
 import com.community.user.service.UserService;
 import java.util.List;
@@ -73,6 +74,7 @@ public class PostService {
         // T14.6：发布 post.created 事件（content_text = 正文全文，截断由 Listener 处理）
         eventPublisher.publishEvent(
                 new ContentCreatedEvent.PostCreated(this, post.getId(), post.getContentMd(), userId));
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "post", post.getId()));
         return toDetail(post);
     }
 
@@ -86,6 +88,7 @@ public class PostService {
             post.setTags(TagNormalizer.normalize(request.tags(), MAX_TAGS));
         }
         postMapper.updateById(post);
+        eventPublisher.publishEvent(RagContentChangedEvent.upsert(this, "post", post.getId()));
         return toDetail(post);
     }
 
@@ -93,6 +96,7 @@ public class PostService {
     public void delete(long id, String username) {
         Post post = requireOwned(id, username);
         postMapper.deleteById(post.getId());
+        eventPublisher.publishEvent(RagContentChangedEvent.delete(this, "post", id));
     }
 
     /**
@@ -106,6 +110,7 @@ public class PostService {
             throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
         }
         postMapper.deleteById(post.getId());
+        eventPublisher.publishEvent(RagContentChangedEvent.delete(this, "post", id));
         return post;
     }
 

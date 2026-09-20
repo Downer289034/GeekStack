@@ -71,6 +71,23 @@ community:
     # 对外可读 URL 前缀（不含尾斜杠）；dev nginx:9080 /media/ ，prod 站点 /media/
     public-base-url: ${MINIO_PUBLIC_BASE_URL:http://172.25.41.137:9080}
     rate-limit-per-minute: ${MEDIA_RATE_LIMIT_PER_MINUTE:20}
+  rag:
+    enabled: ${RAG_ENABLED:true}
+    source-system: geekstack
+    chunk-size-tokens: 512
+    chunk-overlap-tokens: 50
+    embedding-model: text-embedding-v3
+    embedding-dim: 1024
+    dashscope-api-key: ${DASHSCOPE_API_KEY:}
+    dashscope-base-url: ${DASHSCOPE_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    # memory = 进程内（本地/测试）；联调改为 http://127.0.0.1:6333
+    qdrant-url: ${QDRANT_URL:memory}
+    qdrant-collection: ${QDRANT_COLLECTION:geekstack_community}
+    public-base-url: ${RAG_PUBLIC_BASE_URL:http://localhost:5173}
+    connect-timeout-ms: ${RAG_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${RAG_READ_TIMEOUT_MS:5000}
+    max-retries: 2
+    seed-help-on-startup: ${RAG_SEED_HELP:false}
 
 management:
   endpoints:
