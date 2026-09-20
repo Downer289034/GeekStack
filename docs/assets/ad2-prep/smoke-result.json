@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-20",
+  "role": "dev-A",
+  "agent_webhook_url": "http://172.25.41.137:18000/api/v1/events",
+  "secret_configured_local": true,
+  "secret_configured_steward": false,
+  "blocker": "webhook_secret_not_configured",
+  "creates": [
+    { "event": "post.created", "contentId": "post_3114", "status": 503, "trace_id": null },
+    { "event": "comment.created", "contentId": "comment_1308", "status": 503, "trace_id": null },
+    { "event": "share.created", "contentId": "share_2351", "status": 503, "trace_id": null }
+  ],
+  "direct_probe": [
+    { "mode": "good_hmac", "status": 503, "error": "webhook_secret_not_configured" },
+    { "mode": "bad_hmac", "status": 503, "error": "webhook_secret_not_configured", "note": "验签路径未达，坏签名拒签待 C 配齐后复验" }
+  ],
+  "log_excerpt": "Webhook HTTP 错误(不阻塞): contentId=post_3114|comment_1308|share_2351, status=503, ... webhook_secret_not_configured"
+}
