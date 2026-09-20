@@ -417,10 +417,12 @@
 **完成说明（2026-09-20）**：`POST /api/v1/ai/ask` 对齐 §5：先连 `{AI_SERVICE_URL}/v1/ask/stream`，成功后再写 SSE；未连上或非 2xx 返回 JSON 503「AI 助手暂时不可用，请稍后再试」。JWT 走现有 `anyRequest().authenticated()`。限流默认 Redis `ai:ask:{username}` 10 次/小时，Redis 故障 WARN 放行（与认证频控同口径）；`question` ≤2000，`thinking` 非 `enabled` 一律 `disabled`。`event: done` 的 `usage` 记 `AI_COST` 日志。敏感词过滤按「可选」未做。`AiAskGatewayIntegrationTest` 3/3（401/429/503，quota=memory、上游 127.0.0.1:9）；checkstyle 通过。全量 CI 待提交后由 PM 复跑。待 PM 验收，未关闭。
 **PM 验收**：实现审查通过（先连后写时序正确、限流降级双口径、AI_COST 结构化日志、thinking 白名单）；`5e95730` 因我方 push 遭遇网络 502 三连失败，由后端代推（bf3a727..5e95730），**CI success（run 35485974853，frontend 39s/backend 2m0s 全量含 AiAskGatewayIntegrationTest）**——GitHub API 核实远程 main=5e95730。→ **T-AI-3 关闭**，M13 滚动至 T-AI-4（前端 mock 换真实 SSE）
 
-### [ ] T-AI-4：前端浮窗
-**描述**：右下角悬浮球 → 展开对话面板（夜栈灯码组件语言：面板 surface-1、琥珀仅用于发送按钮）；SSE 流式渲染 Markdown（复用渲染唯一出口防 XSS）；来源链接卡片（favicon+标题，新窗打开）；会话历史 localStorage 本地保留；移动端折叠为全屏底部抽屉
-**验收标准**：三绿 + 零硬编码色值 + 三断点截图；流式无卡顿；来源链接可点；未登录提示登录；CI
+### [x] T-AI-4：前端浮窗接入真实 SSE
+**描述**：右下角悬浮球 → 展开对话面板（夜栈灯码：surface-1、琥珀仅发送按钮）；`POST /api/v1/ai/ask` JWT + fetch ReadableStream 解析 SSE（`token`/`sources`/`done`）；来源卡片可点；会话 localStorage；移动端底部抽屉；503 → n-empty「AI 助手暂时不可用，请稍后再试」；429 →「提问过于频繁，请稍后再试」；未登录去登录；`/login` 不挂浮窗
+**验收标准**：三绿 + 零硬编码色值 + 三断点截图；流式与来源可点；503/429 态；登录页无浮窗；CI
 **前置**：T-AI-3
+**完成**：`aiAsk.ts` 替换 `aiAskMock.ts`；`AiChatWidget` 错误态；证据 `docs/assets/t-ai-4/`
+**PM 验收**：`8c1af17` 由 PM 隔离提交（工作区后端行尾假修改未混入）并 push，CI 双 job success（run 35487572023，frontend 40s/backend 1m54s）。实现核验：fetch+ReadableStream 解析 SSE（EventSource 不支持 POST 的正确解法）、SSE 缓冲含残尾冲刷、401 刷新重试一次、503/429 映射专属文案、token/sources/done 类型守卫健壮解析。证据 8 件（三断点问答+来源、503、429、登录页 fabCount:0）。→ **T-AI-4 关闭**。M13 仅剩 T-AI-5 部署走查（compose 增 ai-service+qdrant + ai-service CI job 补齐 + 全链走查）
 
 ### [x] T-AI-4-PRE：AI 浮窗静态骨架（前端，mock 接口）
 **描述**：`AiChatWidget` 组件——右下角悬浮球 → 展开对话面板（夜栈灯码语言：surface-1 面板、琥珀仅发送按钮）；消息列表 + 输入框 + 发送中态；SSE 渲染层先用 **mock 流**（本地定时器模拟 token 流），真实接口 T-AI-3 后替换；会话历史 localStorage；移动端折叠为全屏底部抽屉；`prefers-reduced-motion` 降级
