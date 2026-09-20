@@ -19,7 +19,7 @@ const router = createRouter({
           path: 'shares',
           name: 'share-plaza',
           component: () => import('@/views/share/SharePlazaView.vue'),
-          meta: { title: '项目广场' }
+          meta: { title: '项目广场', containerWidth: 'wide' }
         },
         {
           path: 'shares/new',
@@ -43,7 +43,7 @@ const router = createRouter({
           path: 'skills',
           name: 'skill-plaza',
           component: () => import('@/views/skill/SkillPlazaView.vue'),
-          meta: { title: 'Skill 广场', containerWidth: 'md' }
+          meta: { title: 'Skill 广场', containerWidth: 'wide' }
         },
         {
           path: 'skills/new',

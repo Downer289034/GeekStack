@@ -48,6 +48,8 @@
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --container-max: 1180px;
+  /** 广场类列表壳宽（仅 meta.containerWidth=wide） */
+  --container-wide: 1440px;
 }
 
 /* ---------- Semantic · Dark（默认） ---------- */

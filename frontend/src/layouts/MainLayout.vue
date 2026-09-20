@@ -72,7 +72,7 @@ const navAvatarSrc = computed(() => resolveMediaUrl(auth.user?.avatarUrl))
 
 const contentWidth = computed(() => {
   const w = route.meta.containerWidth as string | undefined
-  if (w === 'md' || w === 'sm') return w
+  if (w === 'wide' || w === 'md' || w === 'sm') return w
   return 'lg'
 })
 
@@ -197,6 +197,7 @@ function logout() {
     <main
       class="gs-shell-main"
       :class="{
+        'gs-shell-main--wide': contentWidth === 'wide',
         'gs-shell-main--md': contentWidth === 'md',
         'gs-shell-main--sm': contentWidth === 'sm'
       }"
@@ -507,6 +508,12 @@ function logout() {
   margin: 0 auto;
   padding: 24px 24px 48px;
   min-width: 0;
+}
+
+.gs-shell-main--wide {
+  max-width: var(--container-wide);
+  padding-left: clamp(24px, 3vw, 40px);
+  padding-right: clamp(24px, 3vw, 40px);
 }
 
 .gs-shell-main--md {

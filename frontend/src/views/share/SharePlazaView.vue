@@ -8,6 +8,7 @@ import GsProjectCard from '@/components/gs/GsProjectCard.vue'
 import GsSkeleton from '@/components/gs/GsSkeleton.vue'
 
 const PAGE_SIZE = 9
+const PLAZA_SUBTITLE = '探索开源 AI 项目、Agent 框架、向量数据库与 LLM 工具库'
 
 const loading = ref(true)
 const cards = ref<ShareCard[]>([])
@@ -56,31 +57,33 @@ onMounted(() => {
 
 <template>
   <div class="plaza">
-    <div class="plaza-header">
-      <h2 class="plaza-title font-display">
-        <n-icon :component="GridOutline" :size="22" />
-        项目广场
-      </h2>
-      <n-space align="center" :wrap="true">
-        <n-input
-          v-model:value="tagInput"
-          placeholder="按标签筛选"
-          size="small"
-          style="width: 180px"
-          @keyup.enter="applyTagFilter"
-        >
-          <template #prefix>
-            <n-icon :component="SearchOutline" />
-          </template>
-        </n-input>
-        <GsButton variant="ghost" @click="applyTagFilter">筛选</GsButton>
-        <GsButton v-if="activeTag" variant="text" @click="clearTagFilter">清除</GsButton>
-      </n-space>
-    </div>
-
-    <div class="plaza-toolbar">
-      <span class="plaza-count font-mono">共 {{ total }} 个项目</span>
-    </div>
+    <header class="plaza-header">
+      <div class="plaza-header__left">
+        <h2 class="plaza-title font-display">
+          <n-icon :component="GridOutline" :size="22" />
+          项目广场
+        </h2>
+        <p class="plaza-subtitle">{{ PLAZA_SUBTITLE }}</p>
+      </div>
+      <div class="plaza-header__right">
+        <span class="plaza-count font-mono">共 {{ total }} 个项目</span>
+        <n-space align="center" :wrap="true" :size="8">
+          <n-input
+            v-model:value="tagInput"
+            placeholder="按标签筛选"
+            size="small"
+            style="width: 180px"
+            @keyup.enter="applyTagFilter"
+          >
+            <template #prefix>
+              <n-icon :component="SearchOutline" />
+            </template>
+          </n-input>
+          <GsButton variant="ghost" @click="applyTagFilter">筛选</GsButton>
+          <GsButton v-if="activeTag" variant="text" @click="clearTagFilter">清除</GsButton>
+        </n-space>
+      </div>
+    </header>
 
     <GsSkeleton v-if="loading" variant="card" :count="6" />
 
@@ -99,15 +102,15 @@ onMounted(() => {
 
     <div v-else class="card-grid">
       <GsProjectCard
-        v-for="(card, index) in cards"
+        v-for="card in cards"
         :key="card.id"
         v-reveal
         :title="card.title"
         :to="`/shares/${card.id}`"
+        :summary="card.summary"
         :tags="card.tags ?? []"
         :view-count="card.viewCount"
         :time="formatTime(card.createdAt)"
-        :featured="current === 1 && index === 0"
       />
     </div>
 
@@ -124,13 +127,51 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.plaza {
+  position: relative;
+}
+
+/* 克制网格纹理，不抢内容 */
+.plaza::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -8px 0 0;
+  z-index: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--border) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--border) 55%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, var(--bg) 0%, transparent 72%);
+}
+
+.plaza > * {
+  position: relative;
+  z-index: 1;
+}
+
 .plaza-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 12px;
+  gap: 16px 24px;
+  margin-bottom: 24px;
+}
+
+.plaza-header__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.plaza-header__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .plaza-title {
@@ -138,16 +179,17 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--text-1);
 }
 
-.plaza-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 16px;
+.plaza-subtitle {
+  margin: 0;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-3);
 }
 
 .plaza-count {
@@ -162,24 +204,29 @@ onMounted(() => {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 22px;
 }
 
 @media (max-width: 1200px) {
   .card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .plaza-header__right {
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 768px) {
   .card-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 
 .plaza-pagination {
   display: flex;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 28px;
 }
 </style>
