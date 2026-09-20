@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-20",
+  "web": "http://127.0.0.1:5173",
+  "results": [
+    {
+      "id": "login-entry",
+      "status": "pass",
+      "detail": "title=登录 / 注册 · 极客栈 GeekStack; brand=true; oauthBtns=2; login-bg=1"
+    },
+    {
+      "id": "login-parallax",
+      "status": "pass",
+      "detail": "transformBefore=matrix(1.2, 0, 0, 1.2, 0, 0); transformAfter=matrix(1.2, 0, 0, 1.2, -7.41, -5.77); moved=true; inputFocus=true"
+    },
+    {
+      "id": "login-reduced-motion",
+      "status": "pass",
+      "detail": "is-static=1; transformStable=true; transform=matrix(1.2, 0, 0, 1.2, 0, 0)"
+    },
+    {
+      "id": "login-touch",
+      "status": "pass",
+      "detail": "is-static=1; inputFocus=true; viewport=390x844"
+    },
+    {
+      "id": "oauth-github",
+      "status": "pass",
+      "detail": "已达 GitHub IdP（未登录会话落在 login，return_to 含 authorize）。完整授权/回调需人工账号。url=https://github.com/login?client_id=Ov23licTKtimIZiNJYLJ&return_to=%2Flogin%2Foauth%2Fauthorize%3Fclient_id%3DOv23licTKtimIZiNJYLJ%26redirect"
+    },
+    {
+      "id": "oauth-gitee",
+      "status": "pass",
+      "detail": "已达 Gitee IdP（未登录会话落在 login，redirect 含 authorize）。完整授权/回调需人工账号。url=https://gitee.com/login?redirect_to_url=https%3A%2F%2Fgitee.com%2Foauth%2Fauthorize%3Fclient_id%3Dfbe67cc7dd611157126ed5f8cad0082b91d73ac65b"
+    }
+  ]
+}
