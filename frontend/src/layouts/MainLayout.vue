@@ -72,6 +72,12 @@ const contentWidth = computed(() => {
   return 'lg'
 })
 
+/** 搜索相关页已有页内搜索：顶栏改为图标入口，避免双搜索框抢宽把导航挤成竖排 */
+const searchPageActive = computed(() => {
+  const n = route.name
+  return n === 'search' || n === 'tags' || n === 'tag-detail'
+})
+
 function onGlobalKey(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
@@ -118,7 +124,12 @@ function logout() {
           </RouterLink>
         </nav>
 
-        <form class="gs-search" role="search" @submit="onSearchSubmit">
+        <form
+          v-if="!searchPageActive"
+          class="gs-search"
+          role="search"
+          @submit="onSearchSubmit"
+        >
           <n-icon class="gs-search__icon" :component="SearchOutline" :size="14" />
           <input
             name="q"
@@ -129,6 +140,15 @@ function logout() {
           />
           <kbd aria-hidden="true">Ctrl K</kbd>
         </form>
+        <RouterLink
+          v-else
+          class="gs-search gs-search--icon"
+          to="/search"
+          aria-label="搜索"
+          title="搜索"
+        >
+          <n-icon class="gs-search__icon" :component="SearchOutline" :size="16" />
+        </RouterLink>
 
         <button
           type="button"
@@ -253,9 +273,11 @@ function logout() {
 
 .gs-nav__links {
   display: flex;
+  flex-wrap: nowrap;
   gap: 4px;
-  flex: 1;
-  min-width: 0;
+  flex: 1 0 auto;
+  /* 优先保住导航文案，宽度不够时由搜索区让路 */
+  flex-shrink: 0;
 }
 
 .gs-nav__link {
@@ -268,6 +290,8 @@ function logout() {
   color: var(--text-2);
   text-decoration: none;
   position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
     color 0.15s var(--ease-out),
     background 0.15s var(--ease-out);
@@ -303,14 +327,41 @@ function logout() {
   border-radius: 10px;
   padding: 7px 12px;
   width: 220px;
+  max-width: 220px;
+  flex-shrink: 1;
+  min-width: 0;
   transition:
     border-color 0.15s var(--ease-out),
-    width 0.25s var(--ease-out);
+    width 0.25s var(--ease-out),
+    max-width 0.25s var(--ease-out);
 }
 
 .gs-search:focus-within {
   border-color: var(--accent);
   width: 280px;
+  max-width: 280px;
+}
+
+.gs-search--icon {
+  width: 44px;
+  max-width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.gs-search--icon:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.gs-search--icon:focus-within {
+  width: 44px;
+  max-width: 44px;
 }
 
 .gs-search__icon {
@@ -456,6 +507,47 @@ function logout() {
 
 .gs-footer__links a:hover {
   color: var(--accent);
+}
+
+@media (max-width: 1200px) {
+  .gs-search:not(.gs-search--icon) {
+    width: 160px;
+    max-width: 160px;
+  }
+
+  .gs-search:not(.gs-search--icon):focus-within {
+    width: 200px;
+    max-width: 200px;
+  }
+
+  .gs-search:not(.gs-search--icon) kbd {
+    display: none;
+  }
+
+  .gs-nav__link {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .gs-search:not(.gs-search--icon) {
+    width: 44px;
+    max-width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .gs-search:not(.gs-search--icon) input,
+  .gs-search:not(.gs-search--icon) kbd {
+    display: none;
+  }
+
+  .gs-search:not(.gs-search--icon):focus-within {
+    width: 44px;
+    max-width: 44px;
+  }
 }
 
 @media (max-width: 960px) {
