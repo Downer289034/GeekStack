@@ -40,3 +40,8 @@ python scripts/ad2-webhook-smoke.py bad    # æœŸæœ› 401/æ‹’ç­¾ï¼ˆé 503ï¼‰
 ```
 
 è¯æ® JSONï¼š`smoke-result.json`ã€‚å€¼å®ˆï¼š`duty-checklist.md`ã€‚
+
+## ´ıÃü£¨2026-09-20 17:05£©
+
+A ²à½»¸¶ºÏ¸ñ£¬¹Øµ¥Ìõ¼şÎ´Âú£º×èÈûÔÚ C ÖØÆô¼ÓÔØ secret¡£  
+¸´ÅÜ¿Ú¾¶£ºgood¡ú202+trace_id£»ad¡ú401£¨·Ç 503£©£»ÈıÀàÒµÎñÊÂ¼şÍ¬²½¸üĞÂ smoke-result.json ºóÔÙÉêÇë¹Øµ¥¡£
