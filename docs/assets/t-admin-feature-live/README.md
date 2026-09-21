@@ -1,29 +1,29 @@
-# T-ADMIN-FEATURE-LIVE-SMOKE · steward_bot 加精/置顶真机证据
+﻿# T-ADMIN-FEATURE-LIVE-SMOKE 路 steward_bot 鍔犵簿/缃《鐪熸満璇佹嵁
 
-> 2026-09-21｜开发 A｜工作区 `2026-09-06-18-49-57`｜无 token / 无密码
+> 2026-09-21锝滃紑鍙?A锝滃伐浣滃尯 `2026-09-06-18-49-57`锝滄棤 token / 鏃犲瘑鐮?
 
-## 环境
+## 鐜
 
-| 项 | 值 |
+| 椤?| 鍊?|
 |----|----|
-| API | `http://172.25.41.137`（prod nginx → `geekstack-backend`） |
-| 账号 | `steward_bot`（凭据仅本机 OFFLINE；未入库） |
-| 目标帖 | `postId=164` |
+| API | `http://172.25.41.137`锛坧rod nginx 鈫?`geekstack-backend`锛?|
+| 璐﹀彿 | `steward_bot`锛堝嚟鎹粎鏈満 OFFLINE锛涙湭鍏ュ簱锛?|
+| 鐩爣甯?| `postId=164` |
 
-## 冒烟结果
+## 鍐掔儫缁撴灉
 
-| 动作 | 请求 | code |
+| 鍔ㄤ綔 | 璇锋眰 | code |
 |------|------|------|
-| 加精 | `PUT /api/v1/admin/posts/164/featured` `{featured:1}` | **0** |
-| 置顶 | `PUT /api/v1/admin/posts/164/pinned` `{pinned:1}` | **0** |
-| 取消加精 | `{featured:0}` | **0** |
-| 取消置顶 | `{pinned:0}` | **0** |
+| 鍔犵簿 | `PUT /api/v1/admin/posts/164/featured` `{featured:1}` | **0** |
+| 缃《 | `PUT /api/v1/admin/posts/164/pinned` `{pinned:1}` | **0** |
+| 鍙栨秷鍔犵簿 | `{featured:0}` | **0** |
+| 鍙栨秷缃《 | `{pinned:0}` | **0** |
 
-## 审计（operator=`steward_bot`）
+## 瀹¤锛坥perator=`steward_bot`锛?
 
-摘录见 `admin-audit-excerpt.log`：
+鎽樺綍瑙?`admin-audit-excerpt.txt`锛?
 
-- `ADMIN_SET_POST_FEATURED` · `operatorId=628` · `featured=1` / `0`
-- `ADMIN_SET_POST_PINNED` · `operatorId=628` · `pinned=1` / `0`
+- `ADMIN_SET_POST_FEATURED` 路 `operatorId=628` 路 `featured=1` / `0`
+- `ADMIN_SET_POST_PINNED` 路 `operatorId=628` 路 `pinned=1` / `0`
 
-API 摘要见 `smoke-summary.json`。供管家 MA3 对照。
+API 鎽樿瑙?`smoke-summary.json`銆備緵绠″ MA3 瀵圭収銆?
