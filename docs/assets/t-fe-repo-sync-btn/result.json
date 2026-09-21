@@ -1,0 +1,20 @@
+{
+  "api": "POST /api/v1/me/repos/sync?provider=",
+  "results": [
+    {
+      "id": "owner-bound-btns",
+      "status": "pass",
+      "detail": "github=true; gitee=true"
+    },
+    {
+      "id": "owner-sync-refresh",
+      "status": "pass",
+      "detail": "syncHits=1; repoVisible=1"
+    },
+    {
+      "id": "visitor-no-btn",
+      "status": "pass",
+      "detail": "github=0; gitee=0"
+    }
+  ]
+}

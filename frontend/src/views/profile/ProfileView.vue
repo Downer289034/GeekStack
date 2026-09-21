@@ -4,7 +4,13 @@ import { useRoute } from 'vue-router'
 import { NAvatar, NEmpty, NIcon, useMessage } from 'naive-ui'
 import { CubeOutline, CreateOutline, LogoGithub, PersonOutline } from '@vicons/ionicons5'
 import { fetchProfile, type ProfileAggregate } from '@/api/profile'
-import { fetchRepos, toggleRepoHide, type UserRepo } from '@/api/repo'
+import {
+  fetchRepos,
+  syncMyRepos,
+  toggleRepoHide,
+  type RepoSyncProvider,
+  type UserRepo
+} from '@/api/repo'
 import { resolveMediaUrl } from '@/api/media'
 import GsBadge from '@/components/gs/GsBadge.vue'
 import GsButton from '@/components/gs/GsButton.vue'
@@ -23,6 +29,8 @@ const loading = ref(true)
 const failed = ref(false)
 /** repos 接口失败：不影响资料页，仅空态提示 */
 const reposFailed = ref(false)
+/** 同步中的 provider；非空时防连点 */
+const syncingProvider = ref<RepoSyncProvider | null>(null)
 
 const username = computed(() => String(route.params.username ?? ''))
 const isOwner = computed(() => auth.isLoggedIn && auth.user?.username === username.value)
@@ -37,6 +45,11 @@ const hasOauthBound = computed(() => {
   const b = auth.user?.oauthBindings
   return b?.github === true || b?.gitee === true
 })
+
+const showGithubSync = computed(
+  () => isOwner.value && auth.user?.oauthBindings?.github === true
+)
+const showGiteeSync = computed(() => isOwner.value && auth.user?.oauthBindings?.gitee === true)
 
 /**
  * 仓库空态：
@@ -99,6 +112,21 @@ async function onToggleHide(repo: UserRepo) {
   }
 }
 
+async function onSyncRepos(provider: RepoSyncProvider) {
+  if (syncingProvider.value) return
+  syncingProvider.value = provider
+  try {
+    const res = await syncMyRepos(provider)
+    message.success(`已同步 ${res.provider}，共 ${res.syncedCount} 个仓库`)
+    reposFailed.value = false
+    repos.value = await fetchRepos(username.value)
+  } catch {
+    // 未绑定 / 限流 / 上游失败：request 拦截器已 toast 后端 message
+  } finally {
+    syncingProvider.value = null
+  }
+}
+
 function formatTime(iso: string): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
@@ -157,7 +185,29 @@ onMounted(() => {
     </header>
 
     <section class="profile-section">
-      <h3 class="section-title font-display">我的仓库</h3>
+      <div class="section-head">
+        <h3 class="section-title font-display">我的仓库</h3>
+        <div v-if="showGithubSync || showGiteeSync" class="repo-sync-actions">
+          <GsButton
+            v-if="showGithubSync"
+            variant="ghost"
+            data-testid="repo-sync-github"
+            :disabled="syncingProvider !== null"
+            @click="onSyncRepos('GITHUB')"
+          >
+            {{ syncingProvider === 'GITHUB' ? '同步中…' : '同步 GitHub' }}
+          </GsButton>
+          <GsButton
+            v-if="showGiteeSync"
+            variant="ghost"
+            data-testid="repo-sync-gitee"
+            :disabled="syncingProvider !== null"
+            @click="onSyncRepos('GITEE')"
+          >
+            {{ syncingProvider === 'GITEE' ? '同步中…' : '同步 Gitee' }}
+          </GsButton>
+        </div>
+      </div>
 
       <n-empty
         v-if="repoEmptyKind === 'unbound'"
@@ -313,11 +363,31 @@ onMounted(() => {
   margin-bottom: 28px;
 }
 
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
 .section-title {
   margin: 0 0 12px;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-1);
+}
+
+.section-head .section-title {
+  margin: 0;
+}
+
+.repo-sync-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .repo-card {
