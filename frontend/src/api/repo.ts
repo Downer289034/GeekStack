@@ -42,9 +42,13 @@ export interface ManualRepoSyncResult {
  */
 export function syncMyRepos(provider: RepoSyncProvider): Promise<ManualRepoSyncResult> {
   return unwrap<ManualRepoSyncResult>(
-    request.post('/v1/me/repos/sync', null, {
-      params: { provider },
-      timeout: 60000
-    })
+    request.post(
+      '/v1/me/repos/sync',
+      {},
+      {
+        params: { provider },
+        timeout: 60000
+      }
+    )
   )
 }

@@ -1,0 +1,21 @@
+{
+  "apiBase": "http://127.0.0.1:8080/api",
+  "user": "ydowner_tang",
+  "results": [
+    {
+      "id": "anon-401",
+      "status": "pass",
+      "detail": "http=401; code=40100; msg=未登录或登录已过期"
+    },
+    {
+      "id": "api-sync-not-404",
+      "status": "pass",
+      "detail": "http=200; code=0; msg=ok"
+    },
+    {
+      "id": "ui-click-sync",
+      "status": "pass",
+      "detail": "http=429; code=42900; msg=同步过于频繁，请 57 秒后再试; data=null"
+    }
+  ]
+}

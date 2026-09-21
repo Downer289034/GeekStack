@@ -1,0 +1,10 @@
+{
+  "http": 200,
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "provider": "GITEE",
+    "syncedCount": 2
+  },
+  "note": "脱敏：无 token"
+}

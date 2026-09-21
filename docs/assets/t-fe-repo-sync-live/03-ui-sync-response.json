@@ -1,0 +1,12 @@
+{
+  "username": "ydowner_tang",
+  "provider": "GITEE",
+  "responses": [
+    {
+      "http": 429,
+      "code": 42900,
+      "message": "同步过于频繁，请 57 秒后再试",
+      "data": null
+    }
+  ]
+}
