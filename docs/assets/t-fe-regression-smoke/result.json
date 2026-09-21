@@ -1,0 +1,24 @@
+{
+  "results": [
+    {
+      "id": "search-assistant-copy",
+      "status": "pass",
+      "detail": "findTitle=1; findHint=1; qaTitle=1; fabTitle=社区问答"
+    },
+    {
+      "id": "tags-three-tabs",
+      "status": "pass",
+      "detail": "cloudHint=1; tabs=3; roleTabs=1/1/1"
+    },
+    {
+      "id": "forum-badges",
+      "status": "pass",
+      "detail": "pinned=1; featured=2"
+    },
+    {
+      "id": "profile-sync-btns",
+      "status": "pass",
+      "detail": "github=true; gitee=true"
+    }
+  ]
+}
