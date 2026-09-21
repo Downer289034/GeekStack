@@ -1,0 +1,402 @@
+[
+  {
+    "n": "deepseek-ai/deepseek-harness",
+    "s": 40606,
+    "f": 3188,
+    "l": "TypeScript",
+    "d": "DeepSeek Harness: Everything is a Plugin.",
+    "u": "https://github.com/deepseek-ai/deepseek-harness"
+  },
+  {
+    "n": "titanwings/colleague-skill",
+    "s": 21086,
+    "f": 2034,
+    "l": "Python",
+    "d": "将冰冷的离别化为温暖的 Skill，欢迎加入数字生命1.0！Transforming cold farewells into warm skills? It's giving rebirth era. Welcome to Digital Life 1.0. 🫶",
+    "u": "https://github.com/titanwings/colleague-skill"
+  },
+  {
+    "n": "Devin-AXIS/iPolloWork",
+    "s": 3589,
+    "f": 776,
+    "l": "HTML",
+    "d": "A next-generation, source-available AI workspace with a self-evolving agent runtime for editable code, design, presentations, websites, and video—a Codex alternative that integrates DeepSeek Harness for subagent delegati",
+    "u": "https://github.com/Devin-AXIS/iPolloWork"
+  },
+  {
+    "n": "whiteguo233/OpenBiliClaw",
+    "s": 1939,
+    "f": 108,
+    "l": "Python",
+    "d": "本地私有、开源的跨平台 AI 内容发现 Agent：先理解你，再主动从 B站、小红书、抖音、YouTube、X、知乎、Reddit、微博等平台与开放 Web 寻找内容。 | Local-first open-source cross-platform AI content discovery agent: understands you, then proactively finds content across Bilibili, X",
+    "u": "https://github.com/whiteguo233/OpenBiliClaw"
+  },
+  {
+    "n": "paean-ai/deeptide",
+    "s": 1018,
+    "f": 133,
+    "l": "Rust",
+    "d": "Built by DeepSeek, for DeepSeek — a Swift-native macOS coding agent",
+    "u": "https://github.com/paean-ai/deeptide"
+  },
+  {
+    "n": "nutshellai-tech/mobius",
+    "s": 917,
+    "f": 20,
+    "l": "TypeScript",
+    "d": "The first self-evolving open-source Agent OS, connecting your team, AI agents, devices, and compute",
+    "u": "https://github.com/nutshellai-tech/mobius"
+  },
+  {
+    "n": "liustack/modlens",
+    "s": 711,
+    "f": 22,
+    "l": "TypeScript",
+    "d": "The first vision plugin for DeepSeek Harness, and the vision bridge for every text-only coding agent. Paste an image, get structured JSON evidence (OCR, layout, semantics).",
+    "u": "https://github.com/liustack/modlens"
+  },
+  {
+    "n": "zhu1090093659/dsh-web-ui",
+    "s": 542,
+    "f": 23,
+    "l": "TypeScript",
+    "d": "Plugin and skin collection for DeepSeek Harness (DSH) Web UI - task board, git graph, right-side panel, remote mobile UI, pet, live token stats, and skin center.",
+    "u": "https://github.com/zhu1090093659/dsh-web-ui"
+  },
+  {
+    "n": "Anionex/agent-vision-toolkit",
+    "s": 531,
+    "f": 22,
+    "l": "Python",
+    "d": "为纯文本模型\"看图“设计更好的视觉工具箱和技能，支持多图理解，图片问答，前端UI还原、GUI 自动化等，并可选无缝接入多个主流agent，直接识别粘贴图片｜ A vision toolkit and skill designed for text-only llms — image Q&A, long-screenshot OCR, frontend UI restoration, and GUI automation, with op",
+    "u": "https://github.com/Anionex/agent-vision-toolkit"
+  },
+  {
+    "n": "AdamPlatin123/awesome-dsh-plugins",
+    "s": 314,
+    "f": 20,
+    "l": "Shell",
+    "d": "前部索引仓库（Radar）：自动扫描发现的所有 dsh 插件候选；经测试合格的将移入后序精选目录仓库",
+    "u": "https://github.com/AdamPlatin123/awesome-dsh-plugins"
+  },
+  {
+    "n": "linhay/harmony-next.skills",
+    "s": 290,
+    "f": 21,
+    "l": "Python",
+    "d": "🚀 Expert guidance for HarmonyOS NEXT (API 12+) development. Covers IDE operations, performance tuning, architecture (HAP/HAR/HSP), and automation testing.",
+    "u": "https://github.com/linhay/harmony-next.skills"
+  },
+  {
+    "n": "PM-Shawn/Abu-Cowork",
+    "s": 285,
+    "f": 72,
+    "l": "TypeScript",
+    "d": "Open-source alternative to Claude Cowork — a local-first AI agent desktop app · multi-model · self-evolving skills · privacy-first",
+    "u": "https://github.com/PM-Shawn/Abu-Cowork"
+  },
+  {
+    "n": "alaliqing/claude-paper",
+    "s": 276,
+    "f": 23,
+    "l": "Vue",
+    "d": "📚 Claude Code plugin that automates research papers study with automatic material generation, code demonstrations, and interactive web viewer.",
+    "u": "https://github.com/alaliqing/claude-paper"
+  },
+  {
+    "n": "cofy-x/axern",
+    "s": 251,
+    "f": 6,
+    "l": "Go",
+    "d": "Open-source sandboxes for AI agents, untrusted code execution, and durable services.",
+    "u": "https://github.com/cofy-x/axern"
+  },
+  {
+    "n": "SepineTam/mcp-for-stata",
+    "s": 238,
+    "f": 33,
+    "l": "Python",
+    "d": "A MCP server for Stata to integrate Stata into your agent. ",
+    "u": "https://github.com/SepineTam/mcp-for-stata"
+  },
+  {
+    "n": "openma-ai/open-managed-agents",
+    "s": 228,
+    "f": 29,
+    "l": "TypeScript",
+    "d": "Open-source Claude Managed Agents API implementation and self-hosted Claude Tag-style agent runtime. Drop-in compatible; runs on Cloudflare Workers/Durable Objects or Node.js. Apache 2.0.",
+    "u": "https://github.com/openma-ai/open-managed-agents"
+  },
+  {
+    "n": "morluto/rea",
+    "s": 217,
+    "f": 22,
+    "l": "TypeScript",
+    "d": "Reverse engineer anything with agents, from app behavior down to native binaries.",
+    "u": "https://github.com/morluto/rea"
+  },
+  {
+    "n": "ccch1mneyyy/dsh-cc-tui",
+    "s": 215,
+    "f": 6,
+    "l": "TypeScript",
+    "d": "解决DSH 官方尚无终端 TUI 痛点的补位之作，献给偏爱cli的各位极客：Claude Code 风格全屏交互终端插件——像素鲸鱼顶栏、实时工作状态行、思考流式展开、双击 Esc 回滚、上下文进度条 + TPS 仪表。npm 一键安装。",
+    "u": "https://github.com/ccch1mneyyy/dsh-cc-tui"
+  },
+  {
+    "n": "Anionex/dsh-vision-toolkit",
+    "s": 160,
+    "f": 3,
+    "l": "TypeScript",
+    "d": "让纯文本模型更好地做视觉任务的DeepSeek Harness插件：带意图的图片问答、长截图 OCR、UI 还原等｜DeepSeek Harness-native integration for agent-vision-toolkit: image Q&A, long-screenshot OCR, UI restoration, grounding, pixel diff, Artifacts, and Web UI.",
+    "u": "https://github.com/Anionex/dsh-vision-toolkit"
+  },
+  {
+    "n": "0xsline/awesome-deepseek-harness",
+    "s": 151,
+    "f": 27,
+    "l": "Python",
+    "d": "DeepSeek Harness (DSH) ecosystem: curated plugins, tools, and infrastructure from dsh-external/hub and the public dsh-plugin topic.",
+    "u": "https://github.com/0xsline/awesome-deepseek-harness"
+  },
+  {
+    "n": "humblebanana/open-record-replay",
+    "s": 133,
+    "f": 2,
+    "l": "Swift",
+    "d": "Open-source macOS record-and-replay workflow recorder for computer use agents. Captures mouse, keyboard, and UI events as structured traces so agents can learn, replay, and automate real desktop tasks.",
+    "u": "https://github.com/humblebanana/open-record-replay"
+  },
+  {
+    "n": "Small-tailqwq/dsh-deep-whale",
+    "s": 130,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "DSH Web 鲸鱼娘皮肤系列(深海女仆工坊 maid-atelier)——CC BY-NC-SA 4.0",
+    "u": "https://github.com/Small-tailqwq/dsh-deep-whale"
+  },
+  {
+    "n": "omdsh-dev/DSH-better-sidebar",
+    "s": 129,
+    "f": 3,
+    "l": "TypeScript",
+    "d": "一个侧边栏的完整工作台，支持三方拓展注册新Tab页面，内置文件渲染编辑/终端/Git/子代理",
+    "u": "https://github.com/omdsh-dev/DSH-better-sidebar"
+  },
+  {
+    "n": "awesome-dsh-plugin/awesome-dsh-plugin",
+    "s": 122,
+    "f": 20,
+    "l": "HTML",
+    "d": "A curated list of plugins for DeepSeek Harness (dsh) · DeepSeek Harness 插件精选列表",
+    "u": "https://github.com/awesome-dsh-plugin/awesome-dsh-plugin"
+  },
+  {
+    "n": "Nagi-ovo/dsh-ads",
+    "s": 116,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "是兄弟就来蹬我！DSH Web UI 广告：2005 年中文站点风格的侧栏广告 / 对话内信息流 / 角落弹窗 + 一个真实热区比视觉小得多的关闭叉。素材全虚构，域名打码。",
+    "u": "https://github.com/Nagi-ovo/dsh-ads"
+  },
+  {
+    "n": "NanmiCoder/dsh-agent-teams",
+    "s": 80,
+    "f": 7,
+    "l": "TypeScript",
+    "d": "AgentTeams plugin for DeepSeek Harness",
+    "u": "https://github.com/NanmiCoder/dsh-agent-teams"
+  },
+  {
+    "n": "huiliyi37/dsh-tianshu-tui",
+    "s": 76,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "dsh-tianshu-tui — DeepSeek Harness terminal UI",
+    "u": "https://github.com/huiliyi37/dsh-tianshu-tui"
+  },
+  {
+    "n": "pulseaiclub/phi",
+    "s": 72,
+    "f": 4,
+    "l": "Go",
+    "d": "a coding Agent from pi. sub-agents, hashline edits, and a permission gate",
+    "u": "https://github.com/pulseaiclub/phi"
+  },
+  {
+    "n": "hust-open-atom-club/oh-dsh",
+    "s": 65,
+    "f": 9,
+    "l": "TypeScript",
+    "d": "一站式 DeepSeek Harness 社区发行版：TUI、桌面端与 Web UI 三种形态统一体验，支持分层安装、一步到位，免去手工整合打包。",
+    "u": "https://github.com/hust-open-atom-club/oh-dsh"
+  },
+  {
+    "n": "liustack/modsearch",
+    "s": 65,
+    "f": 3,
+    "l": "TypeScript",
+    "d": "The web plugin for DeepSeek Harness, and the search bridge for every text-only coding agent. Ask the web or X, get structured JSON evidence (search, fetch, citations).",
+    "u": "https://github.com/liustack/modsearch"
+  },
+  {
+    "n": "taxueseek/argo",
+    "s": 57,
+    "f": 1,
+    "l": "Python",
+    "d": "专门为 agent 打造的 agent 搜索工具，具备多语言搜索能力，覆盖中文/英文/学术/代码/购物/金融/新闻/百科。",
+    "u": "https://github.com/taxueseek/argo"
+  },
+  {
+    "n": "Lyn-77/ProMentor",
+    "s": 46,
+    "f": 1,
+    "l": "TypeScript",
+    "d": "ProMentor 是一个 AI Coding Agent Skill。装上它，你的 AI 编程助手立刻化身为导师——扫描项目架构、生成阶梯式 Chapter、带你手写核心逻辑、自动判题、AI Code Review。",
+    "u": "https://github.com/Lyn-77/ProMentor"
+  },
+  {
+    "n": "btspoony/mstar-harness",
+    "s": 39,
+    "f": 2,
+    "l": "TypeScript",
+    "d": "A Skill-driven Harness/Loop Engineering Workflow Agent Plugin",
+    "u": "https://github.com/btspoony/mstar-harness"
+  },
+  {
+    "n": "morluto/jacobian",
+    "s": 38,
+    "f": 5,
+    "l": "Python",
+    "d": "Pure mathematics for agents: search for examples and counterexamples, compute exactly, and independently check what a result proves.",
+    "u": "https://github.com/morluto/jacobian"
+  },
+  {
+    "n": "ZSeven-W/dsh-openpencil",
+    "s": 36,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "OpenPencil design preview and editing plugin for DSH",
+    "u": "https://github.com/ZSeven-W/dsh-openpencil"
+  },
+  {
+    "n": "icetomoyo/dsh_workflow",
+    "s": 35,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "把Claude Code的UltraCode模式带给DSH，把 DSH 的一次性多 Agent 调度，升级为可生成、可保存、可治理、可观察、可恢复的 Workflow 层",
+    "u": "https://github.com/icetomoyo/dsh_workflow"
+  },
+  {
+    "n": "omdsh-dev/dsh-open-in-vscode",
+    "s": 33,
+    "f": 1,
+    "l": "JavaScript",
+    "d": "Open DeepSeek Harness workspace directories in VS Code directly from the web GUI.",
+    "u": "https://github.com/omdsh-dev/dsh-open-in-vscode"
+  },
+  {
+    "n": "Nagi-ovo/dsh-visualize",
+    "s": 33,
+    "f": 1,
+    "l": "TypeScript",
+    "d": "DSH 对话内生成式 UI 插件：模型把交互式 HTML 卡片直接画进会话流——visualize 工具 + 配套 skill + 沙箱渲染卡，带流式预览、组件浮入动画与鲸鱼蓝主题跟随",
+    "u": "https://github.com/Nagi-ovo/dsh-visualize"
+  },
+  {
+    "n": "Nagi-ovo/dsh-find-plugins",
+    "s": 32,
+    "f": 0,
+    "l": "JavaScript",
+    "d": "",
+    "u": "https://github.com/Nagi-ovo/dsh-find-plugins"
+  },
+  {
+    "n": "morluto/flameox",
+    "s": 30,
+    "f": 1,
+    "l": "Python",
+    "d": "Runtime evidence that helps agents trace, profile, and burn down hotspots in application and native code, GPU kernels, and inference stacks.",
+    "u": "https://github.com/morluto/flameox"
+  },
+  {
+    "n": "Alex-Yanggg/awesome-DSH-plugin",
+    "s": 30,
+    "f": 16,
+    "l": "Python",
+    "d": "A meticulously curated list of useful plugins, extensions, tools and development resources built for DSH, covering productivity enhancement, functional expansion, debugging utilities and custom development modules.",
+    "u": "https://github.com/Alex-Yanggg/awesome-DSH-plugin"
+  },
+  {
+    "n": "yuukiLike/zeromd",
+    "s": 28,
+    "f": 1,
+    "l": "Shell",
+    "d": "Obsidian 零成本同步：iPhone ↔ Mac，GitHub 自动备份。本地优先 + 长期积累。｜Local First. Zero-cost Obsidian sync across iPhone, Mac & GitHub. Let knowledge grow over time.",
+    "u": "https://github.com/yuukiLike/zeromd"
+  },
+  {
+    "n": "vlln/whale-girl",
+    "s": 27,
+    "f": 1,
+    "l": "JavaScript",
+    "d": "DSH Web GUI 桌面宠物插件（QQ 宠物形态）：右下角悬浮、可拖拽/投喂/玩耍的积累型伙伴。官方 repository-plugin（.dsh-plugin 格式），config.yaml 安装：github:dsh-external/whale-girl#<ref>&path:/.dsh-plugin",
+    "u": "https://github.com/vlln/whale-girl"
+  },
+  {
+    "n": "Lum1104/dsh-browser",
+    "s": 26,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "dsh plugin: Chrome sidebar extension that lets DSH operate your browser directly—no vision capabilities required.",
+    "u": "https://github.com/Lum1104/dsh-browser"
+  },
+  {
+    "n": "omdsh-dev/dsh-at-file",
+    "s": 26,
+    "f": 0,
+    "l": "JavaScript",
+    "d": "Codex-style @file mentions for DeepSeek Harness: search workspace files in the composer and attach their contents to prompts.",
+    "u": "https://github.com/omdsh-dev/dsh-at-file"
+  },
+  {
+    "n": "omdsh-dev/dsh-notification",
+    "s": 25,
+    "f": 2,
+    "l": "JavaScript",
+    "d": "Desktop notifications for DeepSeek Harness turn completions, with per-outcome controls and include/exclude keyword rules.",
+    "u": "https://github.com/omdsh-dev/dsh-notification"
+  },
+  {
+    "n": "openguardrails/openguardrails",
+    "s": 24,
+    "f": 5,
+    "l": "Python",
+    "d": "The vendor-neutral protocol for AI agent safety & security — and the neutral benchmark that ranks the vendors.",
+    "u": "https://github.com/openguardrails/openguardrails"
+  },
+  {
+    "n": "Ruler4396/dsh-launcher",
+    "s": 24,
+    "f": 0,
+    "l": "C#",
+    "d": "Lightweight Windows launcher for DeepSeek Harness: silent autostart at logon + a minimal WebView2 window instead of a full browser",
+    "u": "https://github.com/Ruler4396/dsh-launcher"
+  },
+  {
+    "n": "LaplaceYoung/oh-my-dsh",
+    "s": 24,
+    "f": 0,
+    "l": "TypeScript",
+    "d": "oh-my-dsh：面向 DSH (DeepSeek Harness) 的插件生态——700+ 插件，只通过扩展接缝注册，不修改 agent-loop 骨架",
+    "u": "https://github.com/LaplaceYoung/oh-my-dsh"
+  },
+  {
+    "n": "hanelalo/browser-bridge",
+    "s": 23,
+    "f": 4,
+    "l": "Rust",
+    "d": "让你的agent真的像你一样操控你的浏览器窗口",
+    "u": "https://github.com/hanelalo/browser-bridge"
+  }
+]
