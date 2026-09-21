@@ -1,0 +1,65 @@
+﻿[
+    {
+        "label":  "post/Java",
+        "hit_count":  "1",
+        "avg_ms":  59.5,
+        "p95_ms":  62.6,
+        "max_ms":  62.6
+    },
+    {
+        "label":  "post/Spring",
+        "hit_count":  "1",
+        "avg_ms":  61.2,
+        "p95_ms":  68.2,
+        "max_ms":  68.2
+    },
+    {
+        "label":  "post/a",
+        "hit_count":  "20",
+        "avg_ms":  68.7,
+        "p95_ms":  81.6,
+        "max_ms":  81.6
+    },
+    {
+        "label":  "share/Spring",
+        "hit_count":  "0",
+        "avg_ms":  68.3,
+        "p95_ms":  79.2,
+        "max_ms":  79.2
+    },
+    {
+        "label":  "share/Docker",
+        "hit_count":  "0",
+        "avg_ms":  67.2,
+        "p95_ms":  87,
+        "max_ms":  87
+    },
+    {
+        "label":  "share/a",
+        "hit_count":  "21",
+        "avg_ms":  114.4,
+        "p95_ms":  521.5,
+        "max_ms":  521.5
+    },
+    {
+        "label":  "skill/RAG",
+        "hit_count":  "0",
+        "avg_ms":  64.1,
+        "p95_ms":  68,
+        "max_ms":  68
+    },
+    {
+        "label":  "skill/Agent",
+        "hit_count":  "8",
+        "avg_ms":  90.5,
+        "p95_ms":  124.5,
+        "max_ms":  124.5
+    },
+    {
+        "label":  "skill/a",
+        "hit_count":  "12",
+        "avg_ms":  84.2,
+        "p95_ms":  109.1,
+        "max_ms":  109.1
+    }
+]
