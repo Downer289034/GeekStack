@@ -1,0 +1,6 @@
+{
+    "url":  "POST http://172.25.41.137/api/v1/me/repos/sync?provider=GITHUB",
+    "message":  "未登录或登录已过期",
+    "code":  40100,
+    "http":  401
+}

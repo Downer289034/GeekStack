@@ -1,0 +1,9 @@
+{
+    "note":  "经 prod nginx 网关；同窗口内先有一次 http 200 syncedCount=2（backend 直连），二次网关命中限流 429（验收接受）",
+    "message":  "同步过于频繁，请 33 秒后再试",
+    "code":  42900,
+    "DEPLOY_COMMIT":  "c868d87",
+    "http":  429,
+    "url":  "POST http://172.25.41.137/api/v1/me/repos/sync?provider=GITEE",
+    "account":  "syncprod_*（临时注册；prod geekstack-mysql 原无 OAuth 绑定，冒烟后已删除临时 binding）"
+}

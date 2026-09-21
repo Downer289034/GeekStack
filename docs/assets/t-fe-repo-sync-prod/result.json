@@ -1,0 +1,21 @@
+{
+    "apiBase":  "http://172.25.41.137/api",
+    "results":  [
+                    {
+                        "detail":  "http=401; code=40100",
+                        "status":  "pass",
+                        "id":  "anon-401"
+                    },
+                    {
+                        "detail":  "http=429; code=42900（网关）",
+                        "status":  "pass",
+                        "id":  "owner-sync-gateway"
+                    },
+                    {
+                        "detail":  "http=200; syncedCount=2（同 backend）",
+                        "status":  "pass",
+                        "id":  "owner-sync-200"
+                    }
+                ],
+    "deployCommit":  "c868d87"
+}

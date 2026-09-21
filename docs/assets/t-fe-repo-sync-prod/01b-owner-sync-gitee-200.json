@@ -1,0 +1,12 @@
+{
+    "data":  {
+                 "syncedCount":  2,
+                 "provider":  "GITEE"
+             },
+    "message":  "ok",
+    "code":  0,
+    "DEPLOY_COMMIT":  "c868d87",
+    "http":  200,
+    "note":  "与网关同一 backend 进程；脱敏无 token",
+    "url":  "POST http://172.20.0.3:8080/api/v1/me/repos/sync?provider=GITEE（同机 backend 容器网）"
+}
