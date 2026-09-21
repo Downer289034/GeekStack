@@ -59,31 +59,68 @@ public class RepoSyncService {
     @Async
     public void syncRepos(long userId, String provider) {
         try {
-            UserOauthBinding binding = bindingMapper.selectOne(
-                    Wrappers.<UserOauthBinding>lambdaQuery()
-                            .eq(UserOauthBinding::getUserId, userId)
-                            .eq(UserOauthBinding::getProvider, provider)
-                            .last("LIMIT 1"));
-            if (binding == null) {
+            syncReposBlocking(userId, provider);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.NOT_FOUND) {
                 log.warn("syncRepos: 未找到 {} 绑定记录 userId={}", provider, userId);
-                return;
             }
-
-            RepoProvider repoProvider = findProvider(provider);
-            if (repoProvider == null) {
-                log.warn("syncRepos: 未找到 {} RepoProvider", provider);
-                return;
-            }
-
-            String accessToken = resolveAccessToken(binding, provider);
-            List<RepoProvider.RemoteRepo> remoteRepos = repoProvider.fetchPublicRepos(accessToken);
-
-            transactionTemplate.executeWithoutResult(status -> syncSnapshot(userId, provider, remoteRepos));
-            log.info("syncRepos 完成: userId={}, provider={}, count={}", userId, provider, remoteRepos.size());
+            // 远端失败已在 syncReposBlocking 打 WARN，此处不再重复
         } catch (Exception e) {
             log.warn("syncRepos 失败(保留旧快照): userId={}, provider={}, error={}",
                     userId, provider, e.getMessage());
         }
+    }
+
+    /**
+     * 手动同步（阻塞）。未绑定 → {@link ErrorCode#NOT_FOUND}；
+     * 远端/refresh 失败 → {@link ErrorCode#SERVICE_UNAVAILABLE}（旧快照保留）。
+     *
+     * @return 本次写入条数
+     */
+    public int syncReposBlocking(long userId, String provider) {
+        String normalized = normalizeProvider(provider);
+        UserOauthBinding binding = bindingMapper.selectOne(
+                Wrappers.<UserOauthBinding>lambdaQuery()
+                        .eq(UserOauthBinding::getUserId, userId)
+                        .eq(UserOauthBinding::getProvider, normalized)
+                        .last("LIMIT 1"));
+        if (binding == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND,
+                    "未绑定 " + normalized + " 账号，请先完成 OAuth 授权");
+        }
+
+        RepoProvider repoProvider = findProvider(normalized);
+        if (repoProvider == null) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "不支持的仓库平台: " + normalized);
+        }
+
+        try {
+            String accessToken = resolveAccessToken(binding, normalized);
+            List<RepoProvider.RemoteRepo> remoteRepos = repoProvider.fetchPublicRepos(accessToken);
+            transactionTemplate.executeWithoutResult(
+                    status -> syncSnapshot(userId, normalized, remoteRepos));
+            log.info("syncRepos 完成: userId={}, provider={}, count={}",
+                    userId, normalized, remoteRepos.size());
+            return remoteRepos.size();
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("syncRepos 失败(保留旧快照): userId={}, provider={}, error={}",
+                    userId, normalized, e.getMessage());
+            throw new BusinessException(ErrorCode.SERVICE_UNAVAILABLE, "同步失败，已保留上次仓库快照");
+        }
+    }
+
+    /** 校验并归一化 provider（GITHUB / GITEE）。 */
+    public static String normalizeProvider(String provider) {
+        if (provider == null || provider.isBlank()) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "provider 必填，取值 GITHUB 或 GITEE");
+        }
+        String p = provider.trim().toUpperCase();
+        if (!"GITHUB".equals(p) && !"GITEE".equals(p)) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "provider 仅支持 GITHUB 或 GITEE");
+        }
+        return p;
     }
 
     private RepoProvider findProvider(String provider) {

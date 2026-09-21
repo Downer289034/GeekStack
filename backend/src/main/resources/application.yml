@@ -48,6 +48,8 @@ community:
     aes-key: ${OAUTH_AES_KEY:}
     # OAuth 回调基地址：dev 用前端源，prod 用域名（域名就绪后改）
     redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:5173}
+    # 手动同步仓库冷却（秒）；进程内内存，多实例不共享
+    repo-sync-cooldown-seconds: ${REPO_SYNC_COOLDOWN_SECONDS:60}
     github:
       client-id: ${GITHUB_CLIENT_ID:}
       client-secret: ${GITHUB_CLIENT_SECRET:}
