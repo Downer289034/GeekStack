@@ -12,6 +12,8 @@ export interface PostCard {
   replyCount: number
   lastReplyAt: string | null
   isPinned: number
+  /** 1=精华 */
+  isFeatured?: number
   isHot: number
   createdAt: string
 }
@@ -28,6 +30,8 @@ export interface PostDetail {
   replyCount: number
   lastReplyAt: string | null
   isPinned: number
+  /** 1=精华 */
+  isFeatured?: number
   isHot: number
   createdAt: string
 }

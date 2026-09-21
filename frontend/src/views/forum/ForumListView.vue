@@ -201,6 +201,7 @@ onMounted(async () => {
         :to="`/forum/posts/${post.id}`"
         :tags="rowTags(post)"
         :pinned="post.isPinned === 1"
+        :featured="post.isFeatured === 1"
         :rank="hotRank(index)"
         :show-rank="hotRank(index) != null"
         :meta="postMeta(post)"

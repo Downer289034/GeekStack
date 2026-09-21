@@ -190,6 +190,8 @@ onMounted(() => {
           :title="post.title"
           :to="`/forum/posts/${post.id}`"
           :tags="post.tags ?? []"
+          :pinned="post.isPinned === 1"
+          :featured="post.isFeatured === 1"
           :meta="`回帖 ${post.replyCount} · 浏览 ${post.viewCount} · ${formatTime(post.createdAt)}`"
         />
       </div>

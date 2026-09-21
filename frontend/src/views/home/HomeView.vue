@@ -92,9 +92,7 @@ function formatRelative(iso: string | null | undefined): string {
 
 function featuredTags(post: PostCard): string[] {
   const tags = [categoryLabel(post)]
-  if (post.isPinned === 1) tags.push('置顶')
-  else if (post.isHot === 1) tags.push('热门')
-  else tags.push('深度')
+  if (post.isHot === 1 && post.isPinned !== 1 && post.isFeatured !== 1) tags.push('热门')
   return tags.slice(0, 2)
 }
 
@@ -255,6 +253,8 @@ onMounted(() => {
             :title="featured.title"
             :to="`/forum/posts/${featured.id}`"
             :tags="featuredTags(featured)"
+            :pinned="featured.isPinned === 1"
+            :featured="featured.isFeatured === 1"
             :author="authorName(featured)"
             :author-initial="authorInitial(featured)"
             :meta="featuredMeta(featured)"
@@ -267,6 +267,8 @@ onMounted(() => {
             show-rank
             :title="post.title"
             :to="`/forum/posts/${post.id}`"
+            :pinned="post.isPinned === 1"
+            :featured="post.isFeatured === 1"
             :author="authorName(post)"
             :meta="rowMeta(post)"
           />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-export type GsBadgeTone = 'success' | 'warning' | 'error' | 'info' | 'pinned'
+export type GsBadgeTone = 'success' | 'warning' | 'error' | 'info' | 'pinned' | 'featured'
 
 withDefaults(
   defineProps<{
@@ -49,5 +49,10 @@ withDefaults(
 .gs-badge--pinned {
   background: color-mix(in oklch, var(--warning) 15%, transparent);
   color: var(--warning-on);
+}
+
+.gs-badge--featured {
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+  color: var(--accent);
 }
 </style>

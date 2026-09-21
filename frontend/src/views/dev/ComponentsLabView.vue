@@ -52,6 +52,7 @@ const tabs = [
         <GsBadge tone="error">已驳回</GsBadge>
         <GsBadge tone="info">置顶</GsBadge>
         <GsBadge tone="pinned">置顶</GsBadge>
+        <GsBadge tone="featured">精华</GsBadge>
         <GsCodeChip>spring-boot-starter</GsCodeChip>
         <GsCodeChip>Vue3</GsCodeChip>
       </div>

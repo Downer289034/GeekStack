@@ -14,6 +14,8 @@ withDefaults(
     author?: string
     meta?: string
     pinned?: boolean
+    /** 精华（运营加精） */
+    featured?: boolean
   }>(),
   {
     showRank: false,
@@ -23,7 +25,8 @@ withDefaults(
     excerpt: undefined,
     author: undefined,
     meta: undefined,
-    pinned: false
+    pinned: false,
+    featured: false
   }
 )
 
@@ -36,7 +39,7 @@ function formatRank(rank: number | string | null | undefined): string {
 </script>
 
 <template>
-  <article class="gs-feed-row" :class="{ 'is-pinned': pinned }">
+  <article class="gs-feed-row" :class="{ 'is-pinned': pinned, 'is-featured': featured && !pinned }">
     <RouterLink v-if="to" class="gs-feed-row__inner" :to="to">
       <span
         v-if="showRank || rank != null"
@@ -46,8 +49,9 @@ function formatRank(rank: number | string | null | undefined): string {
         {{ formatRank(rank) }}
       </span>
       <div class="gs-feed-row__body">
-        <div v-if="(tags && tags.length) || pinned" class="gs-feed-row__tags">
+        <div v-if="(tags && tags.length) || pinned || featured" class="gs-feed-row__tags">
           <GsBadge v-if="pinned" tone="pinned">置顶</GsBadge>
+          <GsBadge v-if="featured" tone="featured">精华</GsBadge>
           <GsTag v-for="t in tags ?? []" :key="t">{{ t }}</GsTag>
         </div>
         <h3 class="gs-feed-row__title">{{ title }}</h3>
@@ -68,8 +72,9 @@ function formatRank(rank: number | string | null | undefined): string {
         {{ formatRank(rank) }}
       </span>
       <div class="gs-feed-row__body">
-        <div v-if="(tags && tags.length) || pinned" class="gs-feed-row__tags">
+        <div v-if="(tags && tags.length) || pinned || featured" class="gs-feed-row__tags">
           <GsBadge v-if="pinned" tone="pinned">置顶</GsBadge>
+          <GsBadge v-if="featured" tone="featured">精华</GsBadge>
           <GsTag v-for="t in tags ?? []" :key="t">{{ t }}</GsTag>
         </div>
         <h3 class="gs-feed-row__title">{{ title }}</h3>
@@ -91,6 +96,14 @@ function formatRank(rank: number | string | null | undefined): string {
 
 .gs-feed-row.is-pinned {
   background: color-mix(in oklch, var(--accent) 14%, transparent);
+  border-radius: var(--radius-small);
+  padding-inline: 12px;
+  margin-inline: -12px;
+  border-bottom-color: transparent;
+}
+
+.gs-feed-row.is-featured {
+  background: color-mix(in oklch, var(--accent) 7%, transparent);
   border-radius: var(--radius-small);
   padding-inline: 12px;
   margin-inline: -12px;

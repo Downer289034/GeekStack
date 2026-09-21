@@ -3,23 +3,37 @@ import { RouterLink } from 'vue-router'
 import GsTag from '@/components/gs/GsTag.vue'
 import GsBadge from '@/components/gs/GsBadge.vue'
 
-defineProps<{
-  title: string
-  to?: string
-  tags?: string[]
-  excerpt?: string
-  author?: string
-  authorInitial?: string
-  meta?: string
-  pinned?: boolean
-}>()
+withDefaults(
+  defineProps<{
+    title: string
+    to?: string
+    tags?: string[]
+    excerpt?: string
+    author?: string
+    authorInitial?: string
+    meta?: string
+    pinned?: boolean
+    featured?: boolean
+  }>(),
+  {
+    to: undefined,
+    tags: undefined,
+    excerpt: undefined,
+    author: undefined,
+    authorInitial: undefined,
+    meta: undefined,
+    pinned: false,
+    featured: false
+  }
+)
 </script>
 
 <template>
   <article class="gs-featured">
     <RouterLink v-if="to" class="gs-featured__inner" :to="to">
-      <div v-if="(tags && tags.length) || pinned" class="gs-featured__tags">
+      <div v-if="(tags && tags.length) || pinned || featured" class="gs-featured__tags">
         <GsBadge v-if="pinned" tone="pinned">置顶</GsBadge>
+        <GsBadge v-if="featured" tone="featured">精华</GsBadge>
         <GsTag v-for="t in tags ?? []" :key="t">{{ t }}</GsTag>
       </div>
       <h3 class="gs-featured__title">{{ title }}</h3>
@@ -34,8 +48,9 @@ defineProps<{
       </div>
     </RouterLink>
     <div v-else class="gs-featured__inner">
-      <div v-if="(tags && tags.length) || pinned" class="gs-featured__tags">
+      <div v-if="(tags && tags.length) || pinned || featured" class="gs-featured__tags">
         <GsBadge v-if="pinned" tone="pinned">置顶</GsBadge>
+        <GsBadge v-if="featured" tone="featured">精华</GsBadge>
         <GsTag v-for="t in tags ?? []" :key="t">{{ t }}</GsTag>
       </div>
       <h3 class="gs-featured__title">{{ title }}</h3>
@@ -54,30 +69,29 @@ defineProps<{
 
 <style scoped>
 .gs-featured {
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
 }
 
 .gs-featured__inner {
   display: block;
-  padding: 24px 0;
   text-decoration: none;
   color: inherit;
-  cursor: pointer;
+  padding: 20px 0 24px;
+  border-bottom: 1px solid var(--border);
 }
 
 .gs-featured__tags {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .gs-featured__title {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: 1.35rem;
+  font-weight: 700;
   line-height: 1.4;
-  letter-spacing: -0.01em;
-  font-weight: 600;
   color: var(--text-1);
   transition: color 0.15s var(--ease-out);
 }
@@ -89,9 +103,12 @@ defineProps<{
 .gs-featured__excerpt {
   margin: 10px 0 0;
   color: var(--text-2);
-  font-size: 0.925rem;
-  max-width: 62ch;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .gs-featured__byline {
@@ -113,12 +130,12 @@ defineProps<{
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--surface-3);
   display: grid;
   place-items: center;
-  font-size: 0.6rem;
-  color: var(--text-2);
-  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--surface-3);
+  color: var(--text-1);
 }
 
 .gs-featured__dot {

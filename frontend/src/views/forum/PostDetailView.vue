@@ -145,6 +145,7 @@ onMounted(() => {
       <div class="post-card__toolbar">
         <n-space align="center" :wrap="true" class="post-meta">
           <GsBadge v-if="post.isPinned === 1" tone="pinned">置顶</GsBadge>
+          <GsBadge v-if="post.isFeatured === 1" tone="featured">精华</GsBadge>
           <RouterLink
             v-for="tag in post.tags ?? []"
             :key="tag"
