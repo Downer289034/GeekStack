@@ -1,0 +1,14 @@
+﻿{
+  "at": "2026-09-21T09:31:18+08:00",
+  "base": "http://172.25.41.137",
+  "operator": "steward_bot",
+  "operatorId": 628,
+  "postId": 164,
+  "results": [
+    { "action": "featured", "value": 1, "code": 0 },
+    { "action": "pinned", "value": 1, "code": 0 },
+    { "action": "featured", "value": 0, "code": 0 },
+    { "action": "pinned", "value": 0, "code": 0 }
+  ],
+  "notes": "creds offline only; no token/password in evidence"
+}
