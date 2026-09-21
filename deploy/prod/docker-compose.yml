@@ -19,6 +19,7 @@ services:
       - minio
 
   backend:
+    # 变更（含 T-M4-1 Admin）必须 rebuild 本镜像；禁止 docker cp 热更 /app/app.jar
     image: geekstack/backend:latest
     build:
       context: ./backend-build

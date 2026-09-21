@@ -2,6 +2,7 @@
 # 同版本部署：同一 commit 构建 jar + 前端 dist → 只重建 backend/nginx，不动 MySQL/Redis 卷
 # 用法：在仓库根目录执行 bash deploy/prod/deploy.sh
 # 禁止：docker compose down / down -v（会扩大误伤面）
+# 禁止：docker cp 热更 /app/app.jar（含 T-M4-1 AdminController 等变更须本脚本重建 geekstack/backend 镜像）
 set -euo pipefail
 
 SERVER="root@172.25.41.137"
