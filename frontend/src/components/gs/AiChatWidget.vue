@@ -223,13 +223,13 @@ onUnmounted(() => {
       v-show="open"
       class="ai-panel"
       role="dialog"
-      aria-label="极客栈 AI 助手"
+      aria-label="极客栈社区问答助手"
       :aria-modal="isMobile ? 'true' : undefined"
     >
       <header class="ai-panel__head">
         <div class="ai-panel__titles">
-          <span class="ai-panel__title font-display">AI 助手</span>
-          <span class="ai-panel__sub">社区内容问答</span>
+          <span class="ai-panel__title font-display">社区问答</span>
+          <span class="ai-panel__sub">问社区内容 · 非关键字列表</span>
         </div>
         <div class="ai-panel__actions">
           <button
@@ -248,7 +248,7 @@ onUnmounted(() => {
       </header>
 
       <div v-if="loginHint && !auth.isLoggedIn" class="ai-login-hint">
-        <p>登录后即可使用 AI 助手。</p>
+        <p>登录后即可向社区问答助手提问。</p>
         <GsButton variant="primary" @click="goLogin">去登录</GsButton>
       </div>
 
@@ -265,7 +265,7 @@ onUnmounted(() => {
         />
         <template v-else>
           <p v-if="messages.length === 0 && !(loginHint && !auth.isLoggedIn)" class="ai-empty">
-            问问社区里的帖子、Skill 或版规。
+            有问题就问我——基于社区帖子、Skill 与版规作答，不是关键字列表检索。
           </p>
           <div
             v-for="m in messages"
@@ -301,7 +301,7 @@ onUnmounted(() => {
           rows="2"
           maxlength="2000"
           :disabled="sending || !auth.isLoggedIn"
-          placeholder="输入问题，Enter 发送"
+          placeholder="输入你的问题，Enter 发送"
           @keydown="onKeydown"
         />
         <GsButton
@@ -328,7 +328,8 @@ onUnmounted(() => {
       type="button"
       class="ai-fab"
       :aria-expanded="open"
-      aria-label="打开 AI 助手"
+      aria-label="打开社区问答助手"
+      title="社区问答"
       @click="toggleOpen"
     >
       <n-icon :component="open ? CloseOutline : ChatbubbleEllipsesOutline" :size="24" />

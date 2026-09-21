@@ -138,8 +138,9 @@ function logout() {
           <input
             name="q"
             type="search"
-            placeholder="搜索帖子、项目…"
-            aria-label="搜索"
+            placeholder="找帖子、项目、Skill…"
+            aria-label="站内找内容"
+            title="站内找内容（Ctrl+K）"
             autocomplete="off"
           />
           <kbd aria-hidden="true">Ctrl K</kbd>
@@ -148,8 +149,8 @@ function logout() {
           v-else
           class="gs-search gs-search--icon"
           to="/search"
-          aria-label="搜索"
-          title="搜索"
+          aria-label="站内找内容"
+          title="站内找内容"
         >
           <n-icon class="gs-search__icon" :component="SearchOutline" :size="16" />
         </RouterLink>

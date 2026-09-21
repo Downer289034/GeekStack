@@ -177,10 +177,13 @@ onMounted(async () => {
 <template>
   <div class="search-page">
     <div class="search-header">
-      <h2 class="search-title font-display">
-        <n-icon :component="SearchOutline" :size="22" />
-        搜索
-      </h2>
+      <div class="search-heading">
+        <h2 class="search-title font-display">
+          <n-icon :component="SearchOutline" :size="22" />
+          找内容
+        </h2>
+        <p class="search-hint">按关键字找帖子、项目与 Skill · 问答请用右下角助手</p>
+      </div>
       <RouterLink class="search-tags-link" to="/tags">
         <n-icon :component="PricetagOutline" :size="16" />
         浏览标签
@@ -191,7 +194,7 @@ onMounted(async () => {
       v-model:value="qInput"
       size="large"
       clearable
-      placeholder="搜索标题或内容关键字"
+      placeholder="输入关键字，匹配标题或正文"
       class="search-input"
       @keyup.enter="runSearch(1)"
     >
@@ -255,7 +258,7 @@ onMounted(async () => {
         </template>
       </n-empty>
 
-      <n-empty v-else-if="!qActive" description="输入关键字开始搜索">
+      <n-empty v-else-if="!qActive" description="输入关键字开始找内容">
         <template #icon>
           <n-icon :component="SearchOutline" :size="48" />
         </template>
@@ -327,10 +330,17 @@ onMounted(async () => {
 
 .search-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.search-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .search-title {
@@ -341,6 +351,13 @@ onMounted(async () => {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-1);
+}
+
+.search-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-3);
 }
 
 .search-tags-link {
