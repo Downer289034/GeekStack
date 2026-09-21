@@ -19,7 +19,7 @@ export function searchContent(
   )
 }
 
-/** G2：项目标签云（share-only） */
+/** G2：标签云（可见帖 + PUBLISHED share/skill，与 T-BE-4.2 对齐） */
 export interface TagCount {
   name: string
   count: number

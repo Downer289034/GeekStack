@@ -50,15 +50,15 @@ onMounted(() => {
     <div class="tags-header">
       <h2 class="tags-title font-display">
         <n-icon :component="PricetagOutline" :size="22" />
-        项目标签
+        标签云
       </h2>
-      <RouterLink class="tags-to-search" to="/search?type=share">
+      <RouterLink class="tags-to-search" to="/search">
         <n-icon :component="SearchOutline" :size="16" />
-        搜索项目
+        找内容
       </RouterLink>
     </div>
 
-    <p class="tags-hint">当前为项目分享标签（share-only）；帖子标签待后端字段就绪后再扩展。</p>
+    <p class="tags-hint">计数含可见帖子、已发布项目与 Skill。</p>
 
     <GsSkeleton v-if="loading" variant="row" :count="4" />
 
@@ -70,7 +70,7 @@ onMounted(() => {
       </n-empty>
       <n-empty
         v-else-if="tags.length === 0"
-        description="暂无标签，去发布带标签的项目吧"
+        description="暂无标签，发帖或发布项目 / Skill 时可添加"
       >
         <template #icon>
           <n-icon :component="CubeOutline" :size="48" />
